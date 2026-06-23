@@ -1,0 +1,13 @@
+node_modules
+.next
+dist
+coverage
+
+.env
+.env.local
+.env.development
+.env.production
+
+pnpm-lock.yaml
+
+.DS_Store
