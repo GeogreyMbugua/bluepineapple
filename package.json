@@ -1,15 +1,27 @@
 {
   "name": "blue-pineapple",
+  "version": "0.1.0",
   "private": true,
-  "packageManager": "pnpm@10",
+  "packageManager": "pnpm@11.7.0",
+  "engines": {
+    "node": ">=22.0.0",
+    "pnpm": ">=11.7.0"
+  },
   "scripts": {
-    "dev": "turbo dev",
-    "build": "turbo build",
-    "lint": "turbo lint",
-    "test": "turbo test",
-    "typecheck": "turbo typecheck"
+    "dev": "turbo run dev",
+    "build": "turbo run build",
+    "lint": "turbo run lint",
+    "test": "turbo run test",
+    "typecheck": "turbo run typecheck",
+    "clean": "turbo run clean",
+    "format": "prettier --write ."
   },
   "devDependencies": {
+    "@types/node": "^26.0.0",
+    "dotenv-cli": "^11.0.0",
+    "eslint": "^10.5.0",
+    "prettier": "^3.8.4",
+    "tsx": "^4.22.4",
     "turbo": "^2.5.0",
     "typescript": "^5.8.0"
   }
