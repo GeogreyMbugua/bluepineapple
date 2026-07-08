@@ -3,7 +3,7 @@
 import { motion } from "framer-motion";
 import Image from "next/image";
 
-const houseImage = "/assets/house.png";
+const houseImage = "/bluepineapple/assets/house.png";
 
 export function Contact() {
     return (

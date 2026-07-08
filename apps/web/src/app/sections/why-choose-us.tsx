@@ -4,32 +4,32 @@ import { useState } from "react";
 import { motion } from "framer-motion";
 import Image from "next/image";
 import { Compass, Landmark, ShieldCheck, Sparkles, Plus, Minus } from "lucide-react";
-const houseImage = "/assets/house.png";
+const houseImage = "/bluepineapple/assets/house.png";
 
 const whyChooseUsData = [
     {
         title: "Premium Coastal Experiences",
         description: "From private charters to curated itineraries, every journey is designed around comfort, safety, and memorable detail.",
         icon: <Compass className="size-4 text-zinc-700" />,
-        image: "/assets/galleryImage1.png",
+        image: "/bluepineapple/assets/galleryImage1.png",
     },
     {
         title: "Trusted Operations",
         description: "Reliable execution, clear coordination, and thoughtful delivery help every partner and guest feel confident from start to finish.",
         icon: <ShieldCheck className="size-4 text-zinc-700" />,
-        image: "/assets/galleryImage2.png",
+        image: "/bluepineapple/assets/galleryImage2.png",
     },
     {
         title: "Real Estate Vision",
         description: "Our expansion into property and investment is grounded in the same long-term thinking that defines our experience-led platform.",
         icon: <Landmark className="size-4 text-zinc-700" />,
-        image: "/assets/galleryImage3.png",
+        image: "/bluepineapple/assets/galleryImage3.png",
     },
     {
         title: "Future-Ready Growth",
         description: "Blue Pineapple brings together hospitality, partnerships, and investment opportunity under a single premium brand story.",
         icon: <Sparkles className="size-4 text-zinc-700" />,
-        image: "/assets/galleryImage4.png",
+        image: "/bluepineapple/assets/galleryImage4.png",
     },
 ];
 

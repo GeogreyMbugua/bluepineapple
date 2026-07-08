@@ -11,7 +11,7 @@ export function Footer() {
                     {/* Left Brand Details */}
                     <div className="lg:col-span-7 flex flex-col items-start gap-6">
                         <a href="#" className="select-none">
-                            <img src="/logos/logo.avif" alt="Blue Pineapple Holdings" />
+                            <img src="/bluepineapple/logos/logo.avif" alt="Blue Pineapple Holdings" />
                         </a>
                         <p className="text-zinc-300 text-sm/5.5 max-w-md">
                             Blue Pineapple Holdings brings together premium experiences, trusted partners, and operational excellence in a single platform story.

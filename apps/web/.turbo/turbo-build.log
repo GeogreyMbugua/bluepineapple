@@ -1,8 +1,0 @@
-$ next build
-▲ Next.js 16.2.9 (Turbopack)
-- Environments: .env
-
-  Creating an optimized production build ...
-✓ Compiled successfully in 17.1s
-  Running TypeScript ...
-[ELIFECYCLE] Command failed.

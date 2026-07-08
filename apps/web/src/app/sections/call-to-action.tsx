@@ -4,9 +4,9 @@ import { MoveRight } from "lucide-react";
 import Image from "next/image";
 import { motion } from "framer-motion";
 
-const galleryImage1 = "/assets/galleryImage1.png";
-const galleryImage2 = "/assets/galleryImage2.png";
-const galleryImage3 = "/assets/galleryImage3.png";
+const galleryImage1 = "/bluepineapple/assets/galleryImage1.png";
+const galleryImage2 = "/bluepineapple/assets/galleryImage2.png";
+const galleryImage3 = "/bluepineapple/assets/galleryImage3.png";
 
 export function CallToAction() {
   return (

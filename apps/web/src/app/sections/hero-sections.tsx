@@ -43,13 +43,13 @@ export function HeroSection() {
                 animate={{ scale: 1 }}
                 transition={{ duration: 1.6, ease: [0.22, 1, 0.36, 1] }}
             >
-                <motion.div
-                    className="h-full w-full bg-cover bg-center bg-no-repeat"
-                    style={{ backgroundImage: "url('/hero.webp')" }}
-                    initial={{ scale: 1 }}
-                    animate={{ scale: 1.05 }}
-                    transition={{ duration: 20, ease: "linear" }}
-                />
+                    <motion.div
+                        className="absolute inset-0 h-full w-full bg-cover bg-center bg-no-repeat"
+                        style={{ backgroundImage: "url('./hero.webp')" }}
+                        initial={{ scale: 1 }}
+                        animate={{ scale: 1.05 }}
+                        transition={{ duration: 20, ease: "linear" }}
+                    />
             </motion.div>
 
             {/* Legibility gradients — imagery stays visible on the right, text reads on the left */}

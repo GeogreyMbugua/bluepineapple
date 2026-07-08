@@ -15,13 +15,13 @@ const testimonialsCol1: Testimonial[] = [
     {
         name: "Amina Hassan",
         location: "Guest Experience Partner",
-        avatar: "/assets/galleryImage1.png",
+        avatar: "/bluepineapple/assets/galleryImage1.png",
         text: "The platform feels premium and dependable. Every touchpoint reflects the care and quality Blue Pineapple is known for.",
     },
     {
         name: "Noah Mwangi",
         location: "Property & Growth Lead",
-        avatar: "/assets/galleryImage2.png",
+        avatar: "/bluepineapple/assets/galleryImage2.png",
         text: "It is refreshing to see a company that can tell a clear story across tourism, real estate, and future investment opportunities.",
     },
 ];
@@ -30,13 +30,13 @@ const testimonialsCol2: Testimonial[] = [
     {
         name: "Lina Okafor",
         location: "Operations & Partnerships",
-        avatar: "/assets/galleryImage3.png",
+        avatar: "/bluepineapple/assets/galleryImage3.png",
         text: "The experience is polished, welcoming, and structured in a way that feels ready for growth.",
     },
     {
         name: "Daniel Kibet",
         location: "Coastal Operations",
-        avatar: "/assets/galleryImage4.png",
+        avatar: "/bluepineapple/assets/galleryImage4.png",
         text: "Blue Pineapple brings clarity and confidence to every partnership, from guest journeys to long-term investment discussions.",
     },
 ];

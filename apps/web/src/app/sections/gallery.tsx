@@ -8,8 +8,8 @@ export function Gallery() {
     const trackRef = useRef<HTMLDivElement>(null);
 
     const images = [
-        "/assets/galleryImage1.png", "/assets/galleryImage2.png", "/assets/galleryImage3.png", "/assets/galleryImage4.png",
-        "/assets/galleryImage1.png", "/assets/galleryImage2.png", "/assets/galleryImage3.png", "/assets/galleryImage4.png"
+        "/bluepineapple/assets/galleryImage1.png", "/bluepineapple/assets/galleryImage2.png", "/bluepineapple/assets/galleryImage3.png", "/bluepineapple/assets/galleryImage4.png",
+        "/bluepineapple/assets/galleryImage1.png", "/bluepineapple/assets/galleryImage2.png", "/bluepineapple/assets/galleryImage3.png", "/bluepineapple/assets/galleryImage4.png"
     ];
 
     useEffect(() => {
