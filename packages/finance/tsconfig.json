@@ -1,0 +1,18 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "outDir": "dist",
+    "rootDir": "..",
+    "exactOptionalPropertyTypes": false,
+    "paths": {
+      "@blue-pineapple/database": ["../database/src/index.ts"],
+      "@blue-pineapple/database/*": ["../database/src/*"],
+      "@blue-pineapple/iam": ["../iam/src/index.ts"],
+      "@blue-pineapple/iam/*": ["../iam/src/*"]
+    }
+  },
+  "include": ["src"]
+}
+  },
+  "include": ["src"]
+}

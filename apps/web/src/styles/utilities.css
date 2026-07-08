@@ -1,0 +1,59 @@
+/*
+ * Blue Pineapple — Custom Utilities & Component Base Styles
+ *
+ * Reusable utility classes and component-layer base styles that extend
+ * Tailwind. Keeps component files focused on structure, not styling boilerplate.
+ */
+
+@layer components {
+  /* Page container with responsive horizontal padding */
+  .container-page {
+    @apply mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8;
+  }
+
+  /* Narrow content container for text-heavy pages */
+  .container-narrow {
+    @apply mx-auto w-full max-w-3xl px-4 sm:px-6;
+  }
+
+  /* Card surface */
+  .surface-card {
+    @apply rounded-lg border border-border bg-card text-card-foreground shadow-sm;
+  }
+
+  /* Interactive card (hoverable) */
+  .surface-card-interactive {
+    @apply rounded-lg border border-border bg-card text-card-foreground shadow-sm transition-shadow duration-200 hover:shadow-md;
+  }
+
+  /* Section with vertical spacing */
+  .section-spacing {
+    @apply py-12 sm:py-16 lg:py-20;
+  }
+}
+
+@layer utilities {
+  /* Text balance for headings */
+  .text-balance {
+    text-wrap: balance;
+  }
+
+  /* Text pretty for body copy */
+  .text-pretty {
+    text-wrap: pretty;
+  }
+
+  /* Focus ring utility */
+  .focus-ring {
+    @apply outline-none ring-2 ring-ring ring-offset-2 ring-offset-background;
+  }
+
+  /* Scrollbar hidden */
+  .scrollbar-hidden {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  .scrollbar-hidden::-webkit-scrollbar {
+    display: none;
+  }
+}

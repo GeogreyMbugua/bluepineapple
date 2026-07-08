@@ -6,3 +6,3060 @@ datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
 }
+
+//
+// ENUMS
+//
+
+enum UserStatus {
+  ACTIVE
+  INACTIVE
+  SUSPENDED
+  PENDING_VERIFICATION
+}
+
+enum OtpPurpose {
+  LOGIN
+  BOOKING_CONFIRMATION
+  PAYMENT_CONFIRMATION
+  PASSWORD_RESET
+}
+
+enum PartnerStatus {
+  PENDING
+  ACTIVE
+  SUSPENDED
+  TERMINATED
+}
+
+enum AuthEvent {
+  LOGIN_REQUESTED
+  LOGIN_SUCCESS
+  LOGIN_FAILED
+  OTP_SENT
+  OTP_VERIFIED
+  SESSION_CREATED
+  SESSION_REVOKED
+  LOGOUT
+}
+
+//
+// EXPERIENCES
+//
+
+enum ExperienceCategory {
+  TRANSPORT
+  LEISURE
+  ADVENTURE
+  PRIVATE
+  CORPORATE
+}
+
+model Experience {
+  id                  String   @id @default(uuid())
+  name                String
+  slug                String   @unique
+  description         String?  @db.Text
+  shortDescription    String?  @db.Text
+  durationMinutes     Int?
+  defaultPrice        Decimal? @db.Decimal(10, 2)
+  currency            String?  @default("KES")
+  category            ExperienceCategory
+  isFeatured          Boolean  @default(false)
+  isActive            Boolean  @default(true)
+  heroImageUrl        String?
+  galleryUrls         String[] @default([])
+  maxGroupSize        Int?
+  minGroupSize        Int?
+  requirements        String[] @default([])
+  includes            String[] @default([])
+  highlights          String[] @default([])
+  meta                Json?
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  routes              ExperienceRoute[]
+  departures          Departure[]
+
+  @@index([slug])
+  @@index([category])
+  @@index([isActive])
+  @@index([isFeatured])
+  @@map("experiences")
+}
+
+//
+// EXPERIENCE ROUTES (many-to-many)
+//
+
+model ExperienceRoute {
+  id            String   @id @default(uuid())
+  experienceId  String
+  routeId       String
+  isDefault     Boolean  @default(false)
+  sortOrder     Int      @default(0)
+  createdAt     DateTime @default(now())
+
+  experience    Experience @relation(fields: [experienceId], references: [id], onDelete: Cascade)
+  route         Route      @relation(fields: [routeId], references: [id], onDelete: Cascade)
+
+  @@unique([experienceId, routeId])
+  @@index([experienceId])
+  @@index([routeId])
+  @@map("experience_routes")
+}
+
+//
+// ROUTES
+//
+
+model Route {
+  id                      String   @id @default(uuid())
+  name                    String
+  code                    String   @unique
+  description             String?  @db.Text
+  estimatedDurationMinutes Int?
+  isActive                Boolean  @default(true)
+  createdAt               DateTime @default(now())
+  updatedAt               DateTime @updatedAt
+
+  stops                   RouteStop[]
+  departures              Departure[]
+  experienceRoutes        ExperienceRoute[]
+
+  @@index([isActive])
+  @@map("routes")
+}
+
+model RouteStop {
+  id                        String   @id @default(uuid())
+  routeId                   String
+  name                      String
+  code                      String?  @unique
+  sequence                  Int
+  latitude                  Decimal? @db.Decimal(10, 8)
+  longitude                 Decimal? @db.Decimal(11, 8)
+  isPickupPoint             Boolean  @default(true)
+  isDropoffPoint            Boolean  @default(true)
+  estimatedArrivalMinutes   Int?
+  notes                     String?
+  createdAt                 DateTime @default(now())
+  updatedAt                 DateTime @updatedAt
+
+  route Route @relation(fields: [routeId], references: [id], onDelete: Cascade)
+
+  pickupBookings Booking[] @relation("PickupStopBookings")
+
+  @@unique([routeId, sequence])
+  @@unique([routeId, code])
+  @@index([routeId])
+  @@map("route_stops")
+}
+
+//
+// FLEET
+//
+
+enum VesselStatus {
+  ACTIVE
+  INACTIVE
+  MAINTENANCE
+  DECOMMISSIONED
+}
+
+model Vessel {
+  id              String        @id @default(uuid())
+  name            String        @unique
+  registration    String?       @unique
+  capacity        Int
+  status          VesselStatus  @default(ACTIVE)
+  type            VesselType?
+  operatorName    String?
+  ownerName       String?
+  notes           String?
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  departures      Departure[]
+  maintenanceLogs VesselMaintenanceLog[]
+
+  @@index([status])
+  @@index([name])
+  @@map("vessels")
+}
+
+enum VesselType {
+  FERRY
+  SPEEDBOAT
+  DHOW
+  CATAMARAN
+  CATAMARAN_LUXURY
+}
+
+model VesselMaintenanceLog {
+  id          String   @id @default(uuid())
+  vesselId    String
+  description String
+  performedAt DateTime
+  createdAt   DateTime @default(now())
+
+  vessel Vessel @relation(fields: [vesselId], references: [id], onDelete: Cascade)
+
+  @@index([vesselId])
+  @@index([performedAt])
+  @@map("vessel_maintenance_logs")
+}
+
+//
+// DEPARTURES
+//
+
+enum DepartureStatus {
+  SCHEDULED
+  BOARDING
+  DEPARTED
+  COMPLETED
+  CANCELLED
+}
+
+model Departure {
+  id                    String           @id @default(uuid())
+  vesselId              String
+  routeId               String
+  experienceId          String
+  departureDateTime     DateTime
+  arrivalDateTime       DateTime?
+  totalCapacity         Int
+  bookedSeats           Int              @default(0)
+  availableCapacity     Int
+  status                DepartureStatus  @default(SCHEDULED)
+  specialInstructions   String?
+  createdAt             DateTime         @default(now())
+  updatedAt             DateTime         @updatedAt
+
+  vessel     Vessel     @relation(fields: [vesselId], references: [id], onDelete: Restrict)
+  route      Route      @relation(fields: [routeId], references: [id], onDelete: Restrict)
+  experience Experience @relation(fields: [experienceId], references: [id], onDelete: Restrict)
+  bookings   Booking[]
+
+  @@index([vesselId])
+  @@index([routeId])
+  @@index([experienceId])
+  @@index([departureDateTime])
+  @@index([status])
+  @@map("departures")
+}
+
+//
+// GUESTS
+//
+
+model Guest {
+  id              String   @id @default(uuid())
+  firstName       String
+  lastName        String
+  email           String?
+  phone           String?
+  idNumber        String?
+  nationality     String?
+  country         String?
+  dateOfBirth     DateTime?
+  specialRequests String?
+  notes           String?
+  marketingOptIn  Boolean  @default(false)
+  totalVisits     Int      @default(0)
+  firstVisitAt    DateTime?
+  lastVisitAt     DateTime?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  bookings        Booking[]
+
+  @@index([email])
+  @@index([phone])
+  @@index([lastVisitAt])
+  @@map("guests")
+}
+
+//
+// BOOKINGS
+//
+
+enum BookingSource {
+  PARTNER
+  DIRECT
+  ADMIN
+  HOTEL
+  CORPORATE
+}
+
+enum BookingStatus {
+  PENDING
+  CONFIRMED
+  CANCELLED
+  COMPLETED
+  NO_SHOW
+}
+
+enum BookingPaymentStatus {
+  PENDING
+  PAID
+  REFUNDED
+  PARTIALLY_REFUNDED
+}
+
+model Booking {
+  id                  String           @id @default(uuid())
+  bookingReference    String           @unique
+  departureId         String
+  partnerId           String
+  guestId             String?
+  totalGuests         Int
+  totalAmount         Decimal          @db.Decimal(10, 2)
+  currency            String           @default("KES")
+  status              BookingStatus    @default(PENDING)
+  paymentStatus       BookingPaymentStatus    @default(PENDING)
+  source              BookingSource    @default(PARTNER)
+  pickupStopId        String?
+  specialRequests     String?
+  notes               String?
+  cancelledAt         DateTime?
+  cancelledBy         String?
+  cancellationReason  String?
+  rewardEligible      Boolean          @default(true)
+  rewardProcessedAt   DateTime?
+  createdAt           DateTime         @default(now())
+  updatedAt           DateTime         @updatedAt
+
+  departure        Departure          @relation(fields: [departureId], references: [id], onDelete: Restrict)
+  partner          PartnerProfile     @relation(fields: [partnerId], references: [id], onDelete: Restrict)
+  guest            Guest?             @relation(fields: [guestId], references: [id])
+  pickupStop       RouteStop?         @relation("PickupStopBookings", fields: [pickupStopId], references: [id])
+  guests           BookingGuest[]
+  statusHistory    BookingStatusHistory[]
+  rewards          RewardTransaction[]
+
+  @@index([departureId])
+  @@index([partnerId])
+  @@index([guestId])
+  @@index([status])
+  @@index([createdAt])
+  @@map("bookings")
+}
+
+model BookingGuest {
+  id          String   @id @default(uuid())
+  bookingId   String
+  fullName    String
+  idNumber    String?
+  phoneNumber String?
+  isPrimary   Boolean  @default(false)
+  createdAt   DateTime @default(now())
+
+  booking Booking @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+
+  @@index([bookingId])
+  @@map("booking_guests")
+}
+
+model BookingStatusHistory {
+  id              String   @id @default(uuid())
+  bookingId       String
+  oldStatus       BookingStatus?
+  newStatus       BookingStatus
+  reason          String?
+  changedByUserId String?
+  changedAt       DateTime @default(now())
+
+  booking Booking @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  user   User?   @relation("BookingAuditUser", fields: [changedByUserId], references: [id])
+
+  @@index([bookingId])
+  @@index([changedAt])
+  @@map("booking_status_history")
+}
+
+//
+// REWARDS
+//
+
+enum RewardStatus {
+  PENDING
+  APPROVED
+  PAID_OUT
+  EXPIRED
+  REVERSED
+}
+
+model RewardTransaction {
+  id              String       @id @default(uuid())
+  bookingId       String       @unique
+  partnerId       String
+  ruleId          String
+  version         Int          @default(1)
+  pointsEarned    Int
+  cashValue       Decimal?     @db.Decimal(10, 2)
+  currency        String?      @default("KES")
+  status          RewardStatus @default(PENDING)
+  description     String?
+  metadata        Json?
+  createdAt       DateTime     @default(now())
+  processedAt     DateTime?
+
+  booking Booking    @relation(fields: [bookingId], references: [id], onDelete: Restrict)
+  partner PartnerProfile @relation(fields: [partnerId], references: [id], onDelete: Restrict)
+  rule    RewardRule   @relation(fields: [ruleId], references: [id])
+
+  @@index([partnerId])
+  @@index([ruleId])
+  @@index([status])
+  @@index([createdAt])
+  @@map("reward_transactions")
+}
+
+model RewardRule {
+  id              String   @id @default(uuid())
+  name            String   @unique
+  version         Int      @default(1)
+  description     String?
+  pointsPerBooking Int
+  cashMultiplier  Decimal? @db.Decimal(5, 4)
+  currency        String?  @default("KES")
+  isActive        Boolean  @default(true)
+  effectiveFrom   DateTime
+  effectiveTo     DateTime?
+  minGuests       Int?     @default(1)
+  maxGuests       Int?
+  experienceIds   String[] @default([])
+  routeIds        String[] @default([])
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  transactions    RewardTransaction[]
+
+  @@index([isActive])
+  @@index([effectiveFrom, effectiveTo])
+  @@map("reward_rules")
+}
+// USERS
+//
+
+model User {
+  id String @id @default(uuid())
+
+  email String? @unique
+  phone String? @unique
+
+  firstName String
+  lastName  String
+
+  status UserStatus @default(PENDING_VERIFICATION)
+
+  emailVerifiedAt DateTime?
+  phoneVerifiedAt DateTime?
+
+  lastLoginAt DateTime?
+
+  roles UserRole[]
+
+  sessions  Session[]
+  otpTokens OtpToken[]
+  authLogs  AuthLog[]
+
+  partnerProfile       PartnerProfile?
+  partnerStatusChanges PartnerStatusHistory[] @relation("PartnerStatusChangedBy")
+
+  bookingStatusChanges BookingStatusHistory[] @relation("BookingAuditUser")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([status])
+  @@map("users")
+}
+
+//
+// ROLES
+//
+
+model Role {
+  id String @id @default(uuid())
+
+  name String @unique
+
+  description String?
+
+  users UserRole[]
+
+  permissions RolePermission[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("roles")
+}
+
+//
+// PERMISSIONS
+//
+
+model Permission {
+  id String @id @default(uuid())
+
+  key String @unique
+
+  description String?
+
+  roles RolePermission[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("permissions")
+}
+
+//
+// USER ROLES
+//
+
+model UserRole {
+  userId String
+  roleId String
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role Role @relation(fields: [roleId], references: [id], onDelete: Cascade)
+
+  assignedAt DateTime @default(now())
+
+  @@id([userId, roleId])
+  @@index([userId])
+  @@index([roleId])
+  @@map("user_roles")
+}
+
+//
+// ROLE PERMISSIONS
+//
+
+model RolePermission {
+  roleId String
+
+  permissionId String
+
+  role Role @relation(fields: [roleId], references: [id], onDelete: Cascade)
+
+  permission Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
+
+  assignedAt DateTime @default(now())
+
+  @@id([roleId, permissionId])
+  @@index([roleId])
+  @@index([permissionId])
+  @@map("role_permissions")
+}
+
+//
+// SESSIONS
+//
+
+model Session {
+  id String @id @default(uuid())
+
+  userId String
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  refreshToken String @unique
+
+  expiresAt DateTime
+
+  revokedAt DateTime?
+
+  ipAddress String?
+
+  userAgent String?
+
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+  @@index([expiresAt])
+  @@map("sessions")
+}
+
+//
+// OTP TOKENS
+//
+
+model OtpToken {
+  id String @id @default(uuid())
+
+  userId String
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  hashedOtp String
+
+  purpose OtpPurpose
+
+  expiresAt DateTime
+
+  usedAt DateTime?
+
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+  @@index([purpose])
+  @@index([expiresAt])
+  @@map("otp_tokens")
+}
+
+//
+// AUTH LOGS
+//
+
+model AuthLog {
+  id String @id @default(uuid())
+
+  userId String?
+
+  user User? @relation(fields: [userId], references: [id])
+
+  event AuthEvent
+
+  ipAddress String?
+
+  userAgent String?
+
+  metadata Json?
+
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+  @@index([event])
+  @@index([createdAt])
+  @@map("auth_logs")
+}
+
+//
+// PARTNER PROFILE
+//
+
+model PartnerProfile {
+  id String @id @default(uuid())
+
+  userId String @unique
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  partnerCode String @unique
+
+  companyName String?
+
+  commissionRate Decimal @db.Decimal(5, 2)
+
+  status PartnerStatus @default(ACTIVE)
+
+  joinedAt DateTime @default(now())
+
+  payoutAccounts PartnerPayoutAccount[]
+
+  statusHistory PartnerStatusHistory[]
+
+  bookings Booking[]
+  rewards RewardTransaction[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([status])
+  @@map("partner_profiles")
+}
+
+//
+// PARTNER PAYOUT ACCOUNTS
+//
+
+model PartnerPayoutAccount {
+  id String @id @default(uuid())
+
+  partnerId String
+
+  partner PartnerProfile @relation(fields: [partnerId], references: [id], onDelete: Cascade)
+
+  accountName String
+
+  accountNumber String
+
+  bankName String?
+
+  mpesaNumber String?
+
+  isDefault Boolean @default(false)
+
+  createdAt DateTime @default(now())
+
+  @@index([partnerId])
+  @@map("partner_payout_accounts")
+}
+
+//
+// PARTNER STATUS HISTORY
+//
+
+model PartnerStatusHistory {
+  id String @id @default(uuid())
+
+  partnerId String
+
+  partner PartnerProfile @relation(fields: [partnerId], references: [id], onDelete: Cascade)
+
+  oldStatus PartnerStatus
+
+  newStatus PartnerStatus
+
+  reason String?
+
+  changedByUserId String?
+
+  changedBy User? @relation("PartnerStatusChangedBy", fields: [changedByUserId], references: [id])
+
+  createdAt DateTime @default(now())
+
+@@index([partnerId])
+@@index([changedByUserId])
+@@map("partner_status_history")
+}
+
+//
+// OPERATIONS DOMAIN
+//
+
+enum VoyageStatus {
+  PLANNED
+  READY
+  BOARDING
+  DEPARTED
+  ARRIVED
+  COMPLETED
+  CANCELLED
+  ABORTED
+}
+
+enum CrewRole {
+  CAPTAIN
+  DECKHAND
+  GUIDE
+  ENGINEER
+  OPERATIONS_MANAGER
+}
+
+enum ManifestStatus {
+  RESERVED
+  CHECKED_IN
+  BOARDED
+  ON_VOYAGE
+  COMPLETED
+  NO_SHOW
+  CANCELLED
+}
+
+enum IncidentType {
+  MEDICAL
+  MECHANICAL
+  WEATHER
+  PASSENGER
+  SAFETY
+  NAVIGATION
+}
+
+enum IncidentSeverity {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}
+
+enum ReadinessCheckType {
+  CREW_ASSIGNED
+  MAINTENANCE_COMPLETE
+  INSPECTION_COMPLETE
+  FUEL_CONFIRMED
+  SAFETY_EQUIPMENT_CONFIRMED
+  WEATHER_ACCEPTABLE
+}
+
+model Voyage {
+  id                 String        @id @default(uuid())
+  voyageNumber       String        @unique
+  departureId        String        @unique
+  vesselId           String
+  routeId            String
+  status             VoyageStatus  @default(PLANNED)
+  scheduledDeparture DateTime
+  actualDeparture    DateTime?
+  scheduledArrival   DateTime?
+  actualArrival      DateTime?
+  captainId          String?
+  operationalNotes   String?       @db.Text
+  weatherSummary     String?       @db.Text
+  cancellationReason String?
+  completionSummary  String?       @db.Text
+  version            Int           @default(1)
+  createdAt          DateTime      @default(now())
+  updatedAt          DateTime      @updatedAt
+
+  @@index([status])
+  @@index([departureId])
+  @@index([vesselId])
+  @@index([captainId])
+  @@index([scheduledDeparture])
+  @@map("voyages")
+}
+
+model CrewMember {
+  id           String    @id @default(uuid())
+  userId       String?   @unique
+  firstName    String
+  lastName     String
+  crewRole     CrewRole
+  licenseNumber String?
+  certification String?
+  isActive     Boolean   @default(true)
+  notes        String?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  @@index([crewRole])
+  @@index([isActive])
+  @@map("crew_members")
+}
+
+model CrewAssignment {
+  id        String   @id @default(uuid())
+  voyageId  String
+  crewMemberId String
+  crewRole    CrewRole
+  assignedBy  String
+  assignedAt  DateTime @default(now())
+  notes       String?
+
+  @@unique([voyageId, crewMemberId])
+  @@index([voyageId])
+  @@index([crewMemberId])
+  @@map("crew_assignments")
+}
+
+model PassengerManifest {
+  id            String        @id @default(uuid())
+  voyageId      String
+  bookingId     String
+  guestId       String
+  status        ManifestStatus @default(RESERVED)
+  checkInId     String?       @unique
+  boardingId    String?       @unique
+  notes         String?
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+  version       Int           @default(1)
+
+  @@unique([voyageId, bookingId])
+  @@index([voyageId])
+  @@index([bookingId])
+  @@index([guestId])
+  @@index([status])
+  @@map("passenger_manifests")
+}
+
+model CheckIn {
+  id         String   @id @default(uuid())
+  manifestId String   @unique
+  voyageId   String
+  checkedInAt DateTime @default(now())
+  checkedById String
+  boardingGroup String?
+  notes      String?
+
+  @@index([voyageId])
+  @@index([checkedInAt])
+  @@map("check_ins")
+}
+
+model Boarding {
+  id         String   @id @default(uuid())
+  manifestId String   @unique
+  voyageId   String
+  boardedAt   DateTime @default(now())
+  boardedById String
+  status      String   @default("BOARDED")
+  notes       String?
+
+  @@index([voyageId])
+  @@index([boardedAt])
+  @@map("boardings")
+}
+
+model VesselReadinessCheck {
+  id         String              @id @default(uuid())
+  voyageId   String
+  checkType  ReadinessCheckType
+  status     Boolean             @default(false)
+  verifiedBy String?
+  verifiedAt DateTime?
+  notes      String?
+
+  @@unique([voyageId, checkType])
+  @@index([voyageId])
+  @@map("vessel_readiness_checks")
+}
+
+model OperationalIncident {
+  id          String        @id @default(uuid())
+  voyageId    String
+  type        IncidentType
+  severity    IncidentSeverity @default(MEDIUM)
+  description String
+  resolution  String?
+  recordedBy  String
+  recordedAt  DateTime      @default(now())
+  metadata    Json?
+
+  @@index([voyageId])
+  @@index([type])
+  @@index([severity])
+  @@map("operational_incidents")
+}
+
+model VoyageTimeline {
+  id        String   @id @default(uuid())
+  voyageId  String
+  eventType String
+  eventAt   DateTime @default(now())
+  userId    String?
+  notes     String?
+  metadata  Json?
+
+  @@index([voyageId])
+  @@index([eventType])
+  @@index([eventAt])
+  @@map("voyage_timelines")
+}
+
+//
+// COMMERCIAL DOMAIN
+//
+
+enum PricingStrategy {
+  FIXED
+  SEASONAL
+  DYNAMIC
+  PARTNER
+  CORPORATE
+  HOTEL
+  RESIDENT
+  INTERNATIONAL
+  PRIVATE_CHARTER
+  VIP
+}
+
+enum PriceStatus {
+  DRAFT
+  ACTIVE
+  EXPIRED
+  ARCHIVED
+}
+
+enum PromotionType {
+  PERCENTAGE
+  FIXED_AMOUNT
+  BUY_X_GET_Y
+  FREE_ITEM
+  BUNDLE
+}
+
+enum PromotionStatus {
+  DRAFT
+  ACTIVE
+  PAUSED
+  EXPIRED
+  DEPLETED
+}
+
+enum PromotionStackability {
+  STACKABLE
+  NON_STACKABLE
+}
+
+enum QuoteStatus {
+  DRAFT
+  ACTIVE
+  CONVERTED
+  EXPIRED
+  CANCELLED
+}
+
+enum HoldStatus {
+  ACTIVE
+  EXPIRED
+  CONVERTED
+  RELEASED
+}
+
+enum CancellationWindow {
+  FLEXIBLE
+  MODERATE
+  STRICT
+  SUPER_STRICT
+  CUSTOM
+}
+
+enum RefundCalculationStatus {
+  PENDING
+  CALCULATED
+  APPROVED
+  EXECUTED
+  FAILED
+}
+
+enum CommissionType {
+  PARTNER
+  CORPORATE
+  TRAVEL_AGENT
+  REFERRAL
+  INTERNAL_SALES
+}
+
+enum TaxType {
+  VAT
+  TOURISM_LEVY
+  MARINE_CONSERVATION_FEE
+  SERVICE_CHARGE
+  COUNTY_TAX
+}
+
+enum TaxJurisdiction {
+  KENYA
+  INTERNATIONAL
+  CUSTOM
+}
+
+enum AddOnCategory {
+  TRANSPORT
+  CATERING
+  EXPERIENCE
+  SERVICE
+  INSURANCE
+  MERCHANDISE
+}
+
+enum RuleType {
+  SEASON
+  HOLIDAY
+  WEEKEND
+  TIME_OF_DAY
+  GROUP_SIZE
+  CUSTOMER_CATEGORY
+  CUSTOMER_TYPE
+  EXPERIENCE
+  ROUTE
+  DEPARTURE_TIME
+  VESSEL_CLASS
+  PROMOTIONAL_PERIOD
+  MIN_STAY
+  ADVANCE_BOOKING
+  CUSTOM
+}
+
+//
+// PRICE LISTS
+//
+
+model PriceList {
+  id              String        @id @default(uuid())
+  name            String
+  description     String?
+  experienceId    String?
+  status          PriceStatus   @default(DRAFT)
+  effectiveFrom   DateTime
+  effectiveTo     DateTime?
+  priority        Int           @default(0)
+  version         Int           @default(1)
+  currency        String        @default("KES")
+  createdBy       String?
+  isActive        Boolean       @default(true)
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  items           PriceListItem[]
+  rules           PricingRule[]
+  addOnPrices     AddOnPrice[]
+
+  @@index([experienceId])
+  @@index([status])
+  @@index([effectiveFrom, effectiveTo])
+  @@index([priority])
+  @@map("price_lists")
+}
+
+model PriceListItem {
+  id            String    @id @default(uuid())
+  priceListId   String
+  name          String
+  description   String?
+  basePrice     Decimal   @db.Decimal(10, 2)
+  currency      String    @default("KES")
+  customerCategory String?
+  ageGroup      String?
+  minGuests     Int?
+  maxGuests     Int?
+  seatClass     String?
+  meta          Json?
+  isActive      Boolean   @default(true)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  priceList     PriceList @relation(fields: [priceListId], references: [id], onDelete: Cascade)
+
+  @@unique([priceListId, name, customerCategory, ageGroup, seatClass])
+  @@index([priceListId])
+  @@index([customerCategory])
+  @@map("price_list_items")
+}
+
+//
+// PRICING RULES
+//
+
+model PricingRule {
+  id           String   @id @default(uuid())
+  priceListId  String?
+  name         String
+  description  String?
+  ruleType     RuleType
+  conditions   Json
+  priority     Int      @default(0)
+  isActive     Boolean  @default(true)
+  effectiveFrom DateTime
+  effectiveTo  DateTime?
+  createdBy    String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  priceList    PriceList? @relation(fields: [priceListId], references: [id], onDelete: Cascade)
+
+  @@index([priceListId])
+  @@index([ruleType])
+  @@index([effectiveFrom, effectiveTo])
+  @@index([priority])
+  @@map("pricing_rules")
+}
+
+//
+// SEASONS
+//
+
+model Season {
+  id          String   @id @default(uuid())
+  name        String   @unique
+  description String?
+  startDate   DateTime
+  endDate     DateTime
+  recurring   Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([startDate, endDate])
+  @@map("seasons")
+}
+
+//
+// PROMOTIONS
+//
+
+model Promotion {
+  id              String           @id @default(uuid())
+  name            String
+  code            String           @unique
+  description     String?
+  type            PromotionType
+  status          PromotionStatus  @default(DRAFT)
+  stackability    PromotionStackability @default(NON_STACKABLE)
+  discountValue   Decimal          @db.Decimal(10, 2)
+  isPercentage    Boolean          @default(true)
+  maxDiscountAmount Decimal?      @db.Decimal(10, 2)
+  minPurchaseAmount Decimal?      @db.Decimal(10, 2)
+  maxUsageCount   Int?
+  perUserLimit    Int?
+  usageCount      Int              @default(0)
+  applicableTo    Json?
+  metadata        Json?
+  effectiveFrom   DateTime
+  effectiveTo     DateTime
+  createdBy       String?
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+
+  rules           PromotionRule[]
+  usages          PromotionUsage[]
+
+  @@index([code])
+  @@index([status])
+  @@index([effectiveFrom, effectiveTo])
+  @@index([type])
+  @@map("promotions")
+}
+
+model PromotionRule {
+  id          String   @id @default(uuid())
+  promotionId String
+  ruleType    RuleType
+  conditions  Json
+  priority    Int      @default(0)
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+
+  promotion   Promotion @relation(fields: [promotionId], references: [id], onDelete: Cascade)
+
+  @@index([promotionId])
+  @@index([ruleType])
+  @@index([priority])
+  @@map("promotion_rules")
+}
+
+model PromotionUsage {
+  id           String    @id @default(uuid())
+  promotionId  String
+  bookingId    String?
+  userId       String?
+  guestId      String?
+  partnerId    String?
+  discountApplied Decimal @db.Decimal(10, 2)
+  currency     String    @default("KES")
+  usedAt       DateTime  @default(now())
+
+  promotion    Promotion @relation(fields: [promotionId], references: [id], onDelete: Cascade)
+
+  @@index([promotionId])
+  @@index([userId])
+  @@index([partnerId])
+  @@index([usedAt])
+  @@map("promotion_usages")
+}
+
+//
+// QUOTATIONS
+//
+
+model Quote {
+  id                  String      @id @default(uuid())
+  quoteReference      String      @unique
+  experienceId        String?
+  departureId         String?
+  customerCategory    String?
+  guestCount          Int
+  basePrice           Decimal     @db.Decimal(10, 2)
+  subtotal            Decimal     @db.Decimal(10, 2)
+  discountAmount      Decimal     @db.Decimal(10, 2) @default(0)
+  taxAmount           Decimal     @db.Decimal(10, 2) @default(0)
+  totalAmount         Decimal     @db.Decimal(10, 2)
+  currency            String      @default("KES")
+  status              QuoteStatus @default(DRAFT)
+  validUntil          DateTime
+  convertedToBookingId String?
+  metadata            Json?
+  pricingSnapshot     Json?
+  createdBy           String?
+  createdAt           DateTime    @default(now())
+  updatedAt           DateTime    @updatedAt
+
+  items               QuoteItem[]
+
+  @@index([quoteReference])
+  @@index([status])
+  @@index([experienceId])
+  @@index([createdAt])
+  @@map("quotes")
+}
+
+model QuoteItem {
+  id          String   @id @default(uuid())
+  quoteId     String
+  type        String
+  description String
+  quantity    Int      @default(1)
+  unitPrice   Decimal  @db.Decimal(10, 2)
+  totalPrice  Decimal  @db.Decimal(10, 2)
+  currency    String   @default("KES")
+  meta        Json?
+  createdAt   DateTime @default(now())
+
+  quote       Quote @relation(fields: [quoteId], references: [id], onDelete: Cascade)
+
+  @@index([quoteId])
+  @@map("quote_items")
+}
+
+//
+// RESERVATION HOLDS
+//
+
+model ReservationHold {
+  id               String           @id @default(uuid())
+  holdReference    String           @unique
+  experienceId     String?
+  departureId      String?
+  date             DateTime?
+  guestCount       Int
+  expiresAt        DateTime
+  status           HoldStatus       @default(ACTIVE)
+  convertedToBookingId String?
+  convertedToQuoteId    String?
+  metadata         Json?
+  createdBy        String?
+  createdAt        DateTime         @default(now())
+  updatedAt        DateTime         @updatedAt
+
+  @@index([holdReference])
+  @@index([status])
+  @@index([expiresAt])
+  @@index([experienceId])
+  @@index([departureId])
+  @@map("reservation_holds")
+}
+
+//
+// CANCELLATION POLICIES
+//
+
+model CancellationPolicy {
+  id              String           @id @default(uuid())
+  name            String
+  description     String?
+  experienceId    String?
+  partnerId       String?
+  corporateId     String?
+  windowType      CancellationWindow
+  hoursBefore     Int
+  refundPercentage Decimal        @db.Decimal(5, 2)
+  penaltyAmount   Decimal?        @db.Decimal(10, 2)
+  penaltyType     String?         @default("PERCENTAGE")
+  administrativeFee Decimal?      @db.Decimal(10, 2)
+  allowRefund     Boolean          @default(true)
+  isDefault       Boolean          @default(false)
+  priority        Int              @default(0)
+  effectiveFrom   DateTime
+  effectiveTo     DateTime?
+  isActive        Boolean          @default(true)
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+
+  @@index([experienceId])
+  @@index([partnerId])
+  @@index([windowType])
+  @@index([effectiveFrom, effectiveTo])
+  @@index([priority])
+  @@map("cancellation_policies")
+}
+
+//
+// REFUND POLICIES
+//
+
+model RefundCalculation {
+  id                String       @id @default(uuid())
+  calculationReference String   @unique
+  bookingId         String
+  baseAmount        Decimal      @db.Decimal(10, 2)
+  penaltyAmount     Decimal      @db.Decimal(10, 2) @default(0)
+  administrativeFee Decimal      @db.Decimal(10, 2) @default(0)
+  refundAmount      Decimal      @db.Decimal(10, 2)
+  currency           String       @default("KES")
+  status             RefundCalculationStatus @default(PENDING)
+  approvedAt         DateTime?
+  executedAt         DateTime?
+  paymentTransactionId String?
+  notes              String?
+  metadata           Json?
+  calculatedAt       DateTime     @default(now())
+  updatedAt          DateTime     @updatedAt
+
+  @@index([bookingId])
+  @@index([status])
+  @@index([calculationReference])
+  @@index([calculatedAt])
+  @@map("refund_calculations")
+}
+
+//
+// TAXES
+//
+
+model TaxRule {
+  id            String         @id @default(uuid())
+  name          String
+  description   String?
+  type          TaxType
+  jurisdiction  TaxJurisdiction
+  rate          Decimal        @db.Decimal(5, 4)
+  isPercentage  Boolean        @default(true)
+  isInclusive   Boolean        @default(false)
+  appliesTo     Json?
+  effectiveFrom DateTime
+  effectiveTo   DateTime?
+  priority      Int            @default(0)
+  isActive      Boolean        @default(true)
+  isDefault     Boolean        @default(false)
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+
+  calculations  TaxCalculation[]
+
+  @@index([type])
+  @@index([jurisdiction])
+  @@index([effectiveFrom, effectiveTo])
+  @@index([isActive])
+  @@map("tax_rules")
+}
+
+model TaxCalculation {
+  id            String    @id @default(uuid())
+  taxRuleId     String
+  bookingId     String?
+  quoteId       String?
+  taxableAmount Decimal   @db.Decimal(10, 2)
+  taxAmount     Decimal   @db.Decimal(10, 2)
+  currency      String    @default("KES")
+  appliedAt     DateTime  @default(now())
+
+  taxRule       TaxRule @relation(fields: [taxRuleId], references: [id], onDelete: Restrict)
+
+  @@index([taxRuleId])
+  @@index([bookingId])
+  @@index([quoteId])
+  @@index([appliedAt])
+  @@map("tax_calculations")
+}
+
+//
+// COMMISSIONS
+//
+
+model CommissionRule {
+  id            String         @id @default(uuid())
+  name          String
+  description   String?
+  type          CommissionType
+  rate          Decimal        @db.Decimal(5, 4)
+  isPercentage  Boolean        @default(true)
+  fixedAmount   Decimal?       @db.Decimal(10, 2)
+  appliesTo     Json?
+  effectiveFrom DateTime
+  effectiveTo   DateTime?
+  priority      Int            @default(0)
+  isActive      Boolean        @default(true)
+  isDefault     Boolean        @default(false)
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+
+  calculations  CommissionCalculation[]
+
+  @@index([type])
+  @@index([effectiveFrom, effectiveTo])
+  @@index([isActive])
+  @@map("commission_rules")
+}
+
+model CommissionCalculation {
+  id             String    @id @default(uuid())
+  commissionRuleId String
+  bookingId      String?
+  partnerId      String?
+  baseAmount     Decimal   @db.Decimal(10, 2)
+  commissionAmount Decimal @db.Decimal(10, 2)
+  currency       String   @default("KES")
+  status         String   @default("CALCULATED")
+  calculatedAt   DateTime @default(now())
+  paidAt         DateTime?
+
+  commissionRule CommissionRule @relation(fields: [commissionRuleId], references: [id], onDelete: Restrict)
+
+  @@index([commissionRuleId])
+  @@index([partnerId])
+  @@index([bookingId])
+  @@index([calculatedAt])
+  @@map("commission_calculations")
+}
+
+//
+// COMMERCIAL SUMMARIES
+//
+
+model CommercialSummary {
+  id              String    @id @default(uuid())
+  summaryReference String  @unique
+  bookingId       String?   @unique
+  quoteId         String?   @unique
+  basePrice       Decimal   @db.Decimal(10, 2)
+  addOnsTotal     Decimal   @db.Decimal(10, 2) @default(0)
+  subtotal        Decimal   @db.Decimal(10, 2)
+  discountAmount  Decimal   @db.Decimal(10, 2) @default(0)
+  taxAmount       Decimal   @db.Decimal(10, 2) @default(0)
+  commissionAmount Decimal  @db.Decimal(10, 2) @default(0)
+  totalAmount     Decimal   @db.Decimal(10, 2)
+  currency        String   @default("KES")
+  status          String   @default("PENDING")
+  isLocked        Boolean  @default(false)
+  generatedAt     DateTime @default(now())
+  confirmedAt     DateTime?
+  metadata        Json?
+
+  @@index([summaryReference])
+  @@index([bookingId])
+  @@index([quoteId])
+  @@index([status])
+  @@index([generatedAt])
+  @@map("commercial_summaries")
+}
+
+//
+// ADD-ONS
+//
+
+model AddOn {
+  id            String         @id @default(uuid())
+  name          String
+  description   String?
+  category      AddOnCategory
+  experienceId  String?
+  isPerPerson   Boolean        @default(true)
+  isActive      Boolean        @default(true)
+  metadata      Json?
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+
+  prices        AddOnPrice[]
+
+  @@index([experienceId])
+  @@index([category])
+  @@index([isActive])
+  @@map("add_ons")
+}
+
+model AddOnPrice {
+  id          String   @id @default(uuid())
+  addOnId     String
+  priceListId String?
+  name        String
+  description String?
+  price       Decimal  @db.Decimal(10, 2)
+  currency    String   @default("KES")
+  effectiveFrom DateTime
+  effectiveTo   DateTime?
+  priority      Int    @default(0)
+  isActive      Boolean @default(true)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  addOn       AddOn     @relation(fields: [addOnId], references: [id], onDelete: Cascade)
+  priceList   PriceList? @relation(fields: [priceListId], references: [id], onDelete: SetNull)
+
+  @@unique([addOnId, name])
+  @@index([addOnId])
+  @@index([priceListId])
+  @@index([effectiveFrom, effectiveTo])
+  @@map("add_on_prices")
+}
+
+//
+// COMMERCIAL AUDIT
+//
+
+enum CommercialAuditAction {
+  PRICE_LIST_CREATED
+  PRICE_LIST_ACTIVATED
+  PRICE_LIST_EXPIRED
+  PRICE_LIST_UPDATED
+  PRICING_RULE_CREATED
+  PRICING_RULE_UPDATED
+  PRICING_RULE_DELETED
+  PROMOTION_CREATED
+  PROMOTION_ACTIVATED
+  PROMOTION_PAUSED
+  PROMOTION_EXPIRED
+  PROMOTION_USED
+  PROMOTION_REJECTED
+  QUOTE_CREATED
+  QUOTE_EXPIRED
+  QUOTE_CONVERTED
+  QUOTE_CANCELLED
+  HOLD_CREATED
+  HOLD_EXPIRED
+  HOLD_CONVERTED
+  HOLD_RELEASED
+  COMMERCIAL_SUMMARY_GENERATED
+  COMMERCIAL_SUMMARY_CONFIRMED
+  TAX_RULE_CREATED
+  TAX_RULE_UPDATED
+  TAX_RULE_ACTIVATED
+  COMMISSION_RULE_CREATED
+  COMMISSION_RULE_UPDATED
+  CANCELLATION_POLICY_CREATED
+  CANCELLATION_POLICY_UPDATED
+  REFUND_CALCULATED
+  REFUND_APPROVED
+  REFUND_EXECUTED
+  REFUND_FAILED
+  ADD_ON_CREATED
+  ADD_ON_UPDATED
+  PRICE_OVERRIDE
+  DISCOUNT_APPLIED
+  DISCOUNT_REJECTED
+}
+
+model CommercialAuditLog {
+  id          String   @id @default(uuid())
+  userId      String?
+  action      CommercialAuditAction
+  entityType  String
+  entityId    String
+  oldValues   Json?
+  newValues   Json?
+  metadata    Json?
+  ipAddress   String?
+  userAgent   String?
+  createdAt   DateTime @default(now())
+
+  @@index([userId])
+  @@index([action])
+  @@index([entityId])
+  @@index([entityType])
+  @@index([createdAt])
+  @@map("commercial_audit_logs")
+}
+
+//
+// CUSTOMER RELATIONSHIP MANAGEMENT (CRM) DOMAIN
+//
+
+// CRM ENUMS
+
+enum CustomerStatus {
+  ACTIVE
+  INACTIVE
+  SUSPENDED
+  ARCHIVED
+}
+
+enum CustomerType {
+  INDIVIDUAL
+  CORPORATE
+  FAMILY
+  GROUP
+  GOVERNMENT
+  SCHOOL
+  MEDIA
+  INFLUENCER
+  TRAVEL_AGENT
+}
+
+enum ContactType {
+  EMAIL
+  PHONE
+  WHATSAPP
+  MOBILE
+  WORK
+  HOME
+  FAX
+}
+
+enum ContactPurpose {
+  PRIMARY
+  BILLING
+  EMERGENCY
+  BOOKING
+  MARKETING
+}
+
+enum AddressType {
+  HOME
+  WORK
+  BILLING
+  SHIPPING
+  PICKUP
+}
+
+enum ConsentChannel {
+  EMAIL
+  SMS
+  WHATSAPP
+  PUSH
+  POSTAL
+}
+
+enum ConsentType {
+  MARKETING_EMAIL
+  MARKETING_SMS
+  MARKETING_WHATSAPP
+  PROMOTIONS
+  TERMS_ACCEPTED
+  PRIVACY_ACCEPTED
+  DATA_PROCESSING
+}
+
+enum RelationshipType {
+  PARENT
+  CHILD
+  SPOUSE
+  GUARDIAN
+  EMERGENCY_CONTACT
+  EMPLOYER
+  EMPLOYEE
+  COLLEAGUE
+}
+
+enum DocumentType {
+  PASSPORT
+  NATIONAL_ID
+  VISA
+  INSURANCE
+  CONSENT_FORM
+  WAIVER
+  MEDICAL_CLEARANCE
+  BIRTH_CERTIFICATE
+}
+
+enum DocumentStatus {
+  PENDING
+  VERIFIED
+  EXPIRED
+  REJECTED
+}
+
+enum InteractionType {
+  PHONE_CALL
+  EMAIL
+  WHATSAPP
+  VISIT
+  COMPLAINT
+  FEEDBACK
+  SUPPORT_TICKET
+  REFUND_REQUEST
+  INCIDENT
+  SPECIAL_REQUEST
+}
+
+enum InteractionDirection {
+  INBOUND
+  OUTBOUND
+}
+
+enum LoyaltyTierRank {
+  BRONZE
+  SILVER
+  GOLD
+  PLATINUM
+  VIP
+}
+
+enum TimelineEventType {
+  CUSTOMER_CREATED
+  CUSTOMER_UPDATED
+  REQUESTED_QUOTE
+  QUOTE_APPROVED
+  RESERVATION_HOLD_CREATED
+  BOOKING_CREATED
+  PAYMENT_RECEIVED
+  VOUCHER_ISSUED
+  CHECKED_IN
+  BOARDED
+  VOYAGE_COMPLETED
+  REWARD_ISSUED
+  PROMOTION_SENT
+  CUSTOMER_RETURNED
+  REFERRAL_GENERATED
+  SEGMENT_ASSIGNED
+  TIER_UPGRADED
+  TIER_DOWNGRADED
+  NOTE_ADDED
+  DOCUMENT_UPLOADED
+  CONSENT_UPDATED
+  COMPLAINT_LOGGED
+  FEEDBACK_RECEIVED
+  CUSTOMER_MERGED
+}
+
+// CRM MODELS
+
+model Customer {
+  id                    String           @id @default(uuid())
+  customerNumber        String?          @unique
+  firstName             String
+  lastName              String
+  displayName           String?
+  email                 String?
+  phone                 String?
+  alternativePhone      String?
+  dateOfBirth           DateTime?
+  nationality           String?
+  countryOfResidence    String?
+  idNumber              String?
+  idType                String?
+  gender                String?
+  title                 String?
+  occupation            String?
+  company               String?
+  source                String?
+  referrerCustomerId    String?
+  marketingOptIn        Boolean          @default(false)
+  isCorporate           Boolean          @default(false)
+  isTravelAgent         Boolean          @default(false)
+  isVip                 Boolean          @default(false)
+  lifetimeValue         Decimal          @db.Decimal(12, 2) @default(0)
+  totalSpend            Decimal          @db.Decimal(12, 2) @default(0)
+  totalBookings         Int              @default(0)
+  totalTripsCompleted   Int              @default(0)
+  totalTripsCancelled   Int              @default(0)
+  totalRewardsEarned    Decimal          @db.Decimal(12, 2) @default(0)
+  referralCount         Int              @default(0)
+  outstandingBalance    Decimal          @db.Decimal(12, 2) @default(0)
+  lastBookingAt         DateTime?
+  lastVisitAt           DateTime?
+  firstVisitAt          DateTime?
+  nextAppointmentAt     DateTime?
+  preferredLanguage     String?
+  preferredCurrency     String?
+  notes                 String?          @db.Text
+  metadata              Json?
+  status                CustomerStatus   @default(ACTIVE)
+  version               Int              @default(1)
+  createdAt             DateTime         @default(now())
+  updatedAt             DateTime         @updatedAt
+
+  contacts              CustomerContact[]
+  addresses             CustomerAddress[]
+  preferences           CustomerPreference[]
+  segmentAssignments    CustomerSegmentAssignment[]
+  tags                  CustomerTag[]
+  timeline              CustomerTimeline[]
+  interactions          CustomerInteraction[]
+  consents              CustomerConsent[]
+  outgoingRelationships CustomerRelationship[] @relation("CustomerReferrer")
+  incomingRelationships CustomerRelationship[] @relation("CustomerRelated")
+  documents             CustomerDocument[]
+  loyaltyAccount        LoyaltyAccount?
+
+  @@index([email])
+  @@index([phone])
+  @@index([customerNumber])
+  @@index([status])
+  @@index([isVip])
+  @@index([isCorporate])
+  @@index([lastVisitAt])
+  @@index([lifetimeValue])
+  @@index([createdAt])
+  @@map("customers")
+}
+
+model CustomerContact {
+  id          String         @id @default(uuid())
+  customerId  String
+  type        ContactType
+  value       String
+  label       String?
+  isPrimary   Boolean        @default(false)
+  isVerified  Boolean        @default(false)
+  verifiedAt  DateTime?
+  purpose     ContactPurpose @default(PRIMARY)
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+
+  customer Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+
+  @@unique([customerId, type, value])
+  @@index([customerId])
+  @@index([type])
+  @@map("customer_contacts")
+}
+
+model CustomerAddress {
+  id            String      @id @default(uuid())
+  customerId    String
+  type          AddressType
+  line1          String
+  line2          String?
+  city           String?
+  region         String?
+  country        String?
+  postalCode     String?
+  isPrimary      Boolean     @default(false)
+  createdAt      DateTime    @default(now())
+  updatedAt      DateTime    @updatedAt
+
+  customer Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+
+  @@index([customerId])
+  @@index([country])
+  @@map("customer_addresses")
+}
+
+model CustomerPreference {
+  id            String   @id @default(uuid())
+  customerId    String
+  category      String
+  key           String
+  value         String
+  metadata      Json?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  customer Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+
+  @@unique([customerId, category, key])
+  @@index([customerId])
+  @@index([category])
+  @@map("customer_preferences")
+}
+
+model CustomerSegment {
+  id          String   @id @default(uuid())
+  name        String   @unique
+  code        String   @unique
+  description String?
+  color       String?
+  isSystem    Boolean  @default(false)
+  isActive    Boolean  @default(true)
+  priority    Int      @default(0)
+  metadata    Json?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  assignments CustomerSegmentAssignment[]
+
+  @@index([code])
+  @@index([isActive])
+  @@index([priority])
+  @@map("customer_segments")
+}
+
+model CustomerSegmentAssignment {
+  id          String    @id @default(uuid())
+  customerId  String
+  segmentId   String
+  assignedBy  String?
+  expiresAt   DateTime?
+  metadata    Json?
+  assignedAt  DateTime  @default(now())
+
+  customer Customer        @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  segment  CustomerSegment @relation(fields: [segmentId], references: [id], onDelete: Cascade)
+
+  @@unique([customerId, segmentId])
+  @@index([customerId])
+  @@index([segmentId])
+  @@index([expiresAt])
+  @@map("customer_segment_assignments")
+}
+
+model CustomerTag {
+  id          String   @id @default(uuid())
+  customerId  String
+  tag         String
+  color       String?
+  metadata    Json?
+  createdBy   String?
+  createdAt   DateTime @default(now())
+
+  customer Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+
+  @@unique([customerId, tag])
+  @@index([customerId])
+  @@index([tag])
+  @@map("customer_tags")
+}
+
+model CustomerTimeline {
+  id                String          @id @default(uuid())
+  customerId        String
+  eventType         TimelineEventType
+  description       String
+  relatedEntityType String?
+  relatedEntityId   String?
+  metadata          Json?
+  recordedBy        String?
+  createdAt         DateTime        @default(now())
+
+  customer Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+
+  @@index([customerId])
+  @@index([eventType])
+  @@index([relatedEntityType, relatedEntityId])
+  @@index([createdAt])
+  @@map("customer_timelines")
+}
+
+model CustomerInteraction {
+  id                String              @id @default(uuid())
+  customerId        String
+  type              InteractionType
+  direction         InteractionDirection @default(INBOUND)
+  subject           String?
+  summary           String?
+  details           String?             @db.Text
+  outcome           String?
+  durationMinutes   Int?
+  relatedEntityType String?
+  relatedEntityId   String?
+  metadata          Json?
+  createdBy         String?
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
+
+  customer Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+
+  @@index([customerId])
+  @@index([type])
+  @@index([direction])
+  @@index([relatedEntityType, relatedEntityId])
+  @@index([createdAt])
+  @@map("customer_interactions")
+}
+
+model CustomerConsent {
+  id            String      @id @default(uuid())
+  customerId    String
+  channel       ConsentChannel
+  consentType   ConsentType
+  isGranted     Boolean
+  ipAddress     String?
+  userAgent     String?
+  consentVersion String?
+  withdrawnAt   DateTime?
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+
+  customer Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+
+  @@unique([customerId, channel, consentType])
+  @@index([customerId])
+  @@index([channel])
+  @@index([consentType])
+  @@map("customer_consents")
+}
+
+model CustomerRelationship {
+  id               String           @id @default(uuid())
+  customerId       String
+  relatedCustomerId String
+  type             RelationshipType
+  isEmergency      Boolean          @default(false)
+  isPrimary        Boolean          @default(false)
+  metadata         Json?
+  createdAt        DateTime         @default(now())
+
+  customer    Customer @relation("CustomerReferrer", fields: [customerId], references: [id], onDelete: Cascade)
+  related     Customer @relation("CustomerRelated", fields: [relatedCustomerId], references: [id], onDelete: Cascade)
+
+  @@unique([customerId, relatedCustomerId, type])
+  @@index([customerId])
+  @@index([relatedCustomerId])
+  @@index([type])
+  @@map("customer_relationships")
+}
+
+model CustomerDocument {
+  id                String         @id @default(uuid())
+  customerId        String
+  type              DocumentType
+  documentNumber    String?
+  issuingCountry    String?
+  issuingAuthority  String?
+  issueDate         DateTime?
+  expiryDate        DateTime?
+  status            DocumentStatus @default(PENDING)
+  fileUrl           String?
+  fileKey           String?
+  mimeType          String?
+  fileSize          Int?
+  verifiedBy        String?
+  verifiedAt        DateTime?
+  notes             String?
+  metadata          Json?
+  createdAt         DateTime       @default(now())
+  updatedAt         DateTime       @updatedAt
+
+  customer Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+
+  @@index([customerId])
+  @@index([type])
+  @@index([status])
+  @@index([expiryDate])
+  @@map("customer_documents")
+}
+
+model LoyaltyTier {
+  id              String       @id @default(uuid())
+  name            String       @unique
+  code            String       @unique
+  level           Int          @default(0)
+  minPoints       Int          @default(0)
+  minSpend        Decimal?     @db.Decimal(12, 2)
+  minBookings     Int?         @default(0)
+  benefits        Json?
+  color           String?
+  isActive        Boolean      @default(true)
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime     @updatedAt
+
+  accounts LoyaltyAccount[]
+
+  @@index([level])
+  @@index([isActive])
+  @@map("loyalty_tiers")
+}
+
+model LoyaltyAccount {
+  id                String    @id @default(uuid())
+  customerId        String    @unique
+  tierId            String
+  pointsBalance     Int       @default(0)
+  totalPointsEarned Int       @default(0)
+  totalPointsRedeemed Int      @default(0)
+  lifetimeEarnings  Decimal   @db.Decimal(12, 2) @default(0)
+  currentValue      Decimal   @db.Decimal(12, 2) @default(0)
+  enrolledAt        DateTime  @default(now())
+  tierUpgradedAt    DateTime?
+  tierExpiresAt     DateTime?
+  metadata          Json?
+  updatedAt         DateTime  @updatedAt
+
+  customer Customer    @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  tier     LoyaltyTier @relation(fields: [tierId], references: [id])
+
+  @@index([customerId])
+  @@index([tierId])
+  @@index([pointsBalance])
+  @@map("loyalty_accounts")
+}
+
+//
+// FINANCE DOMAIN
+//
+
+enum PaymentProviderType {
+  MPESA
+  STRIPE
+  FLUTTERWAVE
+  PESAPAL
+  CASH
+  BANK_TRANSFER
+}
+
+enum PaymentMethod {
+  CARD
+  MPESA
+  BANK_TRANSFER
+  CASH
+  WALLET
+  CORPORATE_CREDIT
+  GIFT_CARD
+}
+
+enum PaymentStatus {
+  PENDING
+  AUTHORIZED
+  CAPTURED
+  FAILED
+  CANCELLED
+  EXPIRED
+  REFUNDED
+  PARTIALLY_REFUNDED
+}
+
+enum IntentStatus {
+  PENDING
+  AUTHORIZED
+  CAPTURED
+  FAILED
+  CANCELLED
+  EXPIRED
+}
+
+enum LedgerEntryType {
+  DEBIT
+  CREDIT
+}
+
+enum WalletType {
+  CUSTOMER
+  PARTNER
+  CORPORATE
+  REWARD
+  GIFT_CARD
+  INVESTOR
+  STORE_CREDIT
+}
+
+enum WalletStatus {
+  ACTIVE
+  FROZEN
+  CLOSED
+}
+
+enum WalletTransactionType {
+  CREDIT
+  DEBIT
+  TRANSFER
+  EXPIRATION
+  ADJUSTMENT
+}
+
+enum InvoiceStatus {
+  DRAFT
+  ISSUED
+  PAID
+  OVERDUE
+  CANCELLED
+  CREDITED
+}
+
+enum RefundStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  PROCESSING
+  COMPLETED
+  FAILED
+}
+
+enum RefundType {
+  FULL
+  PARTIAL
+  MANUAL
+  AUTOMATIC
+}
+
+enum SettlementStatus {
+  CREATED
+  APPROVED
+  PROCESSING
+  COMPLETED
+  FAILED
+  REVERSED
+}
+
+enum SettlementType {
+  PARTNER_PAYOUT
+  SUPPLIER_PAYMENT
+  OWNER_DISTRIBUTION
+  COMMISSION
+}
+
+enum AccountType {
+  ASSET
+  LIABILITY
+  EQUITY
+  REVENUE
+  EXPENSE
+}
+
+enum JournalEntryStatus {
+  DRAFT
+  POSTED
+  REVERSED
+}
+
+enum RevenueRecognitionStatus {
+  PENDING
+  RECOGNIZED
+  DEFERRED
+}
+
+enum TaxCategory {
+  VAT
+  TOURISM_LEVY
+  MARINE_CONSERVATION_FEE
+  SERVICE_CHARGE
+  COUNTY_TAX
+  PROPERTY_TAX
+  INCOME_TAX
+}
+
+enum ReconciliationStatus {
+  PENDING
+  IN_PROGRESS
+  RECONCILED
+  DISCREPANCY
+  RESOLVED
+}
+
+enum PayoutStatus {
+  PENDING
+  APPROVED
+  PROCESSING
+  COMPLETED
+  FAILED
+  REVERSED
+}
+
+model PaymentProvider {
+  id              String   @id @default(uuid())
+  type            PaymentProviderType
+  name            String
+  isActive        Boolean  @default(true)
+  config          Json?
+  priority        Int      @default(0)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  payments        Payment[]
+  providerResponses PaymentProviderResponse[]
+
+  @@index([type])
+  @@index([isActive])
+  @@map("payment_providers")
+}
+
+model PaymentIntent {
+  id                String       @id @default(uuid())
+  intentReference   String       @unique
+  bookingId         String?
+  commercialSummaryId String?
+  customerId        String?
+  partnerId         String?
+  amount            Decimal      @db.Decimal(12, 2)
+  currency          String       @default("KES")
+  status            IntentStatus @default(PENDING)
+  paymentMethod     PaymentMethod
+  providerType      PaymentProviderType
+  idempotencyKey    String?      @unique
+  correlationId     String?
+  metadata          Json?
+  expiresAt         DateTime?
+  capturedAt        DateTime?
+  cancelledAt       DateTime?
+  failedAt          DateTime?
+  failureReason     String?
+  retryCount        Int          @default(0)
+  maxRetries        Int          @default(3)
+  createdAt         DateTime     @default(now())
+  updatedAt         DateTime     @updatedAt
+
+  payments          Payment[]
+  providerResponses PaymentProviderResponse[]
+
+  @@index([intentReference])
+  @@index([bookingId])
+  @@index([status])
+  @@index([customerId])
+  @@index([partnerId])
+  @@index([correlationId])
+  @@index([idempotencyKey])
+  @@index([createdAt])
+  @@map("payment_intents")
+}
+
+model Payment {
+  id                 String       @id @default(uuid())
+  paymentReference   String       @unique
+  intentId           String
+  providerId         String?
+  amount             Decimal      @db.Decimal(12, 2)
+  currency           String       @default("KES")
+  status             PaymentStatus
+  paymentMethod      PaymentMethod
+  providerType       PaymentProviderType
+  providerPaymentId  String?
+  authorizationCode  String?
+  providerResponse   Json?
+  failureCode        String?
+  failureReason      String?
+  metadata           Json?
+  capturedAt         DateTime?
+  settledAt          DateTime?
+  refundedAt         DateTime?
+  createdAt          DateTime     @default(now())
+  updatedAt          DateTime     @updatedAt
+  version            Int          @default(1)
+
+  intent             PaymentIntent @relation(fields: [intentId], references: [id], onDelete: Restrict)
+  provider           PaymentProvider? @relation(fields: [providerId], references: [id])
+
+  refunds            Refund[]
+  providerResponses  PaymentProviderResponse[]
+  ledgerEntries      LedgerEntry[]
+
+  @@index([paymentReference])
+  @@index([intentId])
+  @@index([status])
+  @@index([providerId])
+  @@index([createdAt])
+  @@map("payments")
+}
+
+model PaymentProviderResponse {
+  id                String   @id @default(uuid())
+  paymentIntentId   String?
+  paymentId         String?
+  providerId        String?
+  providerName      String
+  providerPaymentId String?
+  requestPayload    Json?
+  responsePayload   Json?
+  isSuccess         Boolean
+  errorCode         String?
+  errorMessage      String?
+  httpStatusCode    Int?
+  latencyMs         Int?
+  createdAt         DateTime @default(now())
+
+  paymentIntent     PaymentIntent? @relation(fields: [paymentIntentId], references: [id], onDelete: SetNull)
+  payment           Payment?       @relation(fields: [paymentId], references: [id], onDelete: SetNull)
+  provider          PaymentProvider? @relation(fields: [providerId], references: [id], onDelete: SetNull)
+
+  @@index([paymentIntentId])
+  @@index([paymentId])
+  @@index([providerId])
+  @@index([providerPaymentId])
+  @@index([createdAt])
+  @@map("payment_provider_responses")
+}
+
+model LedgerEntry {
+  id              String           @id @default(uuid())
+  entryReference  String           @unique
+  entryType       LedgerEntryType
+  accountCode     String
+  accountName     String
+  debitAmount     Decimal?         @db.Decimal(12, 2)
+  creditAmount    Decimal?         @db.Decimal(12, 2)
+  currency        String           @default("KES")
+  exchangeRate    Decimal?         @db.Decimal(12, 6)
+  baseCurrencyAmount Decimal?      @db.Decimal(12, 2)
+  sourceDomain    String
+  sourceEntityId  String
+  sourceEntityType String
+  description     String
+  paymentId       String?
+  invoiceId       String?
+  walletId        String?
+  settlementId    String?
+  refundId        String?
+  taxLedgerEntryId String?
+  journalEntryId  String?
+  metadata        Json?
+  postedAt        DateTime
+  createdBy       String?
+  correlationId   String?
+  fiscalPeriodId  String?
+  version         Int              @default(1)
+  createdAt       DateTime         @default(now())
+
+  payment         Payment?      @relation(fields: [paymentId], references: [id])
+  invoices        Invoice[]     @relation("LedgerInvoiceEntries")
+  wallets         Wallet[]      @relation("LedgerWalletEntries")
+
+  @@index([entryReference])
+  @@index([entryType])
+  @@index([accountCode])
+  @@index([sourceDomain])
+  @@index([sourceEntityId, sourceEntityType])
+  @@index([paymentId])
+  @@index([invoiceId])
+  @@index([walletId])
+  @@index([settlementId])
+  @@index([correlationId])
+  @@index([fiscalPeriodId])
+  @@index([postedAt])
+  @@map("ledger_entries")
+}
+
+model Wallet {
+  id                 String           @id @default(uuid())
+  walletReference    String           @unique
+  walletType         WalletType
+  status             WalletStatus     @default(ACTIVE)
+  ownerId            String
+  ownerType          String
+  currency           String           @default("KES")
+  balance            Decimal          @db.Decimal(12, 2) @default(0)
+  availableBalance   Decimal          @db.Decimal(12, 2) @default(0)
+  frozenAmount       Decimal          @db.Decimal(12, 2) @default(0)
+  expiresAt          DateTime?
+  closedAt           DateTime?
+  closedReason       String?
+  metadata           Json?
+  version            Int              @default(1)
+  createdAt          DateTime         @default(now())
+  updatedAt          DateTime         @updatedAt
+
+  transactions       WalletTransaction[]
+  ledgerEntries      LedgerEntry[]     @relation("LedgerWalletEntries")
+
+  @@index([walletReference])
+  @@index([walletType])
+  @@index([status])
+  @@index([ownerId, ownerType])
+  @@index([expiresAt])
+  @@index([createdAt])
+  @@map("wallets")
+}
+
+model WalletTransaction {
+  id                String           @id @default(uuid())
+  transactionReference String       @unique
+  walletId          String
+  transactionType   WalletTransactionType
+  amount            Decimal          @db.Decimal(12, 2)
+  currency          String           @default("KES")
+  balanceBefore     Decimal          @db.Decimal(12, 2)
+  balanceAfter      Decimal          @db.Decimal(12, 2)
+  relatedWalletId   String?
+  relatedPaymentId  String?
+  relatedInvoiceId  String?
+  relatedSettlementId String?
+  relatedRefundId   String?
+  description       String
+  metadata          Json?
+  createdBy         String?
+  createdAt         DateTime         @default(now())
+
+  wallet            Wallet @relation(fields: [walletId], references: [id], onDelete: Restrict)
+
+  @@index([transactionReference])
+  @@index([walletId])
+  @@index([transactionType])
+  @@index([relatedWalletId])
+  @@index([createdAt])
+  @@map("wallet_transactions")
+}
+
+model Invoice {
+  id                String       @id @default(uuid())
+  invoiceReference  String       @unique
+  bookingId         String?
+  quoteId           String?
+  customerId        String?
+  partnerId         String?
+  commercialSummaryId String?
+  status            InvoiceStatus @default(DRAFT)
+  subtotal          Decimal      @db.Decimal(12, 2)
+  taxTotal          Decimal      @db.Decimal(12, 2) @default(0)
+  discountTotal     Decimal      @db.Decimal(12, 2) @default(0)
+  grandTotal        Decimal      @db.Decimal(12, 2)
+  currency          String       @default("KES")
+  outstandingBalance Decimal     @db.Decimal(12, 2)
+  issuedAt          DateTime?
+  dueAt             DateTime?
+  paidAt            DateTime?
+  cancelledAt       DateTime?
+  creditNoteApplied Decimal      @db.Decimal(12, 2) @default(0)
+  notes             String?
+  metadata          Json?
+  version           Int          @default(1)
+  createdAt         DateTime     @default(now())
+  updatedAt         DateTime     @updatedAt
+
+  items             InvoiceItem[]
+  ledgerEntries     LedgerEntry[] @relation("LedgerInvoiceEntries")
+
+  @@index([invoiceReference])
+  @@index([bookingId])
+  @@index([quoteId])
+  @@index([customerId])
+  @@index([partnerId])
+  @@index([status])
+  @@index([dueAt])
+  @@index([createdAt])
+  @@map("invoices")
+}
+
+model InvoiceItem {
+  id              String    @id @default(uuid())
+  invoiceId       String
+  description     String
+  quantity        Int       @default(1)
+  unitPrice       Decimal   @db.Decimal(12, 2)
+  totalPrice      Decimal   @db.Decimal(12, 2)
+  currency        String    @default("KES")
+  taxRate         Decimal?  @db.Decimal(5, 4)
+  taxAmount       Decimal?  @db.Decimal(12, 2)
+  discountAmount  Decimal?  @db.Decimal(12, 2)
+  itemType        String
+  referenceId     String?
+  metadata        Json?
+  createdAt       DateTime  @default(now())
+
+  invoice         Invoice @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+
+  @@index([invoiceId])
+  @@index([itemType])
+  @@map("invoice_items")
+}
+
+model Refund {
+  id                String       @id @default(uuid())
+  refundReference   String       @unique
+  paymentId         String
+  invoiceId         String?
+  customerId        String?
+  partnerId         String?
+  amount            Decimal      @db.Decimal(12, 2)
+  currency          String       @default("KES")
+  status            RefundStatus @default(PENDING)
+  refundType        RefundType
+  reason            String
+  providerRefundId  String?
+  providerResponse  Json?
+  failureReason     String?
+  approvedAt        DateTime?
+  completedAt       DateTime?
+  metadata          Json?
+  version           Int          @default(1)
+  createdAt         DateTime     @default(now())
+  updatedAt         DateTime     @updatedAt
+
+  payment           Payment @relation(fields: [paymentId], references: [id], onDelete: Restrict)
+
+  @@index([refundReference])
+  @@index([paymentId])
+  @@index([invoiceId])
+  @@index([customerId])
+  @@index([partnerId])
+  @@index([status])
+  @@index([createdAt])
+  @@map("refunds")
+}
+
+model RefundRequest {
+  id                String       @id @default(uuid())
+  requestReference  String       @unique
+  bookingId         String?
+  paymentIntentId   String?
+  paymentId         String?
+  refundId          String?
+  customerId        String?
+  partnerId         String?
+  amount            Decimal      @db.Decimal(12, 2)
+  currency          String       @default("KES")
+  status            String       @default("PENDING")
+  reason            String
+  requestedBy       String
+  approvedBy        String?
+  approvedAt        DateTime?
+  rejectedAt        DateTime?
+  rejectionReason   String?
+  metadata          Json?
+  createdAt         DateTime     @default(now())
+  updatedAt         DateTime     @updatedAt
+
+  @@index([requestReference])
+  @@index([bookingId])
+  @@index([paymentId])
+  @@index([refundId])
+  @@index([customerId])
+  @@index([partnerId])
+  @@index([status])
+  @@index([createdAt])
+  @@map("refund_requests")
+}
+
+model Settlement {
+  id                String           @id @default(uuid())
+  settlementReference String        @unique
+  settlementType    SettlementType
+  status            SettlementStatus @default(CREATED)
+  totalAmount       Decimal          @db.Decimal(12, 2)
+  currency          String           @default("KES")
+  partnerId         String?
+  recipientName     String?
+  recipientAccount  String?
+  bankName          String?
+  approvedAt        DateTime?
+  processedAt       DateTime?
+  completedAt       DateTime?
+  failedAt          DateTime?
+  failureReason     String?
+  description       String?
+  metadata          Json?
+  version           Int              @default(1)
+  createdAt         DateTime         @default(now())
+  updatedAt         DateTime     @updatedAt
+
+  items             SettlementItem[]
+
+  @@index([settlementReference])
+  @@index([settlementType])
+  @@index([status])
+  @@index([partnerId])
+  @@index([createdAt])
+  @@map("settlements")
+}
+
+model SettlementItem {
+  id              String    @id @default(uuid())
+  settlementId    String
+  entityType      String
+  entityId        String
+  amount          Decimal   @db.Decimal(12, 2)
+  currency        String    @default("KES")
+  feeAmount       Decimal   @db.Decimal(12, 2) @default(0)
+  netAmount       Decimal   @db.Decimal(12, 2)
+  description     String?
+  metadata        Json?
+  createdAt       DateTime  @default(now())
+
+  settlement      Settlement @relation(fields: [settlementId], references: [id], onDelete: Cascade)
+
+  @@index([settlementId])
+  @@index([entityType, entityId])
+  @@map("settlement_items")
+}
+
+model Account {
+  id              String       @id @default(uuid())
+  accountCode     String       @unique
+  accountName     String
+  accountType     AccountType
+  parentCode      String?
+  isActive        Boolean      @default(true)
+  isPosting       Boolean      @default(true)
+  description     String?
+  currency        String       @default("KES")
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime     @updatedAt
+
+  journalEntries  JournalEntryItem[]
+
+  @@index([accountCode])
+  @@index([accountType])
+  @@index([isActive])
+  @@map("accounts")
+}
+
+model JournalEntry {
+  id              String           @id @default(uuid())
+  journalReference String          @unique
+  status          JournalEntryStatus @default(DRAFT)
+  entryDate       DateTime
+  description     String
+  totalDebit      Decimal          @db.Decimal(12, 2)
+  totalCredit     Decimal          @db.Decimal(12, 2)
+  fiscalPeriodId  String?
+  isBalanced      Boolean          @default(false)
+  postedAt        DateTime?
+  reversedAt      DateTime?
+  reversalReference String?
+  metadata        Json?
+  version         Int              @default(1)
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime     @updatedAt
+
+  items           JournalEntryItem[]
+
+  @@index([journalReference])
+  @@index([status])
+  @@index([entryDate])
+  @@index([fiscalPeriodId])
+  @@index([createdAt])
+  @@map("journal_entries")
+}
+
+model JournalEntryItem {
+  id              String    @id @default(uuid())
+  journalEntryId  String
+  accountId       String
+  accountCode     String
+  accountName     String
+  entryType       LedgerEntryType
+  debitAmount     Decimal?  @db.Decimal(12, 2)
+  creditAmount    Decimal?  @db.Decimal(12, 2)
+  currency        String    @default("KES")
+  description     String?
+  metadata        Json?
+  createdAt       DateTime  @default(now())
+
+  journalEntry    JournalEntry @relation(fields: [journalEntryId], references: [id], onDelete: Cascade)
+  account         Account      @relation(fields: [accountId], references: [id], onDelete: Restrict)
+
+  @@index([journalEntryId])
+  @@index([accountId])
+  @@index([accountCode])
+  @@map("journal_entry_items")
+}
+
+model FiscalPeriod {
+  id              String    @id @default(uuid())
+  periodCode      String    @unique
+  periodName      String
+  startDate       DateTime
+  endDate         DateTime
+  isClosed        Boolean   @default(false)
+  closedAt        DateTime?
+  closedBy        String?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  @@index([periodCode])
+  @@index([startDate, endDate])
+  @@index([isClosed])
+  @@map("fiscal_periods")
+}
+
+model RevenueRecognition {
+  id                  String                   @id @default(uuid())
+  recognitionReference String                  @unique
+  invoiceId           String?
+  paymentId           String?
+  contractValue       Decimal                  @db.Decimal(12, 2)
+  recognizedRevenue   Decimal                  @db.Decimal(12, 2) @default(0)
+  deferredRevenue     Decimal                  @db.Decimal(12, 2)
+  currency             String                   @default("KES")
+  status               RevenueRecognitionStatus @default(PENDING)
+  recognitionSchedule  Json?
+  recognizedAt         DateTime?
+  deferredAt           DateTime?
+  createdAt            DateTime                 @default(now())
+  updatedAt            DateTime                 @updatedAt
+
+  events              RevenueRecognitionEvent[]
+
+  @@index([recognitionReference])
+  @@index([invoiceId])
+  @@index([paymentId])
+  @@index([status])
+  @@index([createdAt])
+  @@map("revenue_recognitions")
+}
+
+model RevenueRecognitionEvent {
+  id                    String    @id @default(uuid())
+  revenueRecognitionId  String
+  eventType             String
+  recognizedAmount      Decimal   @db.Decimal(12, 2)
+  currency              String    @default("KES")
+  eventDate             DateTime
+  description           String?
+  metadata              Json?
+  createdAt             DateTime  @default(now())
+
+  revenueRecognition    RevenueRecognition @relation(fields: [revenueRecognitionId], references: [id], onDelete: Cascade)
+
+  @@index([revenueRecognitionId])
+  @@index([eventType])
+  @@index([eventDate])
+  @@map("revenue_recognition_events")
+}
+
+model TaxLedgerEntry {
+  id              String    @id @default(uuid())
+  taxCategory     TaxCategory
+  taxRuleId       String?
+  taxableAmount   Decimal   @db.Decimal(12, 2)
+  taxAmount       Decimal   @db.Decimal(12, 2)
+  currency        String    @default("KES")
+  rate            Decimal   @db.Decimal(5, 4)
+  isInclusive     Boolean   @default(false)
+  jurisdiction    String
+  sourceDomain    String
+  sourceEntityId  String
+  sourceEntityType String
+  description     String
+  ledgerEntryId   String?
+  metadata        Json?
+  postedAt        DateTime
+  createdAt       DateTime  @default(now())
+
+  @@index([taxCategory])
+  @@index([taxRuleId])
+  @@index([sourceDomain])
+  @@index([sourceEntityId, sourceEntityType])
+  @@index([postedAt])
+  @@map("tax_ledger_entries")
+}
+
+model CommissionSettlement {
+  id                    String    @id @default(uuid())
+  commissionReference   String    @unique
+  partnerId             String
+  commissionRuleId      String?
+  bookingId             String?
+  baseAmount            Decimal   @db.Decimal(12, 2)
+  commissionAmount      Decimal   @db.Decimal(12, 2)
+  currency              String    @default("KES")
+  rate                  Decimal   @db.Decimal(5, 4)
+  status                String    @default("CALCULATED")
+  settlementId          String?
+  paidAt                DateTime?
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+
+  @@index([commissionReference])
+  @@index([partnerId])
+  @@index([bookingId])
+  @@index([status])
+  @@index([createdAt])
+  @@map("commission_settlements")
+}
+
+model ReconciliationBatch {
+  id                String           @id @default(uuid())
+  batchReference    String           @unique
+  batchType         String
+  status            ReconciliationStatus @default(PENDING)
+  providerStatement Json?
+  ledgerStatement   Json?
+  totalProviderAmount Decimal      @db.Decimal(12, 2)
+  totalLedgerAmount Decimal        @db.Decimal(12, 2)
+  varianceAmount    Decimal         @db.Decimal(12, 2) @default(0)
+  varianceCount     Int             @default(0)
+  reconciledAt      DateTime?
+  createdAt         DateTime        @default(now())
+  updatedAt         DateTime        @updatedAt
+
+  items             ReconciliationItem[]
+
+  @@index([batchReference])
+  @@index([batchType])
+  @@index([status])
+  @@index([createdAt])
+  @@map("reconciliation_batches")
+}
+
+model ReconciliationItem {
+  id                String    @id @default(uuid())
+  batchId           String
+  itemType          String
+  providerReference String?
+  ledgerReference   String?
+  providerAmount    Decimal?  @db.Decimal(12, 2)
+  ledgerAmount      Decimal?  @db.Decimal(12, 2)
+  varianceAmount    Decimal?  @db.Decimal(12, 2)
+  status            String    @default("MATCHED")
+  resolutionNotes   String?
+  resolvedAt        DateTime?
+  resolvedBy        String?
+  metadata          Json?
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+
+  batch             ReconciliationBatch @relation(fields: [batchId], references: [id], onDelete: Cascade)
+
+  @@index([batchId])
+  @@index([status])
+  @@index([itemType])
+  @@map("reconciliation_items")
+}
+
+model Payout {
+  id                String       @id @default(uuid())
+  payoutReference   String       @unique
+  payoutType        String
+  status            PayoutStatus @default(PENDING)
+  recipientId       String
+  recipientType     String
+  amount            Decimal      @db.Decimal(12, 2)
+  currency          String       @default("KES")
+  fee               Decimal      @db.Decimal(12, 2) @default(0)
+  netAmount         Decimal      @db.Decimal(12, 2)
+  settlementId      String?
+  approvedAt        DateTime?
+  processedAt       DateTime?
+  completedAt       DateTime?
+  failedAt          DateTime?
+  failureReason     String?
+  metadata          Json?
+  version           Int          @default(1)
+  createdAt         DateTime     @default(now())
+  updatedAt         DateTime  @updatedAt
+
+  items             PayoutItem[]
+
+  @@index([payoutReference])
+  @@index([payoutType])
+  @@index([status])
+  @@index([recipientId, recipientType])
+  @@index([settlementId])
+  @@index([createdAt])
+  @@map("payouts")
+}
+
+model PayoutItem {
+  id              String    @id @default(uuid())
+  payoutId        String
+  entityType      String
+  entityId        String
+  amount          Decimal   @db.Decimal(12, 2)
+  currency        String    @default("KES")
+  description     String?
+  metadata        Json?
+  createdAt       DateTime  @default(now())
+
+  payout          Payout @relation(fields: [payoutId], references: [id], onDelete: Cascade)
+
+  @@index([payoutId])
+  @@index([entityType, entityId])
+  @@map("payout_items")
+}
+
+//
+// FINANCE AUDIT
+//
+
+enum FinanceAuditAction {
+  PAYMENT_INTENT_CREATED
+  PAYMENT_AUTHORIZED
+  PAYMENT_CAPTURED
+  PAYMENT_FAILED
+  PAYMENT_CANCELLED
+  PAYMENT_EXPIRED
+  LEDGER_ENTRY_POSTED
+  WALLET_CREDITED
+  WALLET_DEBITED
+  WALLET_FROZEN
+  WALLET_CLOSED
+  INVOICE_ISSUED
+  INVOICE_CANCELLED
+  INVOICE_CREDITED
+  REFUND_REQUESTED
+  REFUND_APPROVED
+  REFUND_COMPLETED
+  REFUND_FAILED
+  SETTLEMENT_CREATED
+  SETTLEMENT_APPROVED
+  SETTLEMENT_COMPLETED
+  SETTLEMENT_FAILED
+  JOURNAL_ENTRY_CREATED
+  JOURNAL_ENTRY_POSTED
+  JOURNAL_ENTRY_REVERSED
+  REVENUE_RECOGNIZED
+  REVENUE_DEFERRED
+  TAX_POSTED
+  COMMISSION_SETTLED
+  RECONCILIATION_STARTED
+  RECONCILIATION_COMPLETED
+  RECONCILIATION_DISCREPANCY
+  PAYOUT_CREATED
+  PAYOUT_PROCESSED
+  PAYOUT_COMPLETED
+  PAYOUT_FAILED
+}
+
+model FinanceAuditLog {
+  id          String   @id @default(uuid())
+  userId      String?
+  action      FinanceAuditAction
+  entityType  String
+  entityId    String
+  oldValues   Json?
+  newValues   Json?
+  metadata    Json?
+  ipAddress   String?
+  userAgent   String?
+  createdAt   DateTime @default(now())
+
+  @@index([userId])
+  @@index([action])
+  @@index([entityId])
+  @@index([entityType])
+  @@index([createdAt])
+  @@map("finance_audit_logs")
+}

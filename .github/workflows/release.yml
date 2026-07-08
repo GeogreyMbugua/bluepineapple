@@ -1,0 +1,44 @@
+name: Release
+
+on:
+  push:
+    branches: ["main"]
+
+jobs:
+  release:
+    name: Release artifacts
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Install
+        run: pnpm install --frozen-lockfile
+
+      - name: Run CI (lint, typecheck, tests)
+        run: |
+          pnpm lint
+          pnpm --filter @blue-pineapple/iam run typecheck
+          pnpm --filter @blue-pineapple/iam run test -- --run --silent
+
+      - name: Build workspace
+        run: pnpm -w run build
+
+      - name: Package dist
+        run: |
+          mkdir -p artifacts
+          tar -czf artifacts/workspace-dist.tgz packages/*/dist || true
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: workspace-dist
+          path: artifacts/workspace-dist.tgz

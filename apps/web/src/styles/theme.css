@@ -1,0 +1,111 @@
+/*
+ * Blue Pineapple — Design Tokens
+ *
+ * All brand colors, spacing, typography, and visual tokens are defined here
+ * using Tailwind v4's @theme directive. Import this file from globals.css.
+ */
+
+/* ------------------------------------------------------------------ */
+/* Light-mode CSS custom properties                                    */
+/* ------------------------------------------------------------------ */
+:root {
+  /* Brand */
+  --color-brand-50: oklch(0.97 0.02 220);
+  --color-brand-100: oklch(0.93 0.04 220);
+  --color-brand-200: oklch(0.87 0.07 220);
+  --color-brand-300: oklch(0.78 0.11 220);
+  --color-brand-400: oklch(0.68 0.15 220);
+  --color-brand-500: oklch(0.58 0.18 220);
+  --color-brand-600: oklch(0.50 0.18 220);
+  --color-brand-700: oklch(0.42 0.16 220);
+  --color-brand-800: oklch(0.35 0.13 220);
+  --color-brand-900: oklch(0.28 0.10 220);
+  --color-brand-950: oklch(0.20 0.07 220);
+
+  /* Surfaces */
+  --color-background: #ffffff;
+  --color-foreground: #0a0a0a;
+  --color-muted: #f5f5f5;
+  --color-muted-foreground: #737373;
+  --color-card: #ffffff;
+  --color-card-foreground: #0a0a0a;
+  --color-border: #e5e5e5;
+  --color-ring: oklch(0.58 0.18 220);
+
+  /* Semantic */
+  --color-success: oklch(0.60 0.18 145);
+  --color-warning: oklch(0.75 0.18 75);
+  --color-error: oklch(0.58 0.22 25);
+  --color-info: oklch(0.60 0.16 250);
+}
+
+/* ------------------------------------------------------------------ */
+/* Dark-mode overrides                                                 */
+/* ------------------------------------------------------------------ */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --color-background: #0a0a0a;
+    --color-foreground: #fafafa;
+    --color-muted: #171717;
+    --color-muted-foreground: #a3a3a3;
+    --color-card: #141414;
+    --color-card-foreground: #fafafa;
+    --color-border: #262626;
+    --color-ring: oklch(0.68 0.15 220);
+
+    --color-success: oklch(0.65 0.20 145);
+    --color-warning: oklch(0.78 0.18 75);
+    --color-error: oklch(0.62 0.22 25);
+    --color-info: oklch(0.65 0.16 250);
+  }
+}
+
+/* ------------------------------------------------------------------ */
+/* Tailwind v4 theme registration                                      */
+/* ------------------------------------------------------------------ */
+@theme inline {
+  /* Typography */
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-geist-mono), ui-monospace, monospace;
+
+  /* Brand palette */
+  --color-brand-50: var(--color-brand-50);
+  --color-brand-100: var(--color-brand-100);
+  --color-brand-200: var(--color-brand-200);
+  --color-brand-300: var(--color-brand-300);
+  --color-brand-400: var(--color-brand-400);
+  --color-brand-500: var(--color-brand-500);
+  --color-brand-600: var(--color-brand-600);
+  --color-brand-700: var(--color-brand-700);
+  --color-brand-800: var(--color-brand-800);
+  --color-brand-900: var(--color-brand-900);
+  --color-brand-950: var(--color-brand-950);
+
+  /* Surfaces */
+  --color-background: var(--color-background);
+  --color-foreground: var(--color-foreground);
+  --color-muted: var(--color-muted);
+  --color-muted-foreground: var(--color-muted-foreground);
+  --color-card: var(--color-card);
+  --color-card-foreground: var(--color-card-foreground);
+  --color-border: var(--color-border);
+  --color-ring: var(--color-ring);
+
+  /* Semantic */
+  --color-success: var(--color-success);
+  --color-warning: var(--color-warning);
+  --color-error: var(--color-error);
+  --color-info: var(--color-info);
+
+  /* Border radius */
+  --radius-sm: 0.375rem;
+  --radius-md: 0.5rem;
+  --radius-lg: 0.75rem;
+  --radius-xl: 1rem;
+  --radius-2xl: 1.5rem;
+
+  /* Shadows */
+  --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+  --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+  --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+}

@@ -1,0 +1,15 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "outDir": "dist",
+    "rootDir": "src",
+    "types": ["node"],
+    "paths": {
+      "@blue-pineapple/shared": ["../shared/src/index.ts"],
+      "@blue-pineapple/shared/*": ["../shared/src/*"]
+    }
+  },
+  "include": [
+    "src"
+  ]
+}

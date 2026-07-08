@@ -1,0 +1,25 @@
+{
+  "name": "@blue-pineapple/iam",
+  "version": "0.1.0",
+  "private": true,
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@blue-pineapple/database": "workspace:*",
+    "@blue-pineapple/shared": "workspace:*",
+    "@prisma/client": "6.16.2",
+    "@types/jsonwebtoken": "^9.0.9",
+    "ioredis": "^5.5.0",
+    "jsonwebtoken": "^9.0.2",
+    "zod": "^4.4.3"
+  },
+  "devDependencies": {
+    "@types/node": "^18.0.0",
+    "vitest": "^1.3.0"
+  }
+}
