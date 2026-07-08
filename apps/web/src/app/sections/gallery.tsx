@@ -2,14 +2,15 @@
 
 import { useEffect, useRef } from "react";
 import Image from "next/image";
+import { publicPath } from "@/lib/paths";
 
 export function Gallery() {
     const containerRef = useRef<HTMLDivElement>(null);
     const trackRef = useRef<HTMLDivElement>(null);
 
     const images = [
-        "/bluepineapple/assets/galleryImage1.png", "/bluepineapple/assets/galleryImage2.png", "/bluepineapple/assets/galleryImage3.png", "/bluepineapple/assets/galleryImage4.png",
-        "/bluepineapple/assets/galleryImage1.png", "/bluepineapple/assets/galleryImage2.png", "/bluepineapple/assets/galleryImage3.png", "/bluepineapple/assets/galleryImage4.png"
+        publicPath("/assets/galleryImage1.webp"), publicPath("/assets/galleryImage2.webp"), publicPath("/assets/galleryImage3.webp"), publicPath("/assets/galleryImage4.webp"),
+        publicPath("/assets/galleryImage1.webp"), publicPath("/assets/galleryImage2.webp"), publicPath("/assets/galleryImage3.webp"), publicPath("/assets/galleryImage4.webp")
     ];
 
     useEffect(() => {

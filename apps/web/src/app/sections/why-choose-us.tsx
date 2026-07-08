@@ -4,32 +4,34 @@ import { useState } from "react";
 import { motion } from "framer-motion";
 import Image from "next/image";
 import { Compass, Landmark, ShieldCheck, Sparkles, Plus, Minus } from "lucide-react";
-const houseImage = "/bluepineapple/assets/galleryImage3.png";
+import { publicPath } from "@/lib/paths";
+
+const houseImage = publicPath("/assets/galleryImage3.webp");
 
 const whyChooseUsData = [
     {
         title: "Experienced and Dedicated Team",
         description: "Our team brings deep expertise across real estate, hospitality, tourism, and investments, ensuring every project is guided by professional insight and hands-on experience.",
         icon: <Compass className="size-4 text-zinc-700" />,
-        image: "/bluepineapple/assets/galleryImage2.png",
+        image: publicPath("/assets/galleryImage2.webp"),
     },
     {
         title: "Quality Service & Competitive Pricing",
         description: "We deliver premium service and honest, transparent business practices with pricing that makes high-quality solutions accessible and sustainable.",
         icon: <ShieldCheck className="size-4 text-zinc-700" />,
-        image: "/bluepineapple/assets/galleryImage3.png",
+        image: publicPath("/assets/galleryImage3.webp"),
     },
     {
         title: "Customer-Focused & Timely Execution",
         description: "Every client and partner is at the center of what we do. From first contact to project completion, we prioritize responsiveness, clarity, and on-time delivery.",
         icon: <Landmark className="size-4 text-zinc-700" />,
-        image: "/bluepineapple/assets/galleryImage3.png",
+        image: publicPath("/assets/galleryImage1.webp"),
     },
     {
         title: "Long-Term Business Partnerships",
         description: "We build lasting relationships grounded in trust and accountability. Our clients and partners return because we consistently show up with integrity and results.",
         icon: <Sparkles className="size-4 text-zinc-700" />,
-        image: "/bluepineapple/assets/galleryImage4.png",
+        image: publicPath("/assets/galleryImage4.webp"),
     },
 ];
 

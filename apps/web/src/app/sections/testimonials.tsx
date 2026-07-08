@@ -3,6 +3,7 @@
 import { Star } from "lucide-react";
 import { motion } from "framer-motion";
 import Image from "next/image";
+import { publicPath } from "@/lib/paths";
 
 type Testimonial = {
     name: string;
@@ -15,13 +16,13 @@ const testimonialsCol1: Testimonial[] = [
     {
         name: "Amina Hassan",
         location: "Guest Experience Partner",
-        avatar: "/bluepineapple/assets/galleryImage1.png",
+        avatar: publicPath("/assets/galleryImage1.webp"),
         text: "The platform feels premium and dependable. Every touchpoint reflects the care and quality Blue Pineapple is known for.",
     },
     {
         name: "Noah Mwangi",
         location: "Property & Growth Lead",
-        avatar: "/bluepineapple/assets/galleryImage2.png",
+        avatar: publicPath("/assets/galleryImage2.webp"),
         text: "It is refreshing to see a company that can tell a clear story across tourism, real estate, and future investment opportunities.",
     },
 ];
@@ -30,13 +31,13 @@ const testimonialsCol2: Testimonial[] = [
     {
         name: "Lina Okafor",
         location: "Operations & Partnerships",
-        avatar: "/bluepineapple/assets/galleryImage3.png",
+        avatar: publicPath("/assets/galleryImage3.webp"),
         text: "The experience is polished, welcoming, and structured in a way that feels ready for growth.",
     },
     {
         name: "Daniel Kibet",
         location: "Coastal Operations",
-        avatar: "/bluepineapple/assets/galleryImage4.png",
+        avatar: publicPath("/assets/galleryImage4.webp"),
         text: "Blue Pineapple brings clarity and confidence to every partnership, from guest journeys to long-term investment discussions.",
     },
 ];

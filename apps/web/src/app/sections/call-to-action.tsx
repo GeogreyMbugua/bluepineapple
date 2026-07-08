@@ -3,10 +3,11 @@
 import { MoveRight } from "lucide-react";
 import Image from "next/image";
 import { motion } from "framer-motion";
+import { publicPath } from "@/lib/paths";
 
-const galleryImage1 = "/bluepineapple/assets/galleryImage1.png";
-const galleryImage2 = "/bluepineapple/assets/galleryImage2.png";
-const galleryImage3 = "/bluepineapple/assets/galleryImage3.png";
+const galleryImage1 = publicPath("/assets/galleryImage1.webp");
+const galleryImage2 = publicPath("/assets/galleryImage2.webp");
+const galleryImage3 = publicPath("/assets/galleryImage3.webp");
 
 export function CallToAction() {
   return (

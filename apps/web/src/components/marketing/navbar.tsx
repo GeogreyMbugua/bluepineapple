@@ -4,6 +4,8 @@ import Image from "next/image";
 import Link from "next/link";
 import React, { useState, useEffect } from "react";
 
+import { publicPath } from '@/lib/paths';
+
 export function Navbar() {
     const [mobileOpen, setMobileOpen] = React.useState(false);
     const [scrolled, setScrolled] = useState(false);
@@ -20,7 +22,7 @@ export function Navbar() {
         <>
             <nav className={`fixed z-50 flex items-center justify-between left-1/2 -translate-x-1/2 transition-all duration-500 p-4 ${scrolled ? "md:w-5xl w-[calc(100vw-14px)] bg-white/60 backdrop-blur-2xl rounded-full mt-4 pl-6 shadow" : "md:px-16 lg:px-24 xl:px-32 w-full"}`}>
                 <Link href="/" aria-label="Blue Pineapple Holdings — Home">
-                    <Image width={140} height={140} src="/bluepineapple/logos/bplogo.png" alt="Blue Pineapple Holdings" className={`transition-all duration-500 h-11 w-auto sm:h-12 ${scrolled ? "invert opacity-80" : ""}`} />
+                    <Image width={140} height={140} src={publicPath("/logos/bplogo.png")} alt="Blue Pineapple Holdings" className={`transition-all duration-500 h-11 w-auto sm:h-12 ${scrolled ? "invert opacity-80" : ""}`} />
                 </Link>
 
                 {/* Desktop links */}

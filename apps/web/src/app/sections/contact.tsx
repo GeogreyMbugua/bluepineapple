@@ -2,8 +2,9 @@
 
 import { motion } from "framer-motion";
 import Image from "next/image";
+import { publicPath } from "@/lib/paths";
 
-const houseImage = "/bluepineapple/assets/house.png";
+const houseImage = publicPath("/assets/galleryImage1.webp");
 
 export function Contact() {
     return (

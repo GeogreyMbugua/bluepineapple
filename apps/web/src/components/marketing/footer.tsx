@@ -2,6 +2,7 @@
 
 import { motion } from "framer-motion";
 import Image from "next/image";
+import { publicPath } from "@/lib/paths";
 
 export function Footer() {
     return (
@@ -12,7 +13,7 @@ export function Footer() {
                     {/* Left Brand Details */}
                     <div className="lg:col-span-7 flex flex-col items-start gap-6">
                         <a href="#" className="select-none">
-                            <Image src="/bluepineapple/logos/logo.avif" alt="Blue Pineapple Holdings" width={180} height={60} className="h-auto w-auto max-w-[180px]" />
+                            <Image src={publicPath("/logos/logo.avif")} alt="Blue Pineapple Holdings" width={180} height={60} className="h-auto w-auto max-w-[180px]" />
                         </a>
                         <p className="text-zinc-300 text-sm/5.5 max-w-md">
                             Blue Pineapple Holdings Ltd is a dynamic Kenyan company delivering innovative, reliable, and customer-focused business solutions across real estate, hospitality, tourism, and investments.
