@@ -26,11 +26,13 @@ jobs:
       - name: Run CI (lint, typecheck, tests)
         run: |
           pnpm lint
+          pnpm --filter @blue-pineapple/database run generate
           pnpm --filter @blue-pineapple/iam run typecheck
+          pnpm --filter @blue-pineapple/web run typecheck
           pnpm --filter @blue-pineapple/iam run test -- --run --silent
 
-      - name: Build workspace
-        run: pnpm -w run build
+      - name: Build web app
+        run: pnpm --filter @blue-pineapple/web build
 
       - name: Package dist
         run: |
