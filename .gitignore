@@ -8,6 +8,4 @@ coverage
 .env.development
 .env.production
 
-pnpm-lock.yaml
-
 .DS_Store
