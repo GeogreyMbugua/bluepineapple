@@ -1,0 +1,46 @@
+$ eslint
+
+/home/bkg/blue-pineapple/apps/web/src/providers/session-provider.tsx
+  33:10  error  Error: Cannot access variable before it is declared
+
+`initializeSession` is accessed before it is declared, which prevents the earlier access from updating when this value changes over time.
+
+/home/bkg/blue-pineapple/apps/web/src/providers/session-provider.tsx:33:10
+  31 |
+  32 |   useEffect(() => {
+> 33 |     void initializeSession();
+     |          ^^^^^^^^^^^^^^^^^ `initializeSession` accessed before it is declared
+  34 |   }, []);
+  35 |
+  36 |   async function initializeSession() {
+
+/home/bkg/blue-pineapple/apps/web/src/providers/session-provider.tsx:36:3
+  34 |   }, []);
+  35 |
+> 36 |   async function initializeSession() {
+     |   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 37 |     try {
+     | ^^^^^^^^^
+> 38 |       const userData = await getCurrentUser();
+     | ^^^^^^^^^
+> 39 |       setUser(userData);
+     | ^^^^^^^^^
+> 40 |     } catch {
+     | ^^^^^^^^^
+> 41 |       // No valid session
+     | ^^^^^^^^^
+> 42 |     } finally {
+     | ^^^^^^^^^
+> 43 |       setLoading(false);
+     | ^^^^^^^^^
+> 44 |     }
+     | ^^^^^^^^^
+> 45 |   }
+     | ^^^^ `initializeSession` is declared here
+  46 |
+  47 |   async function handleRefresh() {
+  48 |     setLoading(true);  react-hooks/immutability
+
+✖ 1 problem (1 error, 0 warnings)
+
+[ELIFECYCLE] Command failed with exit code 1.
