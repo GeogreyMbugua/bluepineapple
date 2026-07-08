@@ -8,26 +8,26 @@ const houseImage = "/bluepineapple/assets/house.png";
 
 const whyChooseUsData = [
     {
-        title: "Premium Coastal Experiences",
-        description: "From private charters to curated itineraries, every journey is designed around comfort, safety, and memorable detail.",
+        title: "Experienced and Dedicated Team",
+        description: "Our team brings deep expertise across real estate, hospitality, tourism, and investments, ensuring every project is guided by professional insight and hands-on experience.",
         icon: <Compass className="size-4 text-zinc-700" />,
         image: "/bluepineapple/assets/galleryImage1.png",
     },
     {
-        title: "Trusted Operations",
-        description: "Reliable execution, clear coordination, and thoughtful delivery help every partner and guest feel confident from start to finish.",
+        title: "Quality Service & Competitive Pricing",
+        description: "We deliver premium service and honest, transparent business practices with pricing that makes high-quality solutions accessible and sustainable.",
         icon: <ShieldCheck className="size-4 text-zinc-700" />,
         image: "/bluepineapple/assets/galleryImage2.png",
     },
     {
-        title: "Real Estate Vision",
-        description: "Our expansion into property and investment is grounded in the same long-term thinking that defines our experience-led platform.",
+        title: "Customer-Focused & Timely Execution",
+        description: "Every client and partner is at the center of what we do. From first contact to project completion, we prioritize responsiveness, clarity, and on-time delivery.",
         icon: <Landmark className="size-4 text-zinc-700" />,
         image: "/bluepineapple/assets/galleryImage3.png",
     },
     {
-        title: "Future-Ready Growth",
-        description: "Blue Pineapple brings together hospitality, partnerships, and investment opportunity under a single premium brand story.",
+        title: "Long-Term Business Partnerships",
+        description: "We build lasting relationships grounded in trust and accountability. Our clients and partners return because we consistently show up with integrity and results.",
         icon: <Sparkles className="size-4 text-zinc-700" />,
         image: "/bluepineapple/assets/galleryImage4.png",
     },

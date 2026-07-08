@@ -31,7 +31,7 @@ export function Contact() {
                         viewport={{ once: true }}
                         transition={{ type: "spring", stiffness: 240, damping: 70, mass: 1 }}
                     >
-                        Connect with us <br />to explore the platform
+                        Get in touch with <br/>Blue Pineapple Holdings
                     </motion.h2>
 
                     {/* Form */}
@@ -157,7 +157,7 @@ export function Contact() {
                         {/* Details Content Overlay */}
                         <div className="absolute bottom-10 left-10 flex flex-col gap-2.5 z-10">
                             <span className="text-base text-white">
-                                KEY DETAILS
+                                CONTACT DETAILS
                             </span>
                             <motion.div className="flex flex-col gap-1 text-sm text-white"
                                 initial={{ y: 20, opacity: 0 }}
@@ -165,8 +165,9 @@ export function Contact() {
                                 viewport={{ once: true }}
                                 transition={{ delay: 0.2, type: "spring", stiffness: 320, damping: 70, mass: 1 }}
                             >
-                                <p>Monday-Friday: 10 AM - 6 PM</p>
-                                <p>Saturday: 10 AM - 4 PM</p>
+                                <p>+254 769 851 080 / +44 7925 878286</p>
+                                <p>info@bluepineapple.com</p>
+                                <p>Mombasa, Kenya</p>
                             </motion.div>
                         </div>
                     </div>

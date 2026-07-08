@@ -1,6 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
+import Image from "next/image";
 
 export function Footer() {
     return (
@@ -11,10 +12,10 @@ export function Footer() {
                     {/* Left Brand Details */}
                     <div className="lg:col-span-7 flex flex-col items-start gap-6">
                         <a href="#" className="select-none">
-                            <img src="/bluepineapple/logos/logo.avif" alt="Blue Pineapple Holdings" />
+                            <Image src="/bluepineapple/logos/logo.avif" alt="Blue Pineapple Holdings" width={180} height={60} className="h-auto w-auto max-w-[180px]" />
                         </a>
                         <p className="text-zinc-300 text-sm/5.5 max-w-md">
-                            Blue Pineapple Holdings brings together premium experiences, trusted partners, and operational excellence in a single platform story.
+                            Blue Pineapple Holdings Ltd is a dynamic Kenyan company delivering innovative, reliable, and customer-focused business solutions across real estate, hospitality, tourism, and investments.
                         </p>
                     </div>
 
@@ -71,7 +72,15 @@ export function Footer() {
                         <div className="flex flex-col gap-5">
                             <span className="text-white">Social</span>
                             <div className="flex flex-col gap-3 text-xs text-zinc-300">
-                                <motion.a href="#" className="hover:text-white transition-colors duration-200" 
+                                <motion.a href="https://www.tiktok.com/@bluepineappleboats" target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors duration-200" 
+                                    initial={{ y: 50, opacity: 0 }}
+                                    whileInView={{ y: 0, opacity: 1 }}
+                                    viewport={{ once: true }}
+                                    transition={{ delay: 0.2, type: "spring", stiffness: 320, damping: 70, mass: 1 }}
+                                >
+                                    TikTok
+                                </motion.a>
+                                <motion.a href="https://www.instagram.com/bluepineappleboats" target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors duration-200" 
                                     initial={{ y: 50, opacity: 0 }}
                                     whileInView={{ y: 0, opacity: 1 }}
                                     viewport={{ once: true }}
@@ -79,23 +88,7 @@ export function Footer() {
                                 >
                                     Instagram
                                 </motion.a>
-                                <motion.a href="#" className="hover:text-white transition-colors duration-200" 
-                                    initial={{ y: 50, opacity: 0 }}
-                                    whileInView={{ y: 0, opacity: 1 }}
-                                    viewport={{ once: true }}
-                                    transition={{ delay: 0.2, type: "spring", stiffness: 320, damping: 70, mass: 1 }}
-                                >
-                                    LinkedIn
-                                </motion.a>
-                                <motion.a href="#" className="hover:text-white transition-colors duration-200" 
-                                    initial={{ y: 50, opacity: 0 }}
-                                    whileInView={{ y: 0, opacity: 1 }}
-                                    viewport={{ once: true }}
-                                    transition={{ delay: 0.2, type: "spring", stiffness: 320, damping: 70, mass: 1 }}
-                                >
-                                    Twitter
-                                </motion.a>
-                                <motion.a href="#" className="hover:text-white transition-colors duration-200" 
+                                <motion.a href="https://www.facebook.com/Bluepineappleboats" target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors duration-200" 
                                     initial={{ y: 50, opacity: 0 }}
                                     whileInView={{ y: 0, opacity: 1 }}
                                     viewport={{ once: true }}

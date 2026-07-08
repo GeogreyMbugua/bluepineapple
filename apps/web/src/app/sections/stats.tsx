@@ -16,7 +16,7 @@ export function Stats() {
                 >
                     <span className="size-1.5 bg-zinc-900"></span>
                     <span className="text-sm text-zinc-900">
-                        BLUE PINEAPPLE PLATFORM
+                        BLUE PINEAPPLE HOLDINGS
                     </span>
                 </motion.div>
                 <motion.h2 className="text-5xl md:text-6xl text-zinc-900 mt-8 leading-tight max-w-[610px]"
@@ -25,7 +25,7 @@ export function Stats() {
                     viewport={{ once: true }}
                     transition={{ type: "spring", stiffness: 240, damping: 70, mass: 1 }}
                 >
-                    A Premium Platform for Experiences, Partners, and Operations
+                    Building Value, Creating Opportunities
                 </motion.h2>
 
                 <motion.p className="text-zinc-500 text-sm md:text-base mt-3 max-w-[520px]"
@@ -34,26 +34,35 @@ export function Stats() {
                     viewport={{ once: true }}
                     transition={{ delay: 0.2, type: "spring", stiffness: 320, damping: 70, mass: 1 }}
                 >
-                    Discover a refined operating model built around trusted experiences, coordinated partners, and dependable delivery.
+                    Blue Pineapple Holdings Ltd is a dynamic Kenyan company committed to providing innovative, reliable, and customer-focused business solutions across real estate, hospitality, tourism, and strategic investments.
+                </motion.p>
+
+                <motion.p className="text-zinc-500 text-sm md:text-base mt-3 max-w-[520px]"
+                    initial={{ y: 50, opacity: 0 }}
+                    whileInView={{ y: 0, opacity: 1 }}
+                    viewport={{ once: true }}
+                    transition={{ delay: 0.25, type: "spring", stiffness: 320, damping: 70, mass: 1 }}
+                >
+                    We strive to create value through quality service, professionalism, integrity, and sustainable business practices — building long-term relationships that exceed expectations while contributing to economic growth and community development.
                 </motion.p>
 
                 <motion.button className="mt-7 bg-zinc-950 hover:bg-zinc-900 text-white px-7 py-3 rounded-full text-sm transition cursor-pointer" 
                     initial={{ y: 50, opacity: 0 }}
                     whileInView={{ y: 0, opacity: 1 }}
                     viewport={{ once: true }}
-                    transition={{ type: "spring", stiffness: 320, damping: 70, mass: 1 }}
+                    transition={{ delay: 0.3, type: "spring", stiffness: 320, damping: 70, mass: 1 }}
                 >
-                    Explore the Vision
+                    Discover Our Vision
                 </motion.button>
             </div>
 
             <div className="flex max-lg:flex-col max-lg:gap-10 justify-between max-w-4xl mt-16 md:mt-20">
                 <div className="flex flex-col justify-center">
                     <span className="text-4xl md:text-5xl min-w-[152px] text-zinc-900">
-                        <CountUp from={0} to={5000} />+
+                        <CountUp from={0} to={8} />+
                     </span>
                     <span className="text-sm text-zinc-600 mt-4">
-                        EXPERIENCES CURATED
+                        CORE SERVICE AREAS
                     </span>
                 </div>
 
@@ -61,10 +70,10 @@ export function Stats() {
 
                 <div className="flex flex-col justify-center">
                     <span className="text-4xl md:text-5xl min-w-[200px] text-zinc-900">
-                        $<CountUp from={0} to={500} />M+
+                        <CountUp from={0} to={100} />%
                     </span>
                     <span className="text-sm text-zinc-600 mt-4">
-                        PARTNER NETWORK STRENGTH
+                        COMMITMENT TO EXCELLENCE
                     </span>
                 </div>
 
@@ -72,10 +81,10 @@ export function Stats() {
 
                 <div className="flex flex-col justify-center">
                     <span className="text-4xl md:text-5xl min-w-[94px] text-zinc-900">
-                        <CountUp from={0} to={98} />%
+                        <CountUp from={0} to={6} />+
                     </span>
                     <span className="text-sm text-zinc-600 mt-4">
-                        OPERATIONAL CONFIDENCE
+                        CORE VALUES DRIVING US
                     </span>
                 </div>
             </div>
