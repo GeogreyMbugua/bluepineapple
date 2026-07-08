@@ -31,7 +31,7 @@ const whyChooseUsData = [
         title: "Long-Term Business Partnerships",
         description: "We build lasting relationships grounded in trust and accountability. Our clients and partners return because we consistently show up with integrity and results.",
         icon: <Sparkles className="size-4 text-zinc-700" />,
-        image: publicPath("/assets/galleryImage4.webp"),
+        image: publicPath("/assets/image1.webp"),
     },
 ];
 
