@@ -26,6 +26,8 @@ jobs:
           cache: 'pnpm'
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
+      - name: Generate Prisma client
+        run: pnpm --filter @blue-pineapple/database run generate
       - name: Build web app
         run: pnpm --filter @blue-pineapple/web build
       - uses: actions/upload-pages-artifact@v4
