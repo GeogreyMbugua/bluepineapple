@@ -17,6 +17,13 @@ concurrency:
 jobs:
   build:
     runs-on: ubuntu-latest
+    env:
+      NODE_ENV: production
+      NEXT_PUBLIC_API_URL: https://bluepineapple.pages.dev
+      NEXT_PUBLIC_APP_URL: https://bluepineapple.pages.dev
+      NEXT_PUBLIC_GOOGLE_MAPS_KEY: AIzaSyDummyKeyForMapsValidation123
+      NEXT_PUBLIC_ENVIRONMENT: production
+      NEXT_PUBLIC_ENABLE_ANALYTICS: false
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4

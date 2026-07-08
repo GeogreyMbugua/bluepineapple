@@ -3,6 +3,9 @@
   "compilerOptions": {
     "outDir": "dist",
     "rootDir": "..",
+    "exactOptionalPropertyTypes": false,
+    "noUnusedLocals": false,
+    "noUnusedParameters": false,
     "paths": {
       "@blue-pineapple/shared": ["../shared/src/index.ts"],
       "@blue-pineapple/shared/*": ["../shared/src/*"],
