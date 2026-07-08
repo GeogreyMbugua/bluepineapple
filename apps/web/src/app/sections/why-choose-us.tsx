@@ -4,20 +4,20 @@ import { useState } from "react";
 import { motion } from "framer-motion";
 import Image from "next/image";
 import { Compass, Landmark, ShieldCheck, Sparkles, Plus, Minus } from "lucide-react";
-const houseImage = "/bluepineapple/assets/house.png";
+const houseImage = "/bluepineapple/assets/galleryImage3.png";
 
 const whyChooseUsData = [
     {
         title: "Experienced and Dedicated Team",
         description: "Our team brings deep expertise across real estate, hospitality, tourism, and investments, ensuring every project is guided by professional insight and hands-on experience.",
         icon: <Compass className="size-4 text-zinc-700" />,
-        image: "/bluepineapple/assets/galleryImage1.png",
+        image: "/bluepineapple/assets/galleryImage2.png",
     },
     {
         title: "Quality Service & Competitive Pricing",
         description: "We deliver premium service and honest, transparent business practices with pricing that makes high-quality solutions accessible and sustainable.",
         icon: <ShieldCheck className="size-4 text-zinc-700" />,
-        image: "/bluepineapple/assets/galleryImage2.png",
+        image: "/bluepineapple/assets/galleryImage3.png",
     },
     {
         title: "Customer-Focused & Timely Execution",
