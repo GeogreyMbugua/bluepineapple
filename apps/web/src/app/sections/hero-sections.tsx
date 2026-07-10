@@ -40,7 +40,7 @@ export function HeroSection() {
             {/* Background layer — breathes: slow intro zoom, then an almost invisible 20s drift */}
             <motion.div
                 className="absolute inset-0"
-                initial={{ scale: 1.08 }}
+                initial={{ scale: 1 }}
                 animate={{ scale: 1 }}
                 transition={{ duration: 1.6, ease: [0.22, 1, 0.36, 1] }}
             >
@@ -48,7 +48,7 @@ export function HeroSection() {
                         className="absolute inset-0 h-full w-full bg-cover bg-center bg-no-repeat"
                         style={{ backgroundImage: `url('${publicPath("/hero.webp")}')` }}
                         initial={{ scale: 1 }}
-                        animate={{ scale: 1.05 }}
+                        animate={{ scale: 1 }}
                         transition={{ duration: 20, ease: "linear" }}
                     />
             </motion.div>

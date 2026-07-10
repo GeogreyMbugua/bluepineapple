@@ -5,7 +5,7 @@ import Image from "next/image";
 import { motion } from "framer-motion";
 import { publicPath } from "@/lib/paths";
 
-const galleryImage1 = publicPath("/assets/galleryImage1.webp");
+const galleryImage1 = publicPath("/assets/image1.webp");
 const galleryImage2 = publicPath("/assets/galleryImage2.webp");
 const galleryImage3 = publicPath("/assets/galleryImage3.webp");
 

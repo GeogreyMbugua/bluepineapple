@@ -1,10 +1,6 @@
 "use client";
 
 import { motion } from "framer-motion";
-import Image from "next/image";
-import { publicPath } from "@/lib/paths";
-
-const houseImage = publicPath("/assets/galleryImage1.webp");
 
 export function Contact() {
     return (
@@ -145,15 +141,24 @@ export function Contact() {
                     </form>
                 </div>
 
-                {/* Right Column: Key Details Image Card */}
+                {/* Right Column: Map */}
                 <motion.div className="relative overflow-hidden group flex justify-center"
                     initial={{ y: 50, opacity: 0 }}
                     whileInView={{ y: 0, opacity: 1 }}
                     viewport={{ once: true }}
                     transition={{ type: "spring", stiffness: 320, damping: 70, mass: 1 }}
                 >
-                    <div className="relative w-[382px] h-[455px] overflow-hidden rounded-xl">
-                        <Image src={houseImage} alt="Contact House" width={382} height={455} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105 select-none brightness-80" />
+                    <div className="relative w-full h-[455px] overflow-hidden rounded-xl">
+                        <iframe
+                            src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d127641.23956217018!2d39.6505534!3d-4.0434778!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x18401be4e389d071%3A0xef2e44a5161c9c1a!2sMombasa%2C%20Kenya!5e0!3m2!1sen!2sus!4v1719999999999"
+                            width="100%"
+                            height="100%"
+                            style={{ border: 0 }}
+                            allowFullScreen
+                            loading="lazy"
+                            referrerPolicy="no-referrer-when-downgrade"
+                            className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105 select-none"
+                        ></iframe>
 
                         {/* Details Content Overlay */}
                         <div className="absolute bottom-10 left-10 flex flex-col gap-2.5 z-10">

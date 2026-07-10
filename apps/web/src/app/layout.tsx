@@ -2,9 +2,6 @@ import type { Metadata, Viewport } from 'next';
 import { Inter, Geist_Mono } from 'next/font/google';
 import { defaultMetadata, defaultViewport } from '@/config/metadata';
 import { AppProviders } from '@/providers';
-import LenisScroll from '@/components/marketing/lenis-scroll';
-import { Navbar } from '@/components/marketing/navbar';
-import { Footer } from '@/components/marketing/footer';
 import './globals.css';
 
 const inter = Inter({
@@ -35,10 +32,7 @@ export default function RootLayout({
     >
       <body className="min-h-full flex flex-col bg-background text-foreground">
         <AppProviders>
-          <LenisScroll />
-          <Navbar />
           {children}
-          <Footer />
         </AppProviders>
       </body>
     </html>

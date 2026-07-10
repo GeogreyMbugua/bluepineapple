@@ -9,8 +9,8 @@ export function Gallery() {
     const trackRef = useRef<HTMLDivElement>(null);
 
     const images = [
-        publicPath("/assets/galleryImage1.webp"), publicPath("/assets/galleryImage2.webp"), publicPath("/assets/galleryImage3.webp"), publicPath("/assets/galleryImage4.webp"),
-        publicPath("/assets/galleryImage1.webp"), publicPath("/assets/galleryImage2.webp"), publicPath("/assets/galleryImage3.webp"), publicPath("/assets/galleryImage4.webp")
+        publicPath("/assets/galleryImage1.webp"), publicPath("/assets/galleryImage2.webp"), publicPath("/assets/galleryImage3.webp"), publicPath("/assets/location.webp"),
+        publicPath("/assets/galleryImage1.webp"), publicPath("/assets/galleryImage2.webp"), publicPath("/assets/galleryImage3.webp"), publicPath("/assets/site.webp")
     ];
 
     useEffect(() => {
@@ -37,14 +37,11 @@ export function Gallery() {
         };
 
         window.addEventListener("scroll", handleScroll, { passive: true });
-        window.addEventListener("resize", handleScroll);
         
-       
         const timer = setTimeout(handleScroll, 100);
 
         return () => {
             window.removeEventListener("scroll", handleScroll);
-            window.removeEventListener("resize", handleScroll);
             clearTimeout(timer);
         };
     }, []);
@@ -55,7 +52,7 @@ export function Gallery() {
             <div className="sticky top-0 h-screen overflow-hidden flex items-center">
                 
                
-                <div ref={trackRef} className="flex gap-5 px-4 md:px-16 lg:px-24 xl:px-32 py-16 md:py-20 will-change-transform transition-transform duration-300 ease-out">
+                <div ref={trackRef} className="flex gap-5 px-4 md:px-16 lg:px-24 xl:px-32 py-16 md:py-20 will-change-transform">
                     {images.map((src, index) => (
                         <Image key={index} src={src} alt={`Gallery Image ${index + 1}`} width={364} height={457} className="object-cover shrink-0 pointer-events-none" />
                     ))}
