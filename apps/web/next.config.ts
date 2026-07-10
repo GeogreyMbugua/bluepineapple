@@ -1,10 +1,14 @@
 import type { NextConfig } from 'next';
 
+const isProduction = process.env.NODE_ENV === 'production';
+
 const nextConfig: NextConfig = {
   reactCompiler: true,
   output: 'export',
-  basePath: '/bluepineapple',
-  assetPrefix: '/bluepineapple/',
+  ...(isProduction ? {
+    basePath: '/bluepineapple',
+    assetPrefix: '/bluepineapple/',
+  } : {}),
   trailingSlash: true,
   images: {
     unoptimized: true,
