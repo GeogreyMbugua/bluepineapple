@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
+import { ChevronDown } from "lucide-react";
 import React, { useState, useEffect } from "react";
 
 import { publicPath } from '@/lib/paths';
@@ -16,6 +17,7 @@ export function Navbar({ variant = 'parent' }: NavbarProps) {
     const [mobileOpen, setMobileOpen] = React.useState(false);
     const [scrolled, setScrolled] = useState(false);
     const [platformsOpen, setPlatformsOpen] = React.useState(false);
+    const [exploreOpen, setExploreOpen] = React.useState(false);
 
     useEffect(() => {
         const handleScroll = () => {
@@ -35,18 +37,11 @@ export function Navbar({ variant = 'parent' }: NavbarProps) {
 
     const coastalLinks = (
         <>
-            <a href="#experiences" className={`transition-colors duration-500 ${scrolled ? "text-zinc-800 hover:text-zinc-600" : "text-white hover:text-white/90"}`}>Experiences</a>
-            <a href="#partners" className={`transition-colors duration-500 ${scrolled ? "text-zinc-800 hover:text-zinc-600" : "text-white hover:text-white/90"}`}>Partners</a>
-            <a href="#contact" className={`transition-colors duration-500 ${scrolled ? "text-zinc-800 hover:text-zinc-600" : "text-white hover:text-white/90"}`}>Contact</a>
-            <div className="relative">
-                <button onClick={() => setPlatformsOpen((v) => !v)} className={`transition-colors duration-500 ${scrolled ? "text-zinc-800 hover:text-zinc-600" : "text-white hover:text-white/90"}`}>Platform</button>
-                {platformsOpen && (
-                    <div className="absolute top-full left-0 mt-2 w-48 rounded-md border border-zinc-200 bg-white py-2 shadow-lg">
-                        <Link href="/coastal-experiences" className="block px-4 py-2 text-xs text-zinc-700 hover:bg-zinc-50" onClick={() => setPlatformsOpen(false)}>Coastal Experiences</Link>
-                        <Link href="/real-estate" className="block px-4 py-2 text-xs text-zinc-700 hover:bg-zinc-50" onClick={() => setPlatformsOpen(false)}>Real Estate</Link>
-                    </div>
-                )}
-            </div>
+            <Link href="/trips" className={`transition-colors duration-500 ${scrolled ? "text-zinc-800 hover:text-zinc-600" : "text-white hover:text-white/90"}`}>Experiences</Link>
+            <Link href="/trips/fort-jesus-trip" className={`transition-colors duration-500 ${scrolled ? "text-zinc-800 hover:text-zinc-600" : "text-white hover:text-white/90"}`}>Fort Jesus</Link>
+            <Link href="/boats" className={`transition-colors duration-500 ${scrolled ? "text-zinc-800 hover:text-zinc-600" : "text-white hover:text-white/90"}`}>Our Fleet</Link>
+            <Link href="/gallery" className={`transition-colors duration-500 ${scrolled ? "text-zinc-800 hover:text-zinc-600" : "text-white hover:text-white/90"}`}>Gallery</Link>
+            <Link href="/contact" className={`transition-colors duration-500 ${scrolled ? "text-zinc-800 hover:text-zinc-600" : "text-white hover:text-white/90"}`}>Contact</Link>
         </>
     );
 
@@ -71,11 +66,11 @@ export function Navbar({ variant = 'parent' }: NavbarProps) {
 
     const mobileLinks = variant === 'coastal' ? (
         <>
-            <Link href="#experiences" onClick={() => { setMobileOpen(false) }} className={`transition-colors duration-500 ${scrolled ? "text-zinc-800 hover:text-zinc-600" : "text-white hover:text-white/90"}`}>Experiences</Link>
-            <Link href="#partners" onClick={() => { setMobileOpen(false) }} className={`transition-colors duration-500 ${scrolled ? "text-zinc-800 hover:text-zinc-600" : "text-white hover:text-white/90"}`}>Partners</Link>
-            <Link href="/coastal-experiences" onClick={() => { setMobileOpen(false) }} className={`transition-colors duration-500 ${scrolled ? "text-zinc-800 hover:text-zinc-600" : "text-white hover:text-white/90"}`}>Coastal Experiences</Link>
-            <Link href="/real-estate" onClick={() => { setMobileOpen(false) }} className={`transition-colors duration-500 ${scrolled ? "text-zinc-800 hover:text-zinc-600" : "text-white hover:text-white/90"}`}>Real Estate</Link>
-            <a href="#contact" onClick={() => { setMobileOpen(false) }} className={`transition-colors duration-500 ${scrolled ? "text-zinc-800 hover:text-zinc-600" : "text-white hover:text-white/90"}`}>Contact</a>
+            <Link href="/trips" onClick={() => { setMobileOpen(false) }} className={`transition-colors duration-500 ${scrolled ? "text-zinc-800 hover:text-zinc-600" : "text-white hover:text-white/90"}`}>Experiences</Link>
+            <Link href="/trips/fort-jesus-trip" onClick={() => { setMobileOpen(false) }} className={`transition-colors duration-500 ${scrolled ? "text-zinc-800 hover:text-zinc-600" : "text-white hover:text-white/90"}`}>Fort Jesus</Link>
+            <Link href="/boats" onClick={() => { setMobileOpen(false) }} className={`transition-colors duration-500 ${scrolled ? "text-zinc-800 hover:text-zinc-600" : "text-white hover:text-white/90"}`}>Our Fleet</Link>
+            <Link href="/gallery" onClick={() => { setMobileOpen(false) }} className={`transition-colors duration-500 ${scrolled ? "text-zinc-800 hover:text-zinc-600" : "text-white hover:text-white/90"}`}>Gallery</Link>
+            <Link href="/contact" onClick={() => { setMobileOpen(false) }} className={`transition-colors duration-500 ${scrolled ? "text-zinc-800 hover:text-zinc-600" : "text-white hover:text-white/90"}`}>Contact</Link>
         </>
     ) : variant === 'real-estate' ? (
         <>
@@ -97,7 +92,7 @@ export function Navbar({ variant = 'parent' }: NavbarProps) {
 
     return (
         <>
-            <nav className={`fixed z-50 flex items-center justify-between left-1/2 -translate-x-1/2 transition-all duration-500 w-full max-w-7xl mx-auto px-4 md:px-8 lg:px-12 xl:px-16 ${scrolled ? "bg-white/60 backdrop-blur-2xl rounded-full mt-4 pl-6 shadow" : ""}`}>
+            <nav className={`fixed z-50 flex items-center justify-between left-1/2 -translate-x-1/2 transition-all duration-500 w-full max-w-7xl mx-auto px-4 md:px-8 lg:px-12 xl:px-16 ${scrolled ? "bg-white/60 backdrop-blur-2xl  mt-4 pl-6 shadow" : ""}`}>
                 <Link href="/" aria-label="Blue Pineapple Holdings — Home">
                     <Image width={140} height={140} src={publicPath("/logos/bplogo.png")} alt="Blue Pineapple Holdings" className={`transition-all duration-500 h-11 w-auto sm:h-12 ${scrolled ? "invert opacity-80" : ""}`} />
                 </Link>
@@ -107,9 +102,35 @@ export function Navbar({ variant = 'parent' }: NavbarProps) {
                     {desktopLinks}
                 </div>
 
-                <Link href="/coastal-experiences" className={`hidden md:block px-4 py-1.5 rounded-[6px] text-xs font-medium cursor-pointer transition-all duration-500 ${scrolled ? "bg-zinc-900 text-white hover:bg-zinc-800 rounded-full" : "bg-zinc-50 text-zinc-800 hover:bg-zinc-200"}`}>
-                    Explore Platforms
-                </Link>
+                <div
+                    className="group hidden md:block relative"
+                    onMouseEnter={() => setExploreOpen(true)}
+                    onMouseLeave={() => setExploreOpen(false)}
+                >
+                    <button
+                        type="button"
+                        aria-expanded={exploreOpen}
+                        onClick={() => setExploreOpen((v) => !v)}
+                        className={`inline-flex items-center gap-1.5 px-5 py-2.5 rounded-full text-xs font-semibold cursor-pointer transition-all duration-500 ${scrolled ? "bg-cyan-950 text-white hover:bg-cyan-900" : "bg-white text-cyan-950 hover:bg-cyan-100"}`}
+                    >
+                        Explore Platforms
+                        <ChevronDown size={14} className={`transition-transform duration-300 ${exploreOpen ? "rotate-180" : ""}`} />
+                    </button>
+                    <div
+                        className={`absolute top-full right-0 pt-2 w-52 transition-all duration-200 ${exploreOpen ? "opacity-100 translate-y-0 visible" : "opacity-0 -translate-y-1 invisible pointer-events-none"}`}
+                    >
+                        <div className="overflow-hidden rounded-xl bg-white/95 backdrop-blur-md shadow-lg ring-1 ring-black/5">
+                            <Link href="/coastal-experiences" onClick={() => setExploreOpen(false)} className="flex items-center justify-between px-4 py-2.5 text-sm font-medium text-zinc-800 hover:bg-cyan-950 hover:text-white transition-colors">
+                                Coastal Experiences
+                                <span className="size-1.5 rounded-full bg-cyan-500" />
+                            </Link>
+                            <Link href="/real-estate" onClick={() => setExploreOpen(false)} className="flex items-center justify-between px-4 py-2.5 text-sm font-medium text-zinc-800 hover:bg-cyan-950 hover:text-white transition-colors">
+                                Real Estate
+                                <span className="size-1.5 rounded-full bg-cyan-500" />
+                            </Link>
+                        </div>
+                    </div>
+                </div>
 
                 <button onClick={() => setMobileOpen(true)} className={`md:hidden p-2 rounded-md aspect-square font-medium transition cursor-pointer ${scrolled ? "text-zinc-800" : "text-white"}`}>
                     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">

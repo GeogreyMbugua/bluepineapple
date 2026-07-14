@@ -9,8 +9,8 @@ export function Gallery() {
     const trackRef = useRef<HTMLDivElement>(null);
 
     const images = [
-        publicPath("/assets/galleryImage1.webp"), publicPath("/assets/galleryImage2.webp"), publicPath("/assets/galleryImage3.webp"), publicPath("/assets/location.webp"),
-        publicPath("/assets/galleryImage1.webp"), publicPath("/assets/galleryImage2.webp"), publicPath("/assets/galleryImage3.webp"), publicPath("/assets/site.webp")
+        publicPath("/assets/crew.webp"), publicPath("/assets/image1.webp"), publicPath("/assets/galleryImage3.webp"), publicPath("/assets/location.webp"),
+        publicPath("/assets/hunky04.webp"), publicPath("/assets/galleryImage2.webp"), publicPath("/assets/galleryImage3.webp"), publicPath("/assets/site.webp")
     ];
 
     useEffect(() => {
@@ -27,17 +27,13 @@ export function Gallery() {
 
             if (maxScroll <= 0) return;
 
-      
             const progress = Math.max(0, Math.min(1, scrolled / maxScroll));
-            
-     
             const limit = Math.max(0, track.scrollWidth - window.innerWidth);
 
             track.style.transform = `translateX(-${progress * limit}px)`;
         };
 
         window.addEventListener("scroll", handleScroll, { passive: true });
-        
         const timer = setTimeout(handleScroll, 100);
 
         return () => {
@@ -47,17 +43,13 @@ export function Gallery() {
     }, []);
 
     return (
-        <section ref={containerRef} className="relative h-[180vh] w-full">
-            
+        <section ref={containerRef} className="relative h-[180vh] w-full bg-cyan-50">
             <div className="sticky top-0 h-screen overflow-hidden flex items-center">
-                
-               
-                <div ref={trackRef} className="flex gap-5 px-4 md:px-16 lg:px-24 xl:px-32 py-16 md:py-20 will-change-transform">
+                <div ref={trackRef} className="flex gap-5 px-4 md:px-16 lg:px-24 xl:px-32 py-16 md:py-20 will-change-transform" style={{ touchAction: 'pan-y' }}>
                     {images.map((src, index) => (
-                        <Image key={index} src={src} alt={`Gallery Image ${index + 1}`} width={364} height={457} className="object-cover shrink-0 pointer-events-none" />
+                        <Image key={index} src={src} alt={`Gallery Image ${index + 1}`} width={364} height={457} className="object-cover shrink-0 pointer-events-none select-none" draggable={false} />
                     ))}
                 </div>
-
             </div>
         </section>
     );

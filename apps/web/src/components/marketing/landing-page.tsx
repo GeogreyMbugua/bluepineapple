@@ -8,7 +8,7 @@ import { WhyChooseUs } from '@/app/sections/why-choose-us';
 
 export function LandingPage() {
   return (
-    <main className="bg-background text-foreground">
+    <main className="bg-white text-foreground">
       <HeroSection />
       <Stats />
       <Gallery />

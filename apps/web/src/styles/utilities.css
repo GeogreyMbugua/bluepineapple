@@ -56,4 +56,32 @@
   .scrollbar-hidden::-webkit-scrollbar {
     display: none;
   }
+
+  /* Marquee scroll up */
+  .animate-marquee-up {
+    animation: marquee-up 40s linear infinite;
+  }
+
+  /* Marquee scroll down */
+  .animate-marquee-down {
+    animation: marquee-down 40s linear infinite;
+  }
+}
+
+@keyframes marquee-up {
+  from {
+    transform: translateY(0);
+  }
+  to {
+    transform: translateY(-50%);
+  }
+}
+
+@keyframes marquee-down {
+  from {
+    transform: translateY(-50%);
+  }
+  to {
+    transform: translateY(0);
+  }
 }

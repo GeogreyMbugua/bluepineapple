@@ -14,31 +14,31 @@ type Testimonial = {
 
 const testimonialsCol1: Testimonial[] = [
     {
-        name: "Amina Hassan",
-        location: "Guest Experience Partner",
+        name: "Sarah Johnson",
+        location: "Fort Jesus Tourist",
         avatar: publicPath("/assets/galleryImage1.webp"),
-        text: "The platform feels premium and dependable. Every touchpoint reflects the care and quality Blue Pineapple is known for.",
+        text: "The hop-on-hop-off Fort Jesus trip was the highlight of our Mombasa holiday. The crew was professional, the boat was spotless, and the views were incredible.",
     },
     {
-        name: "Noah Mwangi",
-        location: "Property & Growth Lead",
+        name: "James Ochieng",
+        location: "Private Charter Guest",
         avatar: publicPath("/assets/galleryImage2.webp"),
-        text: "It is refreshing to see a company that can tell a clear story across tourism, real estate, and future investment opportunities.",
+        text: "Chartered Setting Sons for a corporate event. The 360° surveillance and attentive crew made it feel premium from start to finish.",
     },
 ];
 
 const testimonialsCol2: Testimonial[] = [
     {
-        name: "Lina Okafor",
-        location: "Operations & Partnerships",
+        name: "Emily Wanjiku",
+        location: "Snorkelling Enthusiast",
         avatar: publicPath("/assets/galleryImage3.webp"),
-        text: "The experience is polished, welcoming, and structured in a way that feels ready for growth.",
+        text: "The snorkelling reef trip was magical. Gliding over coral gardens with tropical fish all around — an experience we will never forget.",
     },
     {
-        name: "Daniel Kibet",
-        location: "Coastal Operations",
-        avatar: publicPath("/assets/galleryImage4.webp"),
-        text: "Blue Pineapple brings clarity and confidence to every partnership, from guest journeys to long-term investment discussions.",
+        name: "David Kamau",
+        location: "Sunset Cruise",
+        avatar: publicPath("/assets/image1.webp"),
+        text: "The sunset sailing experience with Swahili snacks and photo opportunities was the perfect way to end our day in Mombasa.",
     },
 ];
 
@@ -70,7 +70,7 @@ export function Testimonials() {
     );
 
     return (
-        <section className="py-20 md:py-40 px-4 md:px-16 lg:px-24 xl:px-32 w-full bg-gray-50 overflow-hidden">
+        <section className="py-20 md:py-40 px-4 md:px-16 lg:px-24 xl:px-32 w-full bg-brand-50 overflow-hidden">
             <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-4 lg:gap-2 justify-start items-start">
 
                 {/* Left Column - Header Details */}
@@ -83,17 +83,17 @@ export function Testimonials() {
                     >
                         <span className="size-1.5 bg-zinc-900"></span>
                         <span className="text-sm text-zinc-900">
-                            TRUST SIGNALS
+                            GUEST REVIEWS
                         </span>
                     </motion.div>
                     <div className="w-[148px] h-[1.5px] bg-linear-to-r from-[#030303] to-white mt-3.5"></div>
-                    <motion.h2 className="text-3xl md:text-[34px]/12 text-zinc-900 mt-5 leading-tight font-medium max-w-[400px]"
+                        <motion.h2 className="text-3xl md:text-4xl text-zinc-900 mt-5 leading-tight font-medium tracking-tight max-w-[400px]"
                         initial={{ y: 50, opacity: 0 }}
                         whileInView={{ y: 0, opacity: 1 }}
                         viewport={{ once: true }}
                         transition={{ type: "spring", stiffness: 240, damping: 70, mass: 1 }}
                     >
-                        Trusted by Partners. Proven by Execution.
+                        Trusted by Guests. Proven by the Sea.
                     </motion.h2>
 
                     <motion.p className="text-zinc-500 text-sm md:text-base mt-2.5 max-w-[340px]"
@@ -102,7 +102,7 @@ export function Testimonials() {
                         viewport={{ once: true }}
                         transition={{ delay: 0.2, type: "spring", stiffness: 320, damping: 70, mass: 1 }}
                     >
-                        Honest words from partners and guests who value a platform built on care, precision, and consistency.
+                        Honest words from guests who value premium coastal experiences built on safety, comfort, and authentic Kenyan hospitality.
                     </motion.p>
                 </div>
 
@@ -112,8 +112,8 @@ export function Testimonials() {
                     <div className="absolute inset-0 pointer-events-none rounded-xl shadow-[0_0_30px_rgba(0,0,0,0.05)]"></div>
 
                     {/* Fade-out masks */}
-                    <div className="absolute top-0 left-0 right-0 h-24 bg-linear-to-b from-gray-50 to-transparent pointer-events-none z-10" />
-                    <div className="absolute bottom-0 left-0 right-0 h-24 bg-linear-to-t from-gray-50 to-transparent pointer-events-none z-10" />
+                    <div className="absolute top-0 left-0 right-0 h-24 bg-linear-to-b from-brand-50 to-transparent pointer-events-none z-10" />
+                    <div className="absolute bottom-0 left-0 right-0 h-24 bg-linear-to-t from-brand-50 to-transparent pointer-events-none z-10" />
 
                     {/* Column 1 (Scrolls Upwards) */}
                     <div className="overflow-hidden h-full flex flex-col">

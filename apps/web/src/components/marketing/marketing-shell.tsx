@@ -9,11 +9,11 @@ interface MarketingShellProps {
 
 export function MarketingShell({ variant, children }: MarketingShellProps) {
   return (
-    <>
+    <div className="bg-cyan-100 min-h-screen">
       <LenisScroll />
       <Navbar variant={variant} />
       {children}
       <Footer />
-    </>
+    </div>
   );
 }

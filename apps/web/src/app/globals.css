@@ -7,3 +7,12 @@ body {
   color: var(--color-foreground);
   font-family: var(--font-sans);
 }
+
+img {
+  -webkit-user-drag: none;
+  user-select: none;
+}
+
+.gallery-track {
+  touch-action: pan-y;
+}

@@ -22,11 +22,11 @@ const fadeBlurUp: Variants = {
 };
 
 const lineUp: Variants = {
-    hidden: { opacity: 0, y: 48 },
+    hidden: { opacity: 0, y: 64 },
     show: {
         opacity: 1,
         y: 0,
-        transition: { type: "spring", stiffness: 220, damping: 74, mass: 1 },
+        transition: { type: "spring", stiffness: 200, damping: 26, mass: 1 },
     },
 };
 
@@ -37,49 +37,47 @@ const categories = ["Real Estate", "Property Management", "Construction & Invest
 export function HeroSection() {
     return (
         <section className="relative min-h-screen w-full overflow-hidden bg-black">
-            {/* Background layer — breathes: slow intro zoom, then an almost invisible 20s drift */}
+            {/* Background layer — real punch-in on load, then a genuine slow 20s drift outward */}
             <motion.div
                 className="absolute inset-0"
-                initial={{ scale: 1 }}
+                initial={{ scale: 1.12 }}
                 animate={{ scale: 1 }}
-                transition={{ duration: 1.6, ease: [0.22, 1, 0.36, 1] }}
+                transition={{ duration: 1.8, ease: [0.22, 1, 0.36, 1] }}
             >
-                    <motion.div
-                        className="absolute inset-0 h-full w-full bg-cover bg-center bg-no-repeat"
-                        style={{ backgroundImage: `url('${publicPath("/hero.webp")}')` }}
-                        initial={{ scale: 1 }}
-                        animate={{ scale: 1 }}
-                        transition={{ duration: 20, ease: "linear" }}
-                    />
+                <motion.div
+                    className="absolute inset-0 h-full w-full bg-cover bg-center bg-no-repeat"
+                    style={{ backgroundImage: `url('${publicPath("/hero.webp")}')` }}
+                    initial={{ scale: 1 }}
+                    animate={{ scale: 1.08 }}
+                    transition={{ duration: 20, ease: "linear", repeat: Infinity, repeatType: "reverse" }}
+                />
             </motion.div>
 
             {/* Legibility gradients — imagery stays visible on the right, text reads on the left */}
-            <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/40 to-transparent" />
-            <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-black/30" />
+            <div className="absolute inset-0 bg-gradient-to-r from-black/75 via-black/35 to-transparent" />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/20" />
 
-            {/* Content — left-aligned, given room to compose against the imagery */}
+            {/* Content — left-aligned, given real room to compose against the imagery */}
             <motion.div
                 className="container-page relative z-10 flex min-h-screen flex-col justify-center pt-28 pb-16"
                 variants={container}
                 initial="hidden"
                 animate="show"
             >
-               
-
-                <motion.ul
-                    variants={fadeBlurUp}
-                    className="mb-7 flex flex-wrap gap-x-3 gap-y-2 text-xs font-medium uppercase tracking-[0.18em] text-white/70"
-                >
-                    {categories.map((item, i) => (
-                        <li key={item} className="flex items-center gap-3">
-                            {i > 0 && <span className="h-1 w-1 rounded-full bg-white/40" aria-hidden />}
-                            {item}
-                        </li>
-                    ))}
-                </motion.ul>
+                <motion.div variants={fadeBlurUp} className="mb-6 flex items-center gap-4">
+                    <span className="h-px w-8 bg-white/30" aria-hidden />
+                    <ul className="flex flex-wrap items-center gap-x-4 gap-y-2 font-mono text-[10px] font-medium uppercase tracking-[0.2em] text-white/45">
+                        {categories.map((item, i) => (
+                            <li key={item} className="flex items-center gap-4">
+                                {i > 0 && <span className="text-white/25">/</span>}
+                                {item}
+                            </li>
+                        ))}
+                    </ul>
+                </motion.div>
 
                 <motion.h1
-                    className="max-w-[14ch] text-5xl font-semibold leading-[1.02] tracking-[-0.03em] text-zinc-50 sm:text-6xl lg:text-7xl"
+                    className="max-w-[15ch] text-4xl font-medium leading-[1.08] tracking-[-0.02em] text-zinc-50 sm:text-5xl lg:text-6xl"
                     variants={container}
                 >
                     {headlineLines.map((line) => (
@@ -93,18 +91,18 @@ export function HeroSection() {
 
                 <motion.p
                     variants={fadeBlurUp}
-                    className="mt-7 max-w-[520px] text-pretty text-base leading-relaxed text-white/80 sm:text-lg"
+                    className="mt-6 max-w-[420px] text-pretty text-sm leading-relaxed text-white/60 sm:text-base"
                 >
-                    Blue Pineapple Holdings Ltd is a dynamic Kenyan company delivering innovative, reliable, and customer-focused business solutions across real estate, property management, construction, investment consultancy, and hospitality.
+                    A Kenyan holding company across real estate, property management, construction, and hospitality.
                 </motion.p>
 
                 <motion.div
                     variants={fadeBlurUp}
-                    className="mt-10 flex flex-wrap items-center gap-x-8 gap-y-4"
+                    className="mt-9 flex flex-wrap items-center gap-x-8 gap-y-4"
                 >
                     <a
                         href="#services"
-                        className="inline-flex items-center gap-2 rounded-md bg-zinc-50 px-6 py-3 text-sm font-semibold text-zinc-900 transition-colors duration-200 hover:bg-zinc-200"
+                        className="group inline-flex items-center gap-2 rounded-full bg-cyan-950 px-6 py-3 text-sm font-semibold text-white transition-colors duration-200 hover:bg-cyan-900"
                     >
                         Our Services
                         <ArrowUpRight size={16} />

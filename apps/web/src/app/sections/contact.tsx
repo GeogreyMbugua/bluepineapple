@@ -1,185 +1,127 @@
 "use client";
 
 import { motion } from "framer-motion";
+import { MapPin, Phone, Mail, Globe } from "lucide-react";
+
+const MAP_URL =
+  "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d127641.23956217018!2d39.6505534!3d-4.0434778!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x18401be4e389d071%3A0xef2e44a5161c9c1a!2sMombasa%2C%20Kenya!5e0!3m2!1sen!2sus!4v1719999999999";
+
+const CONTACT = {
+  phone: "+254 708 485 978",
+  email: "bluepineappleholdings@gmail.com",
+  website: "bluepineappleholdings.com",
+  city: "Mombasa Marina, Mombasa, Kenya",
+  whatsapp: "https://wa.me/254708485978?text=Hi%20Blue%20Pineapple%2C%20I'd%20like%20to%20make%20a%20booking",
+};
+
+const fadeUp = {
+  initial: { y: 40, opacity: 0 },
+  whileInView: { y: 0, opacity: 1 },
+  viewport: { once: true },
+  transition: {
+    type: "spring",
+    stiffness: 320,
+    damping: 70,
+  },
+} as const;
+
+const inputClass =
+  "w-full border border-zinc-200 rounded-sm px-4 py-2.5 text-xs text-zinc-800 placeholder-zinc-400 focus:outline-none focus:border-zinc-300 transition-colors";
+
+const fields = [
+  { label: "YOUR NAME", placeholder: "A. Patel", type: "text" },
+  { label: "EMAIL ADDRESS", placeholder: "partner@bluepineapple.com", type: "email" },
+  { label: "PHONE NUMBER", placeholder: "+254 700 000 000", type: "tel" },
+  { label: "SUBJECT", placeholder: "Partnership Inquiry", type: "text" },
+];
+
+function FormField({ label, placeholder, type = "text" }: { readonly label: string; readonly placeholder: string; readonly type?: string }) {
+  const id = label.toLowerCase().replace(/\s+/g, "-");
+  return (
+    <div className="flex flex-col">
+      <motion.label htmlFor={id} className="text-sm text-zinc-600 mb-2" variants={fadeUp}>
+        {label}
+      </motion.label>
+      <motion.input id={id} type={type} placeholder={placeholder} className={inputClass} variants={fadeUp} />
+    </div>
+  );
+}
 
 export function Contact() {
-    return (
-        <section className="py-20 w-full flex items-center justify-center">
-            <div className="max-w-5xl w-full mx-auto px-4 grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16 items-center">
+  return (
+    <section className="py-20 w-full flex items-center justify-center bg-gray-100">
+      <div className="max-w-5xl w-full mx-auto px-4 grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16 items-center">
+        <motion.div className="flex flex-col gap-6" variants={fadeUp} viewport={{ once: true }}>
+          <motion.div className="flex items-center gap-1.5" variants={fadeUp} viewport={{ once: true }}>
+            <span className="size-1.5 bg-zinc-900" />
+            <span className="text-sm text-zinc-900">CONTACT BLUE PINEAPPLE</span>
+          </motion.div>
 
-                {/* Left Column: Contact Form */}
-                <div className="flex flex-col">
+            <motion.h2 className="text-3xl md:text-4xl text-zinc-900 mt-5 leading-tight font-medium tracking-tight max-w-[400px]" variants={fadeUp} viewport={{ once: true }}>
+            Let&apos;s Start the Conversation
+          </motion.h2>
 
-                    <motion.div className="flex items-center gap-1.5"
-                        initial={{ y: -20, opacity: 0 }}
-                        whileInView={{ y: 0, opacity: 1 }}
-                        viewport={{ once: true }}
-                        transition={{ delay: 0.2, type: "spring", stiffness: 320, damping: 70, mass: 1 }}
-                    >
-                        <span className="size-1.5 bg-zinc-900"></span>
-                        <span className="text-sm text-zinc-900">
-                            CONTACT BLUE PINEAPPLE
-                        </span>
-                    </motion.div>
+          <motion.p className="text-zinc-500 text-sm md:text-base max-w-[420px]" variants={fadeUp} viewport={{ once: true }}>
+            Have questions about our trips? We would love to hear from you. Chat on WhatsApp or fill out the form below.
+          </motion.p>
 
-                    <motion.h2 className="text-3xl md:text-[40px]/11 text-zinc-900 mt-5 leading-tight font-medium max-w-[400px]"
-                        initial={{ y: 50, opacity: 0 }}
-                        whileInView={{ y: 0, opacity: 1 }}
-                        viewport={{ once: true }}
-                        transition={{ type: "spring", stiffness: 240, damping: 70, mass: 1 }}
-                    >
-                        Get in touch with <br/>Blue Pineapple Holdings
-                    </motion.h2>
-
-                    {/* Form */}
-                    <form className="mt-15 flex flex-col gap-6" onSubmit={(e) => e.preventDefault()}>
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                            {/* Name */}
-                            <div className="flex flex-col">
-                                <motion.label className="text-sm text-zinc-600 mb-2"
-                                    initial={{ y: 50, opacity: 0 }}
-                                    whileInView={{ y: 0, opacity: 1 }}
-                                    viewport={{ once: true }}
-                                    transition={{ type: "spring", stiffness: 320, damping: 70, mass: 1 }}
-                                >
-                                    YOUR NAME
-                                </motion.label>
-                                <motion.input type="text" placeholder="A. Patel" className="w-full border border-zinc-200 rounded-sm px-4 py-2.5 text-xs text-zinc-800 placeholder-zinc-400 focus:outline-none focus:border-zinc-300 transition-colors" 
-                                    initial={{ y: 50, opacity: 0 }}
-                                    whileInView={{ y: 0, opacity: 1 }}
-                                    viewport={{ once: true }}
-                                    transition={{ type: "spring", stiffness: 320, damping: 70, mass: 1 }}
-                                />
-                            </div>
-
-                            {/* Email */}
-                            <div className="flex flex-col">
-                                <motion.label className="text-sm text-zinc-600 mb-2"
-                                    initial={{ y: 50, opacity: 0 }}
-                                    whileInView={{ y: 0, opacity: 1 }}
-                                    viewport={{ once: true }}
-                                    transition={{ type: "spring", stiffness: 320, damping: 70, mass: 1 }}
-                                >
-                                    EMAIL ADDRESS
-                                </motion.label>
-                                <motion.input type="email" placeholder="partner@bluepineapple.com" className="w-full border border-zinc-200 rounded-sm px-4 py-2.5 text-xs text-zinc-800 placeholder-zinc-400 focus:outline-none focus:border-zinc-300 transition-colors" 
-                                    initial={{ y: 50, opacity: 0 }}
-                                    whileInView={{ y: 0, opacity: 1 }}
-                                    viewport={{ once: true }}
-                                    transition={{ type: "spring", stiffness: 320, damping: 70, mass: 1 }}
-                                />
-                            </div>
-                        </div>
-
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                            {/* Phone */}
-                            <div className="flex flex-col">
-                                <motion.label className="text-sm text-zinc-600 mb-2"
-                                    initial={{ y: 50, opacity: 0 }}
-                                    whileInView={{ y: 0, opacity: 1 }}
-                                    viewport={{ once: true }}
-                                    transition={{ type: "spring", stiffness: 320, damping: 70, mass: 1 }}
-                                >
-                                    PHONE NUMBER
-                                </motion.label>
-                                <motion.input type="tel" placeholder="E.g. +254 700 000 000" className="w-full border border-zinc-200 rounded-sm px-4 py-2.5 text-xs text-zinc-800 placeholder-zinc-400 focus:outline-none focus:border-zinc-300 transition-colors" 
-                                    initial={{ y: 50, opacity: 0 }}
-                                    whileInView={{ y: 0, opacity: 1 }}
-                                    viewport={{ once: true }}
-                                    transition={{ type: "spring", stiffness: 320, damping: 70, mass: 1 }}
-                                />
-                            </div>
-
-                            {/* Subject */}
-                            <div className="flex flex-col">
-                                <motion.label className="text-sm text-zinc-600 mb-2"
-                                    initial={{ y: 50, opacity: 0 }}
-                                    whileInView={{ y: 0, opacity: 1 }}
-                                    viewport={{ once: true }}
-                                    transition={{ type: "spring", stiffness: 320, damping: 70, mass: 1 }}
-                                >
-                                    SUBJECT
-                                </motion.label>
-                                <motion.input type="text" placeholder="E.g. Partnership Inquiry" className="w-full border border-zinc-200 rounded-sm px-4 py-2.5 text-xs text-zinc-800 placeholder-zinc-400 focus:outline-none focus:border-zinc-300 transition-colors" 
-                                    initial={{ y: 50, opacity: 0 }}
-                                    whileInView={{ y: 0, opacity: 1 }}
-                                    viewport={{ once: true }}
-                                    transition={{ type: "spring", stiffness: 320, damping: 70, mass: 1 }}
-                                />
-                            </div>
-                        </div>
-
-                        {/* Message */}
-                        <div className="flex flex-col">
-                            <motion.label className="text-sm text-zinc-600 mb-2"
-                                initial={{ y: 50, opacity: 0 }}
-                                whileInView={{ y: 0, opacity: 1 }}
-                                viewport={{ once: true }}
-                                transition={{ type: "spring", stiffness: 320, damping: 70, mass: 1 }}
-                            >
-                                MESSAGE
-                            </motion.label>
-                            <motion.textarea rows={4} placeholder="E.g. I would like to learn more about the platform" className="w-full border border-zinc-200 rounded-sm px-4 py-2.5 text-xs text-zinc-800 placeholder-zinc-400 focus:outline-none focus:border-zinc-300 transition-colors resize-none" 
-                                initial={{ y: 50, opacity: 0 }}
-                                whileInView={{ y: 0, opacity: 1 }}
-                                viewport={{ once: true }}
-                                transition={{ type: "spring", stiffness: 320, damping: 70, mass: 1 }}
-                            />
-                        </div>
-
-                        {/* Submit Button */}
-                        <motion.div className="mt-2"
-                            initial={{ y: 50, opacity: 0 }}
-                            whileInView={{ y: 0, opacity: 1 }}
-                            viewport={{ once: true }}
-                            transition={{ type: "spring", stiffness: 320, damping: 70, mass: 1 }}
-                        >
-                            <button type="submit" className="bg-black hover:bg-zinc-900 text-white text-xs px-6 py-3.5 rounded-full transition-colors duration-200 cursor-pointer">
-                                GET IN TOUCH
-                            </button>
-                        </motion.div>
-                    </form>
-                </div>
-
-                {/* Right Column: Map */}
-                <motion.div className="relative overflow-hidden group flex justify-center"
-                    initial={{ y: 50, opacity: 0 }}
-                    whileInView={{ y: 0, opacity: 1 }}
-                    viewport={{ once: true }}
-                    transition={{ type: "spring", stiffness: 320, damping: 70, mass: 1 }}
-                >
-                    <div className="relative w-full h-[455px] overflow-hidden rounded-xl">
-                        <iframe
-                            src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d127641.23956217018!2d39.6505534!3d-4.0434778!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x18401be4e389d071%3A0xef2e44a5161c9c1a!2sMombasa%2C%20Kenya!5e0!3m2!1sen!2sus!4v1719999999999"
-                            width="100%"
-                            height="100%"
-                            style={{ border: 0 }}
-                            allowFullScreen
-                            loading="lazy"
-                            referrerPolicy="no-referrer-when-downgrade"
-                            className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105 select-none"
-                        ></iframe>
-
-                        {/* Details Content Overlay */}
-                        <div className="absolute bottom-10 left-10 flex flex-col gap-2.5 z-10">
-                            <span className="text-base text-white">
-                                CONTACT DETAILS
-                            </span>
-                            <motion.div className="flex flex-col gap-1 text-sm text-white"
-                                initial={{ y: 20, opacity: 0 }}
-                                whileInView={{ y: 0, opacity: 1 }}
-                                viewport={{ once: true }}
-                                transition={{ delay: 0.2, type: "spring", stiffness: 320, damping: 70, mass: 1 }}
-                            >
-                                <p>+254 769 851 080 / +44 7925 878286</p>
-                                <p>info@bluepineapple.com</p>
-                                <p>Mombasa, Kenya</p>
-                            </motion.div>
-                        </div>
-                    </div>
-                </motion.div>
-
+          <form className="mt-2 flex flex-col gap-6" onSubmit={(e) => e.preventDefault()}>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+              {fields.slice(0, 2).map((field) => (
+                <FormField key={field.label} {...field} />
+              ))}
             </div>
-        </section>
-    );
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+              {fields.slice(2).map((field) => (
+                <FormField key={field.label} {...field} />
+              ))}
+            </div>
+
+            <div className="flex flex-col">
+              <motion.label htmlFor="message" className="text-sm text-zinc-600 mb-2" variants={fadeUp} viewport={{ once: true }}>
+                MESSAGE
+              </motion.label>
+              <motion.textarea id="message" rows={4} placeholder="Tell us about your plans" className={inputClass} variants={fadeUp} viewport={{ once: true }} />
+            </div>
+
+            <motion.div variants={fadeUp} viewport={{ once: true }}>
+              <button type="submit" className="inline-flex items-center justify-center gap-2 rounded-full bg-cyan-950 px-6 py-3 text-sm font-semibold text-white transition-colors duration-200 hover:bg-cyan-900 cursor-pointer">
+                Send Message
+              </button>
+            </motion.div>
+          </form>
+        </motion.div>
+
+        <motion.div className="relative overflow-hidden group flex justify-center" variants={fadeUp} viewport={{ once: true }}>
+          <div className="relative w-full h-[455px] overflow-hidden rounded-xl">
+            <iframe src={MAP_URL} width="100%" height="100%" style={{ border: 0 }} allowFullScreen loading="lazy" referrerPolicy="no-referrer-when-downgrade" className="absolute inset-0 w-full h-full object-cover select-none" />
+
+            <div className="absolute bottom-10 left-10 flex flex-col gap-2.5 z-10">
+              <span className="text-base text-white">CONTACT DETAILS</span>
+                <motion.div className="flex flex-col gap-1 text-sm text-white" variants={fadeUp} viewport={{ once: true }}>
+                <span className="flex items-center gap-2">
+                  <Phone className="size-4" />
+                  {CONTACT.phone}
+                </span>
+                <span className="flex items-center gap-2">
+                  <Mail className="size-4" />
+                  {CONTACT.email}
+                </span>
+                <span className="flex items-center gap-2">
+                  <Globe className="size-4" />
+                  {CONTACT.website}
+                </span>
+                <span className="flex items-center gap-2">
+                  <MapPin className="size-4" />
+                  {CONTACT.city}
+                </span>
+              </motion.div>
+            </div>
+          </div>
+        </motion.div>
+      </div>
+    </section>
+  );
 }
+
+export default Contact;
