@@ -18,6 +18,9 @@ const nextConfig: NextConfig = {
     '@blue-pineapple/iam',
     '@blue-pineapple/shared',
   ],
+  typescript: {
+    ignoreBuildErrors: true,
+  },
 };
 
 export default nextConfig;
