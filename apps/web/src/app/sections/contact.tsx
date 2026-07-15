@@ -96,24 +96,26 @@ export function Contact() {
           <div className="relative w-full h-[455px] overflow-hidden rounded-xl">
             <iframe src={MAP_URL} width="100%" height="100%" style={{ border: 0 }} allowFullScreen loading="lazy" referrerPolicy="no-referrer-when-downgrade" className="absolute inset-0 w-full h-full object-cover select-none" />
 
-            <div className="absolute bottom-10 left-10 flex flex-col gap-2.5 z-10">
-              <span className="text-base text-white">CONTACT DETAILS</span>
-                <motion.div className="flex flex-col gap-1 text-sm text-white" variants={fadeUp} viewport={{ once: true }}>
-                <span className="flex items-center gap-2">
-                  <Phone className="size-4" />
-                  {CONTACT.phone}
+            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
+
+            <div className="absolute bottom-0 left-0 right-0 p-6 md:p-8 z-10">
+              <span className="text-sm font-semibold text-white mb-4 block">Contact Details</span>
+              <motion.div className="flex flex-col gap-3 text-sm text-white/90" variants={fadeUp} viewport={{ once: true }}>
+                <span className="flex items-center gap-3">
+                  <Phone className="size-4 text-white/70" />
+                  <a href="tel:+254708485978" className="hover:text-white transition-colors">{CONTACT.phone}</a>
                 </span>
-                <span className="flex items-center gap-2">
-                  <Mail className="size-4" />
-                  {CONTACT.email}
+                <span className="flex items-center gap-3">
+                  <Mail className="size-4 text-white/70" />
+                  <a href={`mailto:${CONTACT.email}`} className="hover:text-white transition-colors">{CONTACT.email}</a>
                 </span>
-                <span className="flex items-center gap-2">
-                  <Globe className="size-4" />
-                  {CONTACT.website}
+                <span className="flex items-center gap-3">
+                  <Globe className="size-4 text-white/70" />
+                  <span>{CONTACT.website}</span>
                 </span>
-                <span className="flex items-center gap-2">
-                  <MapPin className="size-4" />
-                  {CONTACT.city}
+                <span className="flex items-center gap-3">
+                  <MapPin className="size-4 text-white/70" />
+                  <span>{CONTACT.city}</span>
                 </span>
               </motion.div>
             </div>

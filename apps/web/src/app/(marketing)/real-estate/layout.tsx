@@ -6,8 +6,10 @@ export default function RealEstateLayout({
   readonly children: React.ReactNode;
 }) {
   return (
-    <MarketingShell variant="real-estate">
-      {children}
-    </MarketingShell>
+    <div className="theme-real-estate">
+      <MarketingShell variant="real-estate">
+        {children}
+      </MarketingShell>
+    </div>
   );
 }

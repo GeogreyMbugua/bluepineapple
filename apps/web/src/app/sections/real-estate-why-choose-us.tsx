@@ -11,53 +11,53 @@ const houseImage = publicPath("/assets/galleryImage3.webp");
 const whyChooseUsData = [
     {
         title: "What makes Blue Pineapple different?",
-        description: "We combine premium vessels, experienced crew, and transparent pricing to deliver coastal experiences that feel effortless, safe, and unforgettable — from harbour tours to reef snorkelling.",
+        description: "We combine premium properties, transparent pricing, and deep local expertise to deliver real estate experiences that feel effortless, trustworthy, and rewarding — from residential apartments to commercial investments.",
         icon: <Sparkles className="size-4 text-zinc-700" />,
         image: publicPath("/assets/galleryImage3.webp"),
     },
     {
-        title: "Are your boats safe?",
-        description: "Every trip is safety-certified. Our boats are equipped with life jackets, GPS navigation, CCTV surveillance, and operated by captains with 20+ years of coastal experience.",
+        title: "Are your properties verified?",
+        description: "Every property is legally verified with complete documentation. We conduct thorough due diligence on titles, permits, and compliance to ensure your investment is secure.",
         icon: <ShieldCheck className="size-4 text-zinc-700" />,
         image: publicPath("/assets/crew1.webp"),
     },
     {
-        title: "What is the hop-on-hop-off Fort Jesus trip?",
-        description: "Board anywhere from Mtwapa Beach to Fort Jesus and pay per stop — like a water matatu along the Mombasa North Coast. Full route covers 9 stops with flexible fares starting from Ksh 500.",
+        title: "What investment opportunities exist?",
+        description: "From high-growth residential areas in Nairobi to coastal commercial hotspots in Mombasa, we curate opportunities that match your financial goals and risk profile.",
         icon: <Navigation className="size-4 text-zinc-700" />,
         image: publicPath("/assets/location.webp"),
     },
     {
-        title: "Can I charter a boat privately?",
-        description: "Yes. Both Setting Sons and Hunky Dory are available for private charters — perfect for exclusive parties, corporate events, intimate gatherings, or celebrations on the water.",
+        title: "Can I schedule a viewing?",
+        description: "Yes. We arrange guided viewings for all our properties, including virtual tours for international clients. Our team will coordinate every detail for a seamless experience.",
         icon: <Compass className="size-4 text-zinc-700" />,
         image: publicPath("/assets/hunky04.webp"),
     },
     {
-        title: "How do I book?",
-        description: "Booking is simple. Chat with us on WhatsApp at +254 708 485 978, call us directly, or fill out the contact form. We typically respond within 24 hours during business days.",
+        title: "How do I start the buying process?",
+        description: "Getting started is simple. Contact us via phone, email, or the contact form. We'll assign a dedicated agent to guide you through selection, negotiation, and completion.",
         icon: <Users className="size-4 text-zinc-700" />,
         image: publicPath("/assets/crew.webp"),
     },
     {
-        title: "What should I bring?",
-        description: "We recommend sunscreen, a camera, comfortable clothing, and any personal medications. Life jackets and bottled water are provided complimentary on all trips.",
+        title: "What payment plans are available?",
+        description: "We offer flexible payment plans including installment options, mortgage facilitation, and phased completion payments to make your property acquisition smooth and affordable.",
         icon: <ShieldCheck className="size-4 text-zinc-700" />,
         image: publicPath("/assets/site.webp"),
     },
     {
-        title: "What is your cancellation policy?",
-        description: "In the event of unseasonal weather or passenger reservations not meeting the minimum requirement, we reserve the right to postpone the trip. Your safety is our priority.",
+        title: "Do you offer property management?",
+        description: "Yes. Our property management service handles tenant relations, maintenance, rent collection, and reporting — so your investment continues to perform while you focus on what matters.",
         icon: <Sparkles className="size-4 text-zinc-700" />,
         image: publicPath("/assets/galleryImage1.webp"),
     },
 ];
 
-export function CoastalWhyChooseUs() {
+export function RealEstateWhyChooseUs() {
     const [openIndex, setOpenIndex] = useState<number | null>(null);
 
     return (
-        <section className="py-16 px-4 md:px-16 lg:px-24 xl:px-32 w-full bg-white">
+        <section className="py-16 mt-28 px-4 md:px-16 lg:px-24 xl:px-32 w-full bg-white">
             <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-12 md:gap-16 lg:gap-24">
                 {/* Left Column */}
                 <div className="flex flex-col">
@@ -132,7 +132,7 @@ export function CoastalWhyChooseUs() {
                         viewport={{ once: true }}
                         transition={{ delay: 0.2, type: "spring", stiffness: 320, damping: 70, mass: 1 }}
                     >
-                        Our coastal platform approach brings structure, clarity, and reliability to every journey — from discovery to departure.
+                        Our real estate platform approach brings structure, clarity, and reliability to every property journey — from discovery to investment.
                     </motion.p>
                     
                     <motion.div className="relative w-121.5 h-102.75 rounded-xl overflow-hidden shadow-sm bg-zinc-100 max-w-full" 
@@ -142,7 +142,7 @@ export function CoastalWhyChooseUs() {
                         transition={{ type: "spring", stiffness: 320, damping: 70, mass: 1 }}
                     >
                         {/* Default Image */}
-                        <Image src={houseImage} alt="Luxury Residential Home" width={486} height={411}
+                        <Image src={houseImage} alt="Real Estate Property" width={486} height={411}
                             className={`absolute inset-0 w-full h-full object-cover transition-all duration-500 ease-in-out ${
                                 openIndex === null ? "opacity-100 scale-100" : "opacity-0 scale-95 pointer-events-none"
                             }`}

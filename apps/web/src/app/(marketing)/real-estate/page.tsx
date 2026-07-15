@@ -1,12 +1,25 @@
-export default function RealEstatePage() {
+import { RealEstateHeroSection } from '@/app/sections/real-estate-hero';
+import { RealEstateTrust } from '@/app/sections/real-estate-trust';
+import { RealEstateProperties } from '@/app/sections/real-estate-properties';
+import { RealEstateWhyChooseUs } from '@/app/sections/real-estate-why-choose-us';
+import { Gallery } from '@/app/sections/gallery';
+import { Testimonials } from '@/app/sections/testimonials';
+import { CallToAction } from '@/app/sections/call-to-action';
+import { Contact } from '@/app/sections/contact';
+
+export function RealEstatePage() {
   return (
     <main className="bg-background text-foreground">
-      <section className="py-20 px-4 md:px-16 lg:px-24 xl:px-32 w-full">
-        <div className="max-w-7xl mx-auto">
-          <h1 className="text-4xl md:text-5xl text-zinc-900">Real Estate</h1>
-          <p className="text-zinc-500 mt-4">Real estate investments and property marketing content will go here.</p>
-        </div>
-      </section>
+      <RealEstateHeroSection />
+      <RealEstateTrust />
+      <RealEstateProperties />
+      <Gallery />
+      <RealEstateWhyChooseUs />
+      <Testimonials />
+      <CallToAction />
+      <Contact />
     </main>
   );
 }
+
+export default RealEstatePage;
