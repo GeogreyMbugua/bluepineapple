@@ -60,7 +60,7 @@ export const defaultMetadata: Metadata = {
   },
 
   icons: {
-    icon: '/favicon.ico',
+    icon: '/logos/logop.png',
   },
 
   robots: {
