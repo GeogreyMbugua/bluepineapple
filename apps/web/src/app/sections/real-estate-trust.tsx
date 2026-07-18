@@ -10,32 +10,32 @@ const defaultImage = publicPath("/assets/galleryImage3.webp");
 
 const trustItems = [
     {
-        title: "Quality Construction",
-        description: "Every property is built to the highest standards with premium materials, modern finishes, and meticulous attention to detail.",
+        title: "Verified Properties",
+        description: "Every property is carefully vetted with clear documentation, legal checks, and professional due diligence for secure ownership.",
         icon: <Users className="size-4 text-zinc-700" />,
         image: publicPath("/assets/galleryImage3.webp"),
     },
     {
-        title: "Transparent Pricing",
-        description: "Clear, honest pricing with no hidden costs. We believe in making premium real estate accessible and sustainable.",
+        title: "Transparent Transactions",
+        description: "We provide clear pricing, honest guidance, and dependable processes so every transaction feels straightforward and secure.",
         icon: <ShieldCheck className="size-4 text-zinc-700" />,
         image: publicPath("/assets/conso.webp"),
     },
     {
-        title: "Strategic Locations",
-        description: "Properties in prime locations across Kenya — from Nairobi's vibrant neighborhoods to coastal investment hotspots.",
+        title: "Prime Locations",
+        description: "Our portfolio spans high-growth coastal regions and established urban areas, including Mombasa, Vipingo, Watamu, Diani, and beyond.",
         icon: <Navigation className="size-4 text-zinc-700" />,
         image: publicPath("/assets/location.webp"),
     },
     {
-        title: "Secure Investments",
-        description: "Fully compliant, legally verified properties with complete documentation. Your investment is protected from day one.",
+        title: "Investment Guidance",
+        description: "We help clients identify opportunities that match their goals, from land banking to vacation rentals and development projects.",
         icon: <Camera className="size-4 text-zinc-700" />,
         image: publicPath("/assets/galleryImage1.webp"),
     },
     {
-        title: "Expert Guidance",
-        description: "Our seasoned real estate team provides end-to-end support — from property selection to handover and beyond.",
+        title: "End-to-End Support",
+        description: "Our seasoned team supports you from property selection and viewings through closing, management, and long-term advisory.",
         icon: <Users className="size-4 text-zinc-700" />,
         image: publicPath("/assets/crew.webp"),
     },
@@ -66,7 +66,7 @@ export function RealEstateTrust() {
                         viewport={{ once: true }}
                         transition={{ type: "spring", stiffness: 240, damping: 70, mass: 1 }}
                     >
-                        Why Clients and Partners Choose Us
+                        A commitment to trust, value, and long-term growth
                     </motion.h2>
 
                     {/* Accordion List */}
@@ -120,7 +120,7 @@ export function RealEstateTrust() {
                         viewport={{ once: true }}
                         transition={{ delay: 0.2, type: "spring", stiffness: 320, damping: 70, mass: 1 }}
                     >
-                        Our real estate platform brings structure, clarity, and reliability to every property journey — from discovery to investment.
+                        We believe every client deserves honest advice, exceptional service, and lasting value. We build relationships, create opportunity, and help our clients make informed decisions with confidence.
                     </motion.p>
 
                     <motion.div className="relative w-121.5 h-102.75 rounded-xl overflow-hidden shadow-sm bg-zinc-100 max-w-full"

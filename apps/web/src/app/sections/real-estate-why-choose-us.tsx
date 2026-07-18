@@ -11,43 +11,43 @@ const houseImage = publicPath("/assets/galleryImage3.webp");
 const whyChooseUsData = [
     {
         title: "What makes Blue Pineapple different?",
-        description: "We combine premium properties, transparent pricing, and deep local expertise to deliver real estate experiences that feel effortless, trustworthy, and rewarding — from residential apartments to commercial investments.",
+        description: "We combine premium properties, transparent transactions, and deep local expertise to deliver real estate experiences that feel effortless, trustworthy, and rewarding.",
         icon: <Sparkles className="size-4 text-zinc-700" />,
         image: publicPath("/assets/galleryImage3.webp"),
     },
     {
         title: "Are your properties verified?",
-        description: "Every property is legally verified with complete documentation. We conduct thorough due diligence on titles, permits, and compliance to ensure your investment is secure.",
+        description: "Yes. We conduct thorough due diligence on titles, permits, and compliance so every property is secure, documented, and ready for investment.",
         icon: <ShieldCheck className="size-4 text-zinc-700" />,
         image: publicPath("/assets/crew1.webp"),
     },
     {
         title: "What investment opportunities exist?",
-        description: "From high-growth residential areas in Nairobi to coastal commercial hotspots in Mombasa, we curate opportunities that match your financial goals and risk profile.",
+        description: "From land banking and holiday homes to commercial developments and residential projects, we curate opportunities that match your financial goals and risk profile.",
         icon: <Navigation className="size-4 text-zinc-700" />,
         image: publicPath("/assets/location.webp"),
     },
     {
         title: "Can I schedule a viewing?",
-        description: "Yes. We arrange guided viewings for all our properties, including virtual tours for international clients. Our team will coordinate every detail for a seamless experience.",
+        description: "Yes. We arrange guided viewings and virtual tours for local and international clients, coordinating every detail for a seamless experience.",
         icon: <Compass className="size-4 text-zinc-700" />,
         image: publicPath("/assets/hunky04.webp"),
     },
     {
         title: "How do I start the buying process?",
-        description: "Getting started is simple. Contact us via phone, email, or the contact form. We'll assign a dedicated agent to guide you through selection, negotiation, and completion.",
+        description: "Getting started is simple. Contact us via phone, email, or the contact form and we will guide you through selection, negotiation, and completion.",
         icon: <Users className="size-4 text-zinc-700" />,
         image: publicPath("/assets/crew.webp"),
     },
     {
         title: "What payment plans are available?",
-        description: "We offer flexible payment plans including installment options, mortgage facilitation, and phased completion payments to make your property acquisition smooth and affordable.",
+        description: "We offer flexible payment options tailored to your needs, including installment plans and phased completion arrangements where available.",
         icon: <ShieldCheck className="size-4 text-zinc-700" />,
         image: publicPath("/assets/site.webp"),
     },
     {
         title: "Do you offer property management?",
-        description: "Yes. Our property management service handles tenant relations, maintenance, rent collection, and reporting — so your investment continues to perform while you focus on what matters.",
+        description: "Yes. Our property management service handles tenant sourcing, rent collection, maintenance, and reporting so your investment continues to perform smoothly.",
         icon: <Sparkles className="size-4 text-zinc-700" />,
         image: publicPath("/assets/galleryImage1.webp"),
     },
@@ -57,7 +57,7 @@ export function RealEstateWhyChooseUs() {
     const [openIndex, setOpenIndex] = useState<number | null>(null);
 
     return (
-        <section className="py-16 mt-28 px-4 md:px-16 lg:px-24 xl:px-32 w-full bg-white">
+        <section className="py-16 px-4 md:px-16 lg:px-24 xl:px-32 w-full bg-white">
             <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-12 md:gap-16 lg:gap-24">
                 {/* Left Column */}
                 <div className="flex flex-col">
@@ -78,7 +78,7 @@ export function RealEstateWhyChooseUs() {
                         viewport={{ once: true }}
                         transition={{ type: "spring", stiffness: 240, damping: 70, mass: 1 }}
                     >
-                        Everything you need to know
+                        Our commitment, philosophy, and approach to every client
                     </motion.h2>
 
                     {/* Accordion List */}
@@ -132,7 +132,7 @@ export function RealEstateWhyChooseUs() {
                         viewport={{ once: true }}
                         transition={{ delay: 0.2, type: "spring", stiffness: 320, damping: 70, mass: 1 }}
                     >
-                        Our real estate platform approach brings structure, clarity, and reliability to every property journey — from discovery to investment.
+                        We don’t just sell property — we build relationships, create investment opportunities, and help clients achieve financial growth through informed decisions.
                     </motion.p>
                     
                     <motion.div className="relative w-121.5 h-102.75 rounded-xl overflow-hidden shadow-sm bg-zinc-100 max-w-full" 

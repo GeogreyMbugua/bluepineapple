@@ -1,6 +1,8 @@
 import { RealEstateHeroSection } from '@/app/sections/real-estate-hero';
 import { RealEstateTrust } from '@/app/sections/real-estate-trust';
+import { RealEstateServices } from '@/app/sections/real-estate-services';
 import { RealEstateProperties } from '@/app/sections/real-estate-properties';
+import { RealEstateInvestments } from '@/app/sections/real-estate-investments';
 import { RealEstateWhyChooseUs } from '@/app/sections/real-estate-why-choose-us';
 import { Gallery } from '@/app/sections/gallery';
 import { Testimonials } from '@/app/sections/testimonials';
@@ -12,7 +14,9 @@ export function RealEstatePage() {
     <main className="bg-background text-foreground">
       <RealEstateHeroSection />
       <RealEstateTrust />
+      <RealEstateServices />
       <RealEstateProperties />
+      <RealEstateInvestments />
       <Gallery />
       <RealEstateWhyChooseUs />
       <Testimonials />

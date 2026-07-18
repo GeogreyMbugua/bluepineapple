@@ -14,31 +14,31 @@ type Testimonial = {
 
 const testimonialsCol1: Testimonial[] = [
     {
-        name: "Sarah Johnson",
-        location: "Fort Jesus Tourist",
+        name: "James Mwangi",
+        location: "Investor, Nairobi",
         avatar: publicPath("/assets/galleryImage1.webp"),
-        text: "The hop-on-hop-off Fort Jesus trip was the highlight of our Mombasa holiday. The crew was professional, the boat was spotless, and the views were incredible.",
+        text: "Blue Pineapple Holdings helped us acquire our investment property with complete transparency and professionalism. The process felt clear from start to finish.",
     },
     {
-        name: "James Ochieng",
-        location: "Private Charter Guest",
+        name: "Caroline Wanjiku",
+        location: "Property Owner",
         avatar: publicPath("/assets/galleryImage2.webp"),
-        text: "Chartered Setting Sons for a corporate event. The 360° surveillance and attentive crew made it feel premium from start to finish.",
+        text: "Their Airbnb management service transformed our property into a successful business. The team handles everything with care and consistency.",
     },
 ];
 
 const testimonialsCol2: Testimonial[] = [
     {
-        name: "Emily Wanjiku",
-        location: "Snorkelling Enthusiast",
+        name: "Ahmed Kassim",
+        location: "Business Owner",
         avatar: publicPath("/assets/galleryImage3.webp"),
-        text: "The snorkelling reef trip was magical. Gliding over coral gardens with tropical fish all around — an experience we will never forget.",
+        text: "The construction team delivered beyond our expectations. Every stage was managed professionally, and the end result was exceptional.",
     },
     {
-        name: "David Kamau",
-        location: "Sunset Cruise",
+        name: "Mary Njoroge",
+        location: "Buyer, Mombasa",
         avatar: publicPath("/assets/image1.webp"),
-        text: "The sunset sailing experience with Swahili snacks and photo opportunities was the perfect way to end our day in Mombasa.",
+        text: "From the first consultation to handover, the experience felt premium, personal, and reassuring. We found the right property with confidence.",
     },
 ];
 
@@ -83,7 +83,7 @@ export function Testimonials() {
                     >
                         <span className="size-1.5 bg-zinc-900"></span>
                         <span className="text-sm text-zinc-900">
-                            GUEST REVIEWS
+                            CLIENT TESTIMONIALS
                         </span>
                     </motion.div>
                     <div className="w-[148px] h-[1.5px] bg-linear-to-r from-[#030303] to-white mt-3.5"></div>
@@ -93,7 +93,7 @@ export function Testimonials() {
                         viewport={{ once: true }}
                         transition={{ type: "spring", stiffness: 240, damping: 70, mass: 1 }}
                     >
-                        Trusted by Guests. Proven by the Sea.
+                        Trusted by Clients. Proven by Results.
                     </motion.h2>
 
                     <motion.p className="text-zinc-500 text-sm md:text-base mt-2.5 max-w-[340px]"
@@ -102,7 +102,7 @@ export function Testimonials() {
                         viewport={{ once: true }}
                         transition={{ delay: 0.2, type: "spring", stiffness: 320, damping: 70, mass: 1 }}
                     >
-                        Honest words from guests who value premium coastal experiences built on safety, comfort, and authentic Kenyan hospitality.
+                        Real feedback from clients who value professionalism, premium service, and trusted property guidance across Kenya.
                     </motion.p>
                 </div>
 

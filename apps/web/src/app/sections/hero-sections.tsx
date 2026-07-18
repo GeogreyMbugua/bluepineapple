@@ -46,7 +46,7 @@ export function HeroSection() {
             >
                 <motion.div
                     className="absolute inset-0 h-full w-full bg-cover bg-center bg-no-repeat"
-                    style={{ backgroundImage: `url('${publicPath("/hero.webp")}')` }}
+                    style={{ backgroundImage: `url('${publicPath("/assets/hero2.webp")}')` }}
                     initial={{ scale: 1 }}
                     animate={{ scale: 1.08 }}
                     transition={{ duration: 20, ease: "linear", repeat: Infinity, repeatType: "reverse" }}

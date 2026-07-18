@@ -43,7 +43,7 @@ export function Gallery() {
     }, []);
 
     return (
-        <section ref={containerRef} className="relative h-[180vh] w-full bg-cyan-50">
+        <section ref={containerRef} className="relative h-[180vh] w-full bg-white">
             <div className="sticky top-0 h-screen overflow-hidden flex items-center">
                 <div ref={trackRef} className="flex gap-5 px-4 md:px-16 lg:px-24 xl:px-32 py-16 md:py-20 will-change-transform" style={{ touchAction: 'pan-y' }}>
                     {images.map((src, index) => (

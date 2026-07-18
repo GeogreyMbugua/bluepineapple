@@ -7,8 +7,8 @@ import { CheckCircle2 } from "lucide-react";
 import { publicPath } from "@/lib/paths";
 
 const sliderImages = [
-    { src: publicPath("/assets/image1.webp"), alt: "Blue Pineapple boat charter experience" },
-    { src: publicPath("/assets/real.webp"), alt: "Blue Pineapple project on site" },
+    { src: publicPath("/assets/int2.webp"), alt: "Blue Pineapple boat charter experience" },
+    { src: publicPath("/assets/project.webp"), alt: "Blue Pineapple project on site" },
     { src: publicPath("/assets/galleryImage3.webp"), alt: "Blue Pineapple team at work" },
 ];
 

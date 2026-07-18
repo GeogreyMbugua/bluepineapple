@@ -8,27 +8,27 @@ import { publicPath } from "@/lib/paths";
 const properties = [
     {
         title: "Luxury Apartments",
-        category: "Residential",
+        category: "Featured Houses for Sale",
         image: publicPath("/assets/galleryImage3.webp"),
         href: "#",
     },
     {
-        title: "Beachfront Villas",
-        category: "Premium",
+        title: "Prime Plots",
+        category: "Plots for Sale",
         image: publicPath("/assets/image1.webp"),
         href: "#",
     },
     {
-        title: "Commercial Spaces",
+        title: "Commercial Properties",
         category: "Commercial",
         image: publicPath("/assets/galleryImage2.webp"),
         href: "#",
     },
     {
-        title: "Land Plots",
+        title: "Investment Opportunities",
         category: "Investment",
         image: publicPath("/assets/site.webp"),
-        href: "#",
+        href: "#investments",
     },
 ];
 
@@ -53,7 +53,7 @@ export function RealEstateProperties() {
                     viewport={{ once: true }}
                     transition={{ type: "spring", stiffness: 240, damping: 70, mass: 1 }}
                 >
-                    Explore our portfolio
+                    Featured properties and opportunities
                 </motion.h2>
                 <motion.p className="text-zinc-500 text-sm md:text-base mt-3 max-w-2xl"
                     initial={{ y: 50, opacity: 0 }}
@@ -61,7 +61,7 @@ export function RealEstateProperties() {
                     viewport={{ once: true }}
                     transition={{ delay: 0.2, type: "spring", stiffness: 320, damping: 70, mass: 1 }}
                 >
-                    Premium residential and commercial properties across Kenya — from modern apartments to strategic land investments.
+                    Discover premium residential, commercial, and investment properties across Kenya’s coast and beyond — from lifestyle homes to high-growth land opportunities.
                 </motion.p>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mt-12">

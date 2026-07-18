@@ -10,7 +10,7 @@ const cardBase =
 
 export function CallToAction() {
   return (
-    <section className="relative py-36 px-4 md:px-16 lg:px-24 xl:px-32 w-full flex flex-col items-center justify-center text-center bg-cyan-950 overflow-hidden">
+    <section className="relative py-36 px-4 md:px-16 lg:px-24 xl:px-32 w-full flex flex-col items-center justify-center text-center bg-white overflow-hidden">
       <div className="pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 h-[420px] w-[420px] rounded-full bg-cyan-400/10 blur-3xl" />
 
       <div className="relative z-10 max-w-4xl mx-auto flex flex-col items-center">
@@ -52,33 +52,33 @@ export function CallToAction() {
         </div>
 
         <motion.h2
-          className="text-3xl md:text-4xl text-white tracking-tight max-w-[520px] mb-3 font-medium"
+          className="text-3xl md:text-4xl text-zinc-900 tracking-tight max-w-[520px] mb-3 font-semibold"
           initial={{ y: 50, opacity: 0 }}
           whileInView={{ y: 0, opacity: 1 }}
           viewport={{ once: true }}
           transition={{ type: "spring", stiffness: 240, damping: 70, mass: 1 }}
         >
-          Ready for an Adventure?
+          Discover Your Next Opportunity
         </motion.h2>
 
         <motion.p
-          className="text-cyan-100/70 text-sm max-w-[400px] mb-7"
+          className="text-zinc-600 text-sm md:text-base max-w-[460px] mb-7 leading-relaxed"
           initial={{ y: 50, opacity: 0 }}
           whileInView={{ y: 0, opacity: 1 }}
           viewport={{ once: true }}
           transition={{ delay: 0.2, type: "spring", stiffness: 320, damping: 70, mass: 1 }}
         >
-          Book your perfect coastal experience today. WhatsApp us to check availability and reserve your spot.
+          Explore premium coastal properties, investment-ready land, and tailored guidance for buyers, investors, and developers across Kenya.
         </motion.p>
 
         <motion.button
-          className="group inline-flex items-center justify-center gap-2 rounded-full bg-white px-6 py-3 text-sm font-semibold text-cyan-950 transition-colors duration-200 hover:bg-cyan-100 cursor-pointer"
+          className="group inline-flex items-center justify-center gap-2 rounded-full bg-zinc-900 px-6 py-3 text-sm font-semibold text-white transition-all duration-200 hover:bg-zinc-800 cursor-pointer"
           initial={{ y: 50, opacity: 0 }}
           whileInView={{ y: 0, opacity: 1 }}
           viewport={{ once: true }}
           transition={{ delay: 0.3, type: "spring", stiffness: 320, damping: 70, mass: 1 }}
         >
-          <span>Book on WhatsApp</span>
+          <span>Speak to Our Team</span>
           <MoveRight size={16} className="transition-transform duration-200 group-hover:translate-x-1" />
         </motion.button>
       </div>

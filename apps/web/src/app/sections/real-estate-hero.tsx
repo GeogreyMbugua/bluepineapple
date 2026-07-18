@@ -31,10 +31,10 @@ const lineUp: Variants = {
     },
 };
 
-const headlineLines = ["Building Value,", "Creating Opportunities."];
+const headlineLines = ["Building Wealth Through", "Property, Investment", "and Hospitality Excellence"];
 
 const missionStatement =
-    "To provide reliable, innovative, and customer-focused solutions in real estate and business investments — while upholding integrity, excellence, and sustainable growth for our clients, partners, and communities.";
+    "Blue Pineapple Holdings Ltd delivers premium real estate, property management, construction, hospitality, and investment opportunities across Kenya.";
 
 export function RealEstateHeroSection() {
     return (
@@ -47,71 +47,66 @@ export function RealEstateHeroSection() {
             >
                 <motion.div
                     className="absolute inset-0 h-full w-full bg-cover bg-center bg-no-repeat"
-                    style={{ backgroundImage: `url('${publicPath("/assets/realh.webp")}')` }}
+                    style={{ backgroundImage: `url('${publicPath("/assets/hero3.webp")}')` }}
                     initial={{ scale: 1 }}
                     animate={{ scale: 1.08 }}
                     transition={{ duration: 20, ease: "linear", repeat: Infinity, repeatType: "reverse" }}
                 />
             </motion.div>
 
-            <div className="absolute inset-0 bg-gradient-to-r from-black/75 via-black/35 to-transparent" />
-            <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/20" />
+            <div className="absolute inset-0 bg-gradient-to-r from-zinc-950/70 via-zinc-950/35 to-transparent" />
+            <div className="absolute inset-0 bg-gradient-to-t from-zinc-950/55 via-zinc-950/10 to-zinc-950/20" />
 
             <motion.div
-                className="container-page relative z-10 flex min-h-screen flex-col justify-center pt-28 pb-16"
+                className="container-page relative z-10 flex min-h-screen flex-col justify-center pt-24 pb-12 sm:pt-28 sm:pb-16"
                 variants={container}
                 initial="hidden"
                 animate="show"
             >
-                <motion.div variants={fadeBlurUp} className="mb-6 flex items-center gap-4">
-                    <span className="h-px w-8 bg-white/30" aria-hidden />
-                    <span className="text-[10px] font-medium uppercase tracking-[0.2em] text-white/45">
-                        Real Estate • Kenya
-                    </span>
-                </motion.div>
+                <div className="max-w-fit px-0 py-0 sm:px-0 sm:py-0">
+                    <motion.h1
+                        className="max-w-[12ch] text-3xl font-semibold leading-[1.02] tracking-[-0.02em] text-white sm:max-w-[15ch] sm:text-4xl sm:leading-[1.08] sm:text-5xl lg:text-6xl"
+                        variants={container}
+                    >
+                        {headlineLines.map((line) => (
+                            <span key={line} className="block overflow-hidden">
+                                <motion.span variants={lineUp} className="block">
+                                    {line}
+                                </motion.span>
+                            </span>
+                        ))}
+                    </motion.h1>
 
-                <motion.h1
-                    className="max-w-[15ch] text-4xl font-medium leading-[1.08] tracking-[-0.02em] text-zinc-50 sm:text-5xl lg:text-6xl"
-                    variants={container}
-                >
-                    {headlineLines.map((line) => (
-                        <span key={line} className="block overflow-hidden">
-                            <motion.span variants={lineUp} className="block">
-                                {line}
-                            </motion.span>
-                        </span>
-                    ))}
-                </motion.h1>
+                    <motion.p
+                        variants={fadeBlurUp}
+                        className="mt-4 max-w-[500px] text-pretty text-sm leading-relaxed text-white/85 sm:mt-6 sm:text-base"
+                    >
+                        {missionStatement}
+                    </motion.p>
 
-                <motion.p
-                    variants={fadeBlurUp}
-                    className="mt-6 max-w-[520px] text-pretty text-sm leading-relaxed text-white/60 sm:text-base"
-                >
-                    {missionStatement}
-                </motion.p>
-
-                <motion.div
-                    variants={fadeBlurUp}
-                    className="mt-9 flex flex-wrap items-center gap-x-8 gap-y-4"
-                >
+                    <motion.div
+                        variants={fadeBlurUp}
+                        className="mt-7 flex flex-col items-start gap-3 sm:mt-9 sm:flex-row sm:items-center sm:gap-x-8 sm:gap-y-4"
+                    >
                     <Link
                         href="#properties"
-                        className="group inline-flex items-center gap-2 rounded-full bg-brand-950 px-6 py-3 text-sm font-semibold text-white transition-colors duration-200 hover:bg-brand-900"
+                        className="group inline-flex w-full items-center justify-center gap-2 rounded-full bg-brand-950 px-6 py-3 text-sm font-semibold text-white transition-colors duration-200 hover:bg-brand-900 sm:w-auto"
                     >
-                        Explore Properties
+                        View Properties
                         <ArrowUpRight size={16} />
                     </Link>
                     <Link
-                        href="#investments"
+                        href="#contact"
                         className="group inline-flex items-center gap-2 text-sm font-medium text-white/90 transition-colors hover:text-white"
                     >
-                        Investments
+                        Book Consultation
                         <ArrowUpRight
                             size={16}
                             className="transition-transform duration-200 group-hover:translate-x-0.5 group-hover:-translate-y-0.5"
                         />
                     </Link>
-                </motion.div>
+                    </motion.div>
+                </div>
             </motion.div>
 
             <motion.div
