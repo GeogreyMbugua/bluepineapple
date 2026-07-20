@@ -7,6 +7,7 @@ import { ROUTES } from '@/config/routes';
 const links = [
   { label: 'Home', href: ROUTES.marketing.home },
   { label: 'Experiences', href: ROUTES.marketing.experiences },
+  { label: 'Pricing', href: ROUTES.marketing.pricing },
   { label: 'About', href: ROUTES.marketing.about },
   { label: 'Contact', href: ROUTES.marketing.contact },
 ];

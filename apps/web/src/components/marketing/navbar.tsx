@@ -26,21 +26,23 @@ export function Navbar({ variant = 'parent' }: NavbarProps) {
         return () => window.removeEventListener("scroll", handleScroll);
     }, []);
 
+    const linkColor = scrolled ? "text-zinc-800 hover:text-zinc-600" : "text-slate-950 hover:text-slate-600";
+
     const parentLinks = (
         <>
-            <Link href="/about" className={`transition-colors duration-500 ${scrolled ? "text-zinc-800 hover:text-zinc-600" : "text-white hover:text-white/90"}`}>About</Link>
-            <Link href="/services" className={`transition-colors duration-500 ${scrolled ? "text-zinc-800 hover:text-zinc-600" : "text-white hover:text-white/90"}`}>Services</Link>
-            <Link href="/contact" className={`transition-colors duration-500 ${scrolled ? "text-zinc-800 hover:text-zinc-600" : "text-white hover:text-white/90"}`}>Contact</Link>
+            <Link href="/about" className={`transition-colors duration-500 ${linkColor}`}>About</Link>
+            <Link href="/services" className={`transition-colors duration-500 ${linkColor}`}>Services</Link>
+            <Link href="/contact" className={`transition-colors duration-500 ${linkColor}`}>Contact</Link>
         </>
     );
 
     const coastalLinks = (
         <>
-            <Link href="/trips" className={`transition-colors duration-500 ${scrolled ? "text-zinc-800 hover:text-zinc-600" : "text-white hover:text-white/90"}`}>Experiences</Link>
-            <Link href="/trips/fort-jesus-trip" className={`transition-colors duration-500 ${scrolled ? "text-zinc-800 hover:text-zinc-600" : "text-white hover:text-white/90"}`}>Fort Jesus</Link>
-            <Link href="/boats" className={`transition-colors duration-500 ${scrolled ? "text-zinc-800 hover:text-zinc-600" : "text-white hover:text-white/90"}`}>Our Fleet</Link>
-            <Link href="/gallery" className={`transition-colors duration-500 ${scrolled ? "text-zinc-800 hover:text-zinc-600" : "text-white hover:text-white/90"}`}>Gallery</Link>
-            <Link href="/contact" className={`transition-colors duration-500 ${scrolled ? "text-zinc-800 hover:text-zinc-600" : "text-white hover:text-white/90"}`}>Contact</Link>
+            <Link href="/trips" className={`transition-colors duration-500 ${linkColor}`}>Experiences</Link>
+            <Link href="/trips/fort-jesus-trip" className={`transition-colors duration-500 ${linkColor}`}>Fort Jesus</Link>
+            <Link href="/boats" className={`transition-colors duration-500 ${linkColor}`}>Our Fleet</Link>
+            <Link href="/gallery" className={`transition-colors duration-500 ${linkColor}`}>Gallery</Link>
+            <Link href="/contact" className={`transition-colors duration-500 ${linkColor}`}>Contact</Link>
         </>
     );
 
@@ -82,7 +84,7 @@ export function Navbar({ variant = 'parent' }: NavbarProps) {
         <>
             <nav className={`fixed z-50 flex items-center justify-between left-1/2 -translate-x-1/2 transition-all duration-500 w-full max-w-7xl mx-auto px-4 md:px-8 lg:px-12 xl:px-16 ${scrolled ? "bg-white/60 backdrop-blur-2xl  mt-4 pl-6 shadow" : ""}`}>
                 <Link href="/" aria-label="Blue Pineapple Holdings — Home">
-                    <Image width={140} height={140} src={publicPath("/logos/bplogo.png")} alt="Blue Pineapple Holdings" className="h-11 w-auto transition-all duration-500 sm:h-12" />
+                    <Image width={120} height={120} src={publicPath("/brand/logo.png")} alt="Blue Pineapple Holdings" className="h-11 w-auto transition-all duration-500 sm:h-12" />
                 </Link>
 
                 {/* Desktop links */}

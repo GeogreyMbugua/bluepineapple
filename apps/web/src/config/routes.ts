@@ -12,12 +12,7 @@ export const ROUTES = {
     about: '/about',
     contact: '/contact',
     pricing: '/pricing',
-    experiences: '/experiences',
-  },
-
-  /** Authentication flows */
-  auth: {
-    login: '/login',
+      experiences: '/coastal-experiences',
     register: '/register',
     forgotPassword: '/forgot-password',
     resetPassword: '/reset-password',

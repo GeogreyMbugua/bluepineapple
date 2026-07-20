@@ -21,6 +21,14 @@
   --color-brand-800: oklch(0.35 0.13 220);
   --color-brand-900: oklch(0.28 0.10 220);
   --color-brand-950: oklch(0.20 0.07 220);
+  /* Blue Pineapple specific tokens */
+  --color-navy: #1B3A5C;
+  --color-navy-deep: #122A44;
+  --color-gold: #C9A227;
+  --color-gold-soft: #E4C878;
+  --color-sea: #4FA8C9;
+  --color-sea-deep: #2F6690;
+  --color-paper: #FBF9F4;
 
   /* Surfaces */
   --color-background: #254d74;
@@ -96,6 +104,15 @@
   --color-warning: var(--color-warning);
   --color-error: var(--color-error);
   --color-info: var(--color-info);
+
+  /* Blue Pineapple tokens */
+  --color-navy: var(--color-navy);
+  --color-navy-deep: var(--color-navy-deep);
+  --color-gold: var(--color-gold);
+  --color-gold-soft: var(--color-gold-soft);
+  --color-sea: var(--color-sea);
+  --color-sea-deep: var(--color-sea-deep);
+  --color-paper: var(--color-paper);
 
   /* Border radius */
   --radius-sm: 0.375rem;

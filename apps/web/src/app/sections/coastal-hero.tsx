@@ -44,7 +44,7 @@ export function CoastalHeroSection() {
             >
                 <motion.div
                     className="absolute inset-0 h-full w-full bg-cover bg-center bg-no-repeat"
-                    style={{ backgroundImage: `url('${publicPath("/assets/hero1.webp")}')` }}
+                    style={{ backgroundImage: `url('${publicPath("/assets/coastal.webp")}')` }}
                     initial={{ scale: 1 }}
                     animate={{ scale: 1.08 }}
                     transition={{ duration: 20, ease: "linear", repeat: Infinity, repeatType: "reverse" }}
