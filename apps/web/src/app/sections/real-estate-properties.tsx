@@ -15,7 +15,7 @@ const properties = [
     {
         title: "Prime Plots",
         category: "Plots for Sale",
-        image: publicPath("/assets/image1.webp"),
+        image: publicPath("/assets/plot.webp"),
         href: "#",
     },
     {
