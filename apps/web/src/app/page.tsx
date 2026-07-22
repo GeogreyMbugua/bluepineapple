@@ -12,6 +12,23 @@ export const metadata: Metadata = {
   },
 };
 
+const panels = [
+  {
+    label: 'Experiences',
+    title: 'Coastal Experiences',
+    sub: 'Boat charters, snorkelling and curated coastal trips in Mombasa.',
+    href: '/coastal-experiences',
+    tone: 'sea' as const,
+  },
+  {
+    label: 'Investments',
+    title: 'Real Estate',
+    sub: 'Property development and coastal investments across Kenya.',
+    href: '/real-estate',
+    tone: 'navy' as const,
+  },
+];
+
 export default function Home() {
   return (
     <main className="relative min-h-[100dvh] overflow-hidden">
@@ -19,36 +36,33 @@ export default function Home() {
 
       <div className="relative z-10 flex min-h-[100dvh] flex-col">
         <div className="mx-auto w-full max-w-6xl px-6">
-          <BrandHeader />
-        </div>
+          <div className="flex flex-col items-center pt-8 md:pt-14">
+            <BrandHeader />
+          </div>
 
-        {/*
-          No more outer card/padding wrapper here — each ArmPanel now sits
-          directly on the photo. A single thin rule (divide-x / divide-y)
-          separates the two entries instead of two boxed cards; it reads as
-          one clean section, not two stacked components.
-        */}
-        <div className="flex flex-1 items-center justify-center">
-          <div className="flex w-full max-w-5xl flex-col divide-y divide-[var(--color-paper)]/15 md:flex-row md:divide-x md:divide-y-0">
-            <ArmPanel
-              label="Experiences"
-              title="Coastal Experiences"
-              sub="Boat charters, snorkelling and curated coastal trips in Mombasa."
-              href="/coastal-experiences"
-              tone="sea"
-            />
+          <div className="flex flex-col items-center gap-4 pt-16 md:hidden">
+            <p className="text-xs font-medium uppercase tracking-[0.25em] text-[var(--color-paper)]/80">
+              Choose your journey
+            </p>
+            <div className="flex w-full max-w-md flex-col gap-4">
+              {panels.map((panel) => (
+                <ArmPanel key={panel.href} {...panel} />
+              ))}
+            </div>
+          </div>
 
-            <ArmPanel
-              label="Investments"
-              title="Real Estate"
-              sub="Property development and coastal investments across Kenya."
-              href="/real-estate"
-              tone="navy"
-            />
+          <div className="hidden md:flex md:flex-1 md:items-center md:justify-center md:py-12">
+            <div className="flex w-full max-w-5xl md:divide-x md:divide-y-0 md:divide-white/10">
+              {panels.map((panel) => (
+                <ArmPanel key={panel.href} {...panel} />
+              ))}
+            </div>
           </div>
         </div>
 
-        <Footer />
+        <div className="mt-auto pt-10 md:pt-28">
+          <Footer />
+        </div>
       </div>
     </main>
   );

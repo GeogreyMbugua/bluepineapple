@@ -85,3 +85,14 @@
     transform: translateY(0);
   }
 }
+
+/* Hero background image: mobile-friendly crop */
+.hero-bg-mobile {
+  object-position: center center;
+}
+
+@media (min-width: 768px) {
+  .hero-bg-mobile {
+    object-position: center 25%;
+  }
+}

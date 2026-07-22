@@ -11,8 +11,7 @@ export default function HeroBackground() {
         fill
         priority
         sizes="100vw"
-        className="object-cover"
-        style={{ objectPosition: 'center 25%' }}
+        className="hero-bg-mobile object-cover"
       />
       <div className="absolute inset-0 bg-[var(--color-navy-deep)]/80" />
       <div className="absolute inset-0 bg-gradient-to-b from-black/50 via-transparent to-black/85" />
