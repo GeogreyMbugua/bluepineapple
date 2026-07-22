@@ -4,53 +4,132 @@ import { useEffect, useRef } from "react";
 import Image from "next/image";
 import { publicPath } from "@/lib/paths";
 
-export function Gallery() {
-    const containerRef = useRef<HTMLDivElement>(null);
-    const trackRef = useRef<HTMLDivElement>(null);
+type GalleryVariant = "default" | "coastal";
 
-    const images = [
-        publicPath("/assets/crew.webp"), publicPath("/assets/image1.webp"), publicPath("/assets/galleryImage3.webp"), publicPath("/assets/location.webp"),
-        publicPath("/assets/hunky04.webp"), publicPath("/assets/galleryImage2.webp"), publicPath("/assets/galleryImage3.webp"), publicPath("/assets/site.webp")
-    ];
+const defaultImages = [
+  publicPath("/assets/crew.webp"),
+  publicPath("/assets/image1.webp"),
+  publicPath("/assets/galleryImage3.webp"),
+  publicPath("/assets/location.webp"),
+  publicPath("/assets/hunky04.webp"),
+  publicPath("/assets/galleryImage2.webp"),
+  publicPath("/assets/site.webp"),
+];
 
-    useEffect(() => {
-        const container = containerRef.current;
-        const track = trackRef.current;
-        if (!container || !track) return;
+const coastalImages = [
+  publicPath("/assets/fleet.webp"),
+  publicPath("/assets/hunky11.webp"),
+  publicPath("/assets/creek-safaris.webp"),
+  publicPath("/assets/set.webp"),
+  publicPath("/assets/fort.webp"),
+  publicPath("/assets/crew.webp"),
+  publicPath("/assets/snorkling-adventure.webp"),
+  publicPath("/assets/hunky04.webp"),
+];
 
-        const handleScroll = () => {
-            const rect = container.getBoundingClientRect();
-            const viewHeight = window.innerHeight;
-            const totalHeight = rect.height;
-            const scrolled = -rect.top;
-            const maxScroll = totalHeight - viewHeight;
+export function Gallery({ variant = "default" }: { readonly variant?: GalleryVariant }) {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const trackRef = useRef<HTMLDivElement>(null);
+  const images = variant === "coastal" ? coastalImages : defaultImages;
+  const isCoastal = variant === "coastal";
 
-            if (maxScroll <= 0) return;
+  useEffect(() => {
+    const container = containerRef.current;
+    const track = trackRef.current;
+    if (!container || !track) return;
 
-            const progress = Math.max(0, Math.min(1, scrolled / maxScroll));
-            const limit = Math.max(0, track.scrollWidth - window.innerWidth);
+    const media = window.matchMedia("(min-width: 768px)");
 
-            track.style.transform = `translateX(-${progress * limit}px)`;
-        };
+    const handleScroll = () => {
+      if (!media.matches) {
+        track.style.transform = "";
+        return;
+      }
 
-        window.addEventListener("scroll", handleScroll, { passive: true });
-        const timer = setTimeout(handleScroll, 100);
+      const rect = container.getBoundingClientRect();
+      const viewHeight = window.innerHeight;
+      const totalHeight = rect.height;
+      const scrolled = -rect.top;
+      const maxScroll = totalHeight - viewHeight;
 
-        return () => {
-            window.removeEventListener("scroll", handleScroll);
-            clearTimeout(timer);
-        };
-    }, []);
+      if (maxScroll <= 0) return;
 
-    return (
-        <section ref={containerRef} className="relative h-[180vh] w-full bg-white">
-            <div className="sticky top-0 h-screen overflow-hidden flex items-center">
-                <div ref={trackRef} className="flex gap-5 px-4 md:px-16 lg:px-24 xl:px-32 py-16 md:py-20 will-change-transform" style={{ touchAction: 'pan-y' }}>
-                    {images.map((src, index) => (
-                        <Image key={index} src={src} alt={`Gallery Image ${index + 1}`} width={364} height={457} className="object-cover shrink-0 pointer-events-none select-none" draggable={false} />
-                    ))}
-                </div>
+      const progress = Math.max(0, Math.min(1, scrolled / maxScroll));
+      const limit = Math.max(0, track.scrollWidth - window.innerWidth);
+
+      track.style.transform = `translateX(-${progress * limit}px)`;
+    };
+
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    media.addEventListener("change", handleScroll);
+    const timer = setTimeout(handleScroll, 100);
+
+    return () => {
+      window.removeEventListener("scroll", handleScroll);
+      media.removeEventListener("change", handleScroll);
+      clearTimeout(timer);
+    };
+  }, []);
+
+  return (
+    <section id="gallery" className="w-full bg-white" aria-label={isCoastal ? "Coastal gallery" : "Gallery"}>
+      {/* Mobile — snap carousel */}
+      <div className="px-4 py-16 sm:px-6 md:hidden">
+        {isCoastal ? (
+          <div className="mb-8">
+            <div className="flex items-center gap-1.5">
+              <span className="size-1.5 bg-zinc-900" />
+              <span className="text-sm text-zinc-900">GALLERY</span>
             </div>
-        </section>
-    );
+            <h2 className="mt-4 text-3xl font-medium tracking-tight text-zinc-900">
+              Moments on the water
+            </h2>
+            <p className="mt-2 max-w-md text-sm text-zinc-500">
+              Harbour light, reef colour, and coastal days aboard Blue Pineapple.
+            </p>
+          </div>
+        ) : null}
+
+        <div className="flex snap-x snap-mandatory gap-4 overflow-x-auto pb-2 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+          {images.map((src, index) => (
+            <div
+              key={`${src}-${index}`}
+              className="relative h-[280px] w-[78%] shrink-0 snap-center overflow-hidden rounded-2xl bg-zinc-100"
+            >
+              <Image
+                src={src}
+                alt={`${isCoastal ? "Coastal" : "Gallery"} image ${index + 1}`}
+                fill
+                className="object-cover"
+                sizes="78vw"
+              />
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Desktop — scroll-scrub gallery */}
+      <div ref={containerRef} className="relative hidden h-[180vh] md:block">
+        <div className="sticky top-0 flex h-screen items-center overflow-hidden">
+          <div
+            ref={trackRef}
+            className="flex gap-5 px-4 py-16 will-change-transform md:px-16 md:py-20 lg:px-24 xl:px-32"
+            style={{ touchAction: "pan-y" }}
+          >
+            {images.map((src, index) => (
+              <Image
+                key={`${src}-desktop-${index}`}
+                src={src}
+                alt={`${isCoastal ? "Coastal" : "Gallery"} image ${index + 1}`}
+                width={364}
+                height={457}
+                className="pointer-events-none shrink-0 select-none object-cover"
+                draggable={false}
+              />
+            ))}
+          </div>
+        </div>
+      </div>
+    </section>
+  );
 }

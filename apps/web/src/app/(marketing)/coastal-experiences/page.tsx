@@ -15,11 +15,11 @@ export function CoastalExperiencesPage() {
       <CoastalTrust />
       <CoastalExperiences />
       <CoastalFleet />
-      <Gallery />
+      <Gallery variant="coastal" />
       <CoastalWhyChooseUs />
-      <Testimonials />
-      <CallToAction />
-      <Contact />
+      <Testimonials variant="coastal" />
+      <CallToAction variant="coastal" />
+      <Contact variant="coastal" />
     </main>
   );
 }

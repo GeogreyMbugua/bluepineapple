@@ -42,7 +42,7 @@ const fleet: FleetBoat[] = [
 
 export function CoastalFleet() {
   return (
-    <section id="fleet" className="bg-white py-16 sm:py-20 px-4 sm:px-6 lg:px-8">
+    <section id="fleet" className="bg-white px-4 py-16 sm:px-6 sm:py-20 lg:px-8">
       <div className="mx-auto max-w-6xl">
         <motion.div
           initial={{ y: -10, opacity: 0 }}
@@ -50,16 +50,16 @@ export function CoastalFleet() {
           viewport={{ once: true }}
           className="max-w-2xl"
         >
-          <p className="text-sm uppercase tracking-[0.24em] text-cyan-600">Our fleet</p>
-          <h1 className="mt-4 text-4xl font-semibold tracking-tight text-slate-950 md:text-5xl">
+          <p className="text-sm tracking-[0.24em] text-cyan-600 uppercase">Our fleet</p>
+          <h2 className="mt-4 text-3xl font-semibold tracking-tight text-slate-950 sm:text-4xl md:text-5xl">
             Boats built for unforgettable coastal trips
-          </h1>
+          </h2>
           <p className="mt-4 text-base leading-7 text-slate-600">
             Choose the right vessel for your private charter, family outing, or scenic harbour cruise.
           </p>
         </motion.div>
 
-        <div className="mt-12 grid gap-8 lg:grid-cols-2">
+        <div className="mt-12 grid gap-6 lg:grid-cols-2 lg:gap-8">
           {fleet.map((boat) => (
             <motion.article
               key={boat.name}
@@ -67,7 +67,7 @@ export function CoastalFleet() {
               whileInView={{ y: 0, opacity: 1 }}
               viewport={{ once: true }}
               transition={{ duration: 0.5, ease: "easeOut" }}
-              className="group overflow-hidden rounded-[28px] border border-slate-200 bg-slate-50 shadow-sm transition hover:shadow-md"
+              className="group overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition hover:shadow-md md:rounded-[28px] md:bg-slate-50"
             >
               <Link href={boat.href} className="block">
                 <div className="relative aspect-[4/3] overflow-hidden bg-slate-200">
@@ -79,35 +79,41 @@ export function CoastalFleet() {
                   />
                 </div>
 
-                <div className="space-y-5 p-6 sm:p-8">
+                <div className="space-y-4 p-5 sm:space-y-5 sm:p-8">
                   <div>
-                    <p className="text-xs uppercase tracking-[0.24em] text-cyan-600">Boat charter</p>
-                    <h2 className="mt-3 text-3xl font-semibold tracking-tight text-slate-950">
+                    <p className="text-xs tracking-[0.24em] text-cyan-600 uppercase">Boat charter</p>
+                    <h3 className="mt-2 text-2xl font-semibold tracking-tight text-slate-950 sm:mt-3 sm:text-3xl">
                       {boat.name}
-                    </h2>
+                    </h3>
                     <p className="mt-2 text-sm text-slate-600">{boat.subtitle}</p>
                   </div>
 
-                  <div className="grid gap-3 sm:grid-cols-2">
-                    <div className="rounded-3xl bg-white px-4 py-3 text-sm text-slate-700 shadow-sm">
-                      <p className="text-[11px] uppercase tracking-[0.22em] text-slate-400">Capacity</p>
-                      <p className="mt-2 font-semibold">{boat.capacity}</p>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="rounded-xl bg-slate-50 px-3 py-3 text-sm text-slate-700 md:rounded-3xl md:bg-white md:px-4 md:shadow-sm">
+                      <p className="text-[11px] tracking-[0.22em] text-slate-400 uppercase">Capacity</p>
+                      <p className="mt-1.5 font-semibold md:mt-2">{boat.capacity}</p>
                     </div>
-                    <div className="rounded-3xl bg-white px-4 py-3 text-sm text-slate-700 shadow-sm">
-                      <p className="text-[11px] uppercase tracking-[0.22em] text-slate-400">Rates</p>
-                      <p className="mt-2 font-semibold">{boat.hourly} / {boat.daily}</p>
+                    <div className="rounded-xl bg-slate-50 px-3 py-3 text-sm text-slate-700 md:rounded-3xl md:bg-white md:px-4 md:shadow-sm">
+                      <p className="text-[11px] tracking-[0.22em] text-slate-400 uppercase">Rates</p>
+                      <p className="mt-1.5 font-semibold leading-snug md:mt-2">
+                        <span className="block">{boat.hourly}</span>
+                        <span className="mt-0.5 block text-slate-500">{boat.daily}</span>
+                      </p>
                     </div>
                   </div>
 
                   <div className="flex flex-wrap gap-2">
                     {boat.features.map((feature) => (
-                      <span key={feature} className="rounded-full bg-white px-3 py-1 text-xs font-medium text-slate-700">
+                      <span
+                        key={feature}
+                        className="rounded-full bg-slate-50 px-3 py-1 text-xs font-medium text-slate-700 md:bg-white"
+                      >
                         {feature}
                       </span>
                     ))}
                   </div>
 
-                  <div className="mt-4 inline-flex items-center gap-2 text-sm font-semibold text-cyan-950">
+                  <div className="inline-flex items-center gap-2 text-sm font-semibold text-cyan-950">
                     View details
                     <ArrowUpRight className="h-4 w-4" />
                   </div>

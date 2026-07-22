@@ -6,14 +6,14 @@ import Image from "next/image";
 import { Compass, ShieldCheck, Sparkles, Plus, Minus, Navigation, Users } from "lucide-react";
 import { publicPath } from "@/lib/paths";
 
-const houseImage = publicPath("/assets/galleryImage3.webp");
+const defaultImage = publicPath("/assets/fleet.webp");
 
 const whyChooseUsData = [
     {
         title: "What makes Blue Pineapple different?",
         description: "We combine premium vessels, experienced crew, and transparent pricing to deliver coastal experiences that feel effortless, safe, and unforgettable — from harbour tours to reef snorkelling.",
         icon: <Sparkles className="size-4 text-zinc-700" />,
-        image: publicPath("/assets/galleryImage3.webp"),
+        image: publicPath("/assets/fleet.webp"),
     },
     {
         title: "Are your boats safe?",
@@ -53,26 +53,62 @@ const whyChooseUsData = [
     },
 ];
 
+function FaqImage({ openIndex }: { readonly openIndex: number | null }) {
+    return (
+        <motion.div
+            className="relative aspect-[4/3] w-full max-w-full overflow-hidden rounded-xl bg-zinc-100 shadow-sm md:aspect-auto md:h-[25.6875rem] md:w-[30.375rem]"
+            initial={{ y: 50, opacity: 0 }}
+            whileInView={{ y: 0, opacity: 1 }}
+            viewport={{ once: true }}
+            transition={{ type: "spring", stiffness: 320, damping: 70, mass: 1 }}
+        >
+            <Image
+                src={defaultImage}
+                alt="Blue Pineapple coastal experience"
+                width={486}
+                height={411}
+                className={`absolute inset-0 h-full w-full object-cover transition-all duration-500 ease-in-out ${
+                    openIndex === null ? "scale-100 opacity-100" : "pointer-events-none scale-95 opacity-0"
+                }`}
+            />
+            {whyChooseUsData.map((item, index) => (
+                <Image
+                    key={item.title}
+                    src={item.image}
+                    alt={item.title}
+                    width={486}
+                    height={411}
+                    className={`absolute inset-0 h-full w-full object-cover transition-all duration-500 ease-in-out ${
+                        openIndex === index
+                            ? "scale-100 opacity-100"
+                            : "pointer-events-none scale-95 opacity-0"
+                    }`}
+                />
+            ))}
+        </motion.div>
+    );
+}
+
 export function CoastalWhyChooseUs() {
     const [openIndex, setOpenIndex] = useState<number | null>(null);
 
     return (
-        <section className="py-16 px-4 md:px-16 lg:px-24 xl:px-32 w-full bg-white">
-            <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-12 md:gap-16 lg:gap-24">
-                {/* Left Column */}
-                <div className="flex flex-col">
-                    <motion.div className="flex items-center gap-1.5" 
+        <section className="w-full bg-white px-4 py-16 sm:px-6 md:px-16 lg:px-24 xl:px-32">
+            <div className="mx-auto grid max-w-7xl grid-cols-1 gap-10 md:grid-cols-2 md:gap-16 lg:gap-24">
+                {/* Mobile: intro + image first */}
+                <div className="flex flex-col md:hidden">
+                    <motion.div
+                        className="flex items-center gap-1.5"
                         initial={{ y: -20, opacity: 0 }}
                         whileInView={{ y: 0, opacity: 1 }}
                         viewport={{ once: true }}
                         transition={{ delay: 0.2, type: "spring", stiffness: 320, damping: 70, mass: 1 }}
                     >
-                        <span className="size-1.5 bg-zinc-900"></span>
-                        <span className="text-sm text-zinc-900">
-                            WHY BLUE PINEAPPLE
-                        </span>
+                        <span className="size-1.5 bg-zinc-900" />
+                        <span className="text-sm text-zinc-900">WHY BLUE PINEAPPLE</span>
                     </motion.div>
-                    <motion.h2 className="text-3xl md:text-4xl text-zinc-900 mt-4 leading-tight font-medium max-w-md tracking-tight"
+                    <motion.h2
+                        className="mt-4 max-w-md text-3xl font-medium leading-tight tracking-tight text-zinc-900"
                         initial={{ y: 50, opacity: 0 }}
                         whileInView={{ y: 0, opacity: 1 }}
                         viewport={{ once: true }}
@@ -80,40 +116,75 @@ export function CoastalWhyChooseUs() {
                     >
                         Everything you need to know
                     </motion.h2>
+                    <motion.p
+                        className="mt-4 mb-6 max-w-md text-base leading-relaxed text-zinc-500"
+                        initial={{ y: 30, opacity: 0 }}
+                        whileInView={{ y: 0, opacity: 1 }}
+                        viewport={{ once: true }}
+                    >
+                        Clear answers on safety, routes, private charters, and booking — so every coastal journey feels effortless from discovery to departure.
+                    </motion.p>
+                    <FaqImage openIndex={openIndex} />
+                </div>
 
-                    {/* Accordion List */}
-                    <div className="flex flex-col gap-4 mt-12 md:mt-16 w-full">
+                <div className="flex flex-col">
+                    <div className="hidden md:block">
+                        <motion.div
+                            className="flex items-center gap-1.5"
+                            initial={{ y: -20, opacity: 0 }}
+                            whileInView={{ y: 0, opacity: 1 }}
+                            viewport={{ once: true }}
+                            transition={{ delay: 0.2, type: "spring", stiffness: 320, damping: 70, mass: 1 }}
+                        >
+                            <span className="size-1.5 bg-zinc-900" />
+                            <span className="text-sm text-zinc-900">WHY BLUE PINEAPPLE</span>
+                        </motion.div>
+                        <motion.h2
+                            className="mt-4 max-w-md text-3xl font-medium leading-tight tracking-tight text-zinc-900 md:text-4xl"
+                            initial={{ y: 50, opacity: 0 }}
+                            whileInView={{ y: 0, opacity: 1 }}
+                            viewport={{ once: true }}
+                            transition={{ type: "spring", stiffness: 240, damping: 70, mass: 1 }}
+                        >
+                            Everything you need to know
+                        </motion.h2>
+                    </div>
+
+                    <div className="mt-8 flex w-full flex-col gap-3 md:mt-16 md:gap-4">
                         {whyChooseUsData.map((item, index) => {
                             const isOpen = openIndex === index;
                             return (
-                                <motion.div key={index} className="bg-white rounded-sm border border-zinc-100/50 overflow-hidden" 
-                                    initial={{ y: 150, opacity: 0 }}
+                                <motion.div
+                                    key={item.title}
+                                    className="overflow-hidden rounded-lg border border-zinc-200/80 bg-white"
+                                    initial={{ y: 40, opacity: 0 }}
                                     whileInView={{ y: 0, opacity: 1 }}
                                     viewport={{ once: true }}
-                                    transition={{ delay: index * 0.15, type: "spring", stiffness: 320, damping: 70, mass: 1 }}
+                                    transition={{ delay: Math.min(index * 0.06, 0.3), type: "spring", stiffness: 320, damping: 70, mass: 1 }}
                                 >
-                                    <button onClick={() => setOpenIndex(isOpen ? null : index)} className="w-full flex items-center justify-between p-4 md:py-4 md:px-6 text-left hover:bg-zinc-50/30 transition cursor-pointer">
-                                        <div className="flex items-center gap-4">
-                                            <div>
-                                                {item.icon}
-                                            </div>
-                                            <span className="text-sm md:text-base text-zinc-600">
-                                                {item.title}
-                                            </span>
+                                    <button
+                                        type="button"
+                                        onClick={() => setOpenIndex(isOpen ? null : index)}
+                                        className="flex w-full cursor-pointer items-center justify-between gap-3 p-4 text-left transition hover:bg-zinc-50/30 md:px-6 md:py-4"
+                                    >
+                                        <div className="flex min-w-0 items-center gap-4">
+                                            <div className="shrink-0">{item.icon}</div>
+                                            <span className="text-sm text-zinc-700 md:text-base">{item.title}</span>
                                         </div>
-                                        <div>
-                                            {isOpen ? (
-                                                <Minus className="size-4 text-zinc-700" />
-                                            ) : (
-                                                <Plus className="size-4 text-zinc-700" />
-                                            )}
-                                        </div>
+                                        {isOpen ? (
+                                            <Minus className="size-4 shrink-0 text-zinc-700" />
+                                        ) : (
+                                            <Plus className="size-4 shrink-0 text-zinc-700" />
+                                        )}
                                     </button>
 
-                                    {/* Expandable Description (CSS Grid Transition for smooth open/close) */}
-                                    <div className={`grid transition-all duration-300 ease-in-out ${isOpen ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0"}`}>
+                                    <div
+                                        className={`grid transition-all duration-300 ease-in-out ${
+                                            isOpen ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0"
+                                        }`}
+                                    >
                                         <div className="overflow-hidden">
-                                            <p className="p-4 md:px-10 pt-0 text-xs md:text-sm text-zinc-500 leading-relaxed bg-zinc-50/10">
+                                            <p className="bg-zinc-50/10 p-4 pt-0 text-sm leading-relaxed text-zinc-500 md:px-10">
                                                 {item.description}
                                             </p>
                                         </div>
@@ -124,38 +195,17 @@ export function CoastalWhyChooseUs() {
                     </div>
                 </div>
 
-                {/* Right Column */}
-                <div className="flex flex-col justify-between">
-                    <motion.p className="text-zinc-500 text-base md:text-lg max-w-md md:mt-20 mb-8 leading-relaxed"
+                <div className="hidden flex-col justify-between md:flex">
+                    <motion.p
+                        className="mb-8 max-w-md text-base leading-relaxed text-zinc-500 md:mt-20 md:text-lg"
                         initial={{ y: 50, opacity: 0 }}
                         whileInView={{ y: 0, opacity: 1 }}
                         viewport={{ once: true }}
                         transition={{ delay: 0.2, type: "spring", stiffness: 320, damping: 70, mass: 1 }}
                     >
-                        Our coastal platform approach brings structure, clarity, and reliability to every journey — from discovery to departure.
+                        Clear answers on safety, routes, private charters, and booking — so every coastal journey feels effortless from discovery to departure.
                     </motion.p>
-                    
-                    <motion.div className="relative w-121.5 h-102.75 rounded-xl overflow-hidden shadow-sm bg-zinc-100 max-w-full" 
-                        initial={{ y: 50, opacity: 0 }}
-                        whileInView={{ y: 0, opacity: 1 }}
-                        viewport={{ once: true }}
-                        transition={{ type: "spring", stiffness: 320, damping: 70, mass: 1 }}
-                    >
-                        {/* Default Image */}
-                        <Image src={houseImage} alt="Luxury Residential Home" width={486} height={411}
-                            className={`absolute inset-0 w-full h-full object-cover transition-all duration-500 ease-in-out ${
-                                openIndex === null ? "opacity-100 scale-100" : "opacity-0 scale-95 pointer-events-none"
-                            }`}
-                        />
-                        {/* Accordion-specific images */}
-                        {whyChooseUsData.map((item, index) => (
-                            <Image key={index} src={item.image} alt={item.title} width={486} height={411}
-                                className={`absolute inset-0 w-full h-full object-cover transition-all duration-500 ease-in-out ${
-                                    openIndex === index ? "opacity-100 scale-100" : "opacity-0 scale-95 pointer-events-none"
-                                }`}
-                            />
-                        ))}
-                    </motion.div>
+                    <FaqImage openIndex={openIndex} />
                 </div>
             </div>
         </section>
