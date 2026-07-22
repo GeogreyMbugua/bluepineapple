@@ -35,16 +35,17 @@ export default function Home() {
       <HeroBackground />
 
       <div className="relative z-10 flex min-h-[100dvh] flex-col">
-        <div className="mx-auto w-full max-w-6xl px-6">
-          <div className="flex flex-col items-center pt-8 md:pt-14">
+        <div className="mx-auto flex w-full max-w-6xl flex-1 flex-col justify-center px-6 md:justify-start">
+          <div className="flex flex-col items-center pt-6 md:pt-14">
             <BrandHeader />
           </div>
 
-          <div className="flex flex-col items-center gap-4 pt-16 md:hidden">
-            <p className="text-xs font-medium uppercase tracking-[0.25em] text-[var(--color-paper)]/80">
-              Choose your journey
+          <div className="flex flex-col items-center md:hidden">
+            <span className="mt-7 h-px w-10 bg-white/30" aria-hidden />
+            <p className="mt-5 text-[13px] font-normal tracking-wide text-white/50">
+              Choose your journey below
             </p>
-            <div className="flex w-full max-w-md flex-col gap-4">
+            <div className="mt-7 flex w-full flex-col gap-4">
               {panels.map((panel) => (
                 <ArmPanel key={panel.href} {...panel} />
               ))}
@@ -60,7 +61,7 @@ export default function Home() {
           </div>
         </div>
 
-        <div className="mt-auto pt-10 md:pt-28">
+        <div className="mt-auto hidden pt-28 md:block">
           <Footer />
         </div>
       </div>

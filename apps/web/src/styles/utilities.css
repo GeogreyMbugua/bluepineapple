@@ -86,9 +86,10 @@
   }
 }
 
-/* Hero background image: mobile-friendly crop */
+/* Hero background image: mobile-friendly crop
+   Bias toward the villa / bay so the scene stays recognisable in portrait. */
 .hero-bg-mobile {
-  object-position: center center;
+  object-position: 58% 38%;
 }
 
 @media (min-width: 768px) {
