@@ -19,7 +19,7 @@ const trustItems = [
         title: "Fully Insured",
         description: "Certified and insured vessels so every trip feels secure from departure to return.",
         icon: <ShieldCheck className="size-4 text-zinc-700" />,
-        image: publicPath("/assets/fleet.webp"),
+        image: publicPath("/assets/coastaltrust/insured.webp"),
     },
     {
         title: "GPS Navigation",
@@ -31,13 +31,13 @@ const trustItems = [
         title: "24/7 Surveillance",
         description: "Enhanced security systems and operational oversight for safer guest experiences.",
         icon: <Camera className="size-4 text-zinc-700" />,
-        image: publicPath("/assets/surveillance.webp"),
+        image: publicPath("/assets/coastaltrust/surv.webp"),
     },
     {
         title: "Expert Captains",
         description: "Experienced captains who understand the coastline, routes, tides, and guest safety.",
         icon: <Users className="size-4 text-zinc-700" />,
-        image: publicPath("/assets/crew.webp"),
+        image: publicPath("/assets/coastaltrust/captains.webp"),
     },
 ];
 
@@ -81,7 +81,7 @@ export function CoastalTrust() {
     return (
         <section className="w-full bg-white px-4 py-16 sm:px-6 md:px-16 md:py-25 lg:px-24 xl:px-32">
             <div className="mx-auto grid max-w-7xl grid-cols-1 gap-10 md:grid-cols-2 md:gap-16 lg:gap-24">
-                {/* Mobile: image + intro first */}
+                {/* Mobile: intro only — no separate image block, it now lives inside each accordion item */}
                 <div className="flex flex-col md:hidden">
                     <motion.div
                         className="flex items-center gap-1.5"
@@ -103,7 +103,7 @@ export function CoastalTrust() {
                         Why choose Blue Pineapple
                     </motion.h2>
                     <motion.p
-                        className="mt-4 mb-6 max-w-md text-base leading-relaxed text-zinc-500"
+                        className="mt-4 max-w-md text-base leading-relaxed text-zinc-500"
                         initial={{ y: 30, opacity: 0 }}
                         whileInView={{ y: 0, opacity: 1 }}
                         viewport={{ once: true }}
@@ -111,7 +111,6 @@ export function CoastalTrust() {
                     >
                         Clean boats, clear pricing, experienced crew, and safety-first operations for premium coastal experiences along the Kenyan coast.
                     </motion.p>
-                    <TrustImage openIndex={openIndex} />
                 </div>
 
                 {/* Accordion column */}
@@ -138,26 +137,31 @@ export function CoastalTrust() {
                         </motion.h2>
                     </div>
 
-                    <div className="mt-8 flex w-full flex-col gap-3 md:mt-16 md:gap-4">
+                    {/* Single bordered container with dividers, instead of 5 separately-bordered boxes */}
+                    <motion.div
+                        className="mt-8 w-full overflow-hidden rounded-xl border border-zinc-200/80 md:mt-16 md:rounded-2xl"
+                        initial={{ y: 40, opacity: 0 }}
+                        whileInView={{ y: 0, opacity: 1 }}
+                        viewport={{ once: true }}
+                        transition={{ type: "spring", stiffness: 320, damping: 70, mass: 1 }}
+                    >
                         {trustItems.map((item, index) => {
                             const isOpen = openIndex === index;
                             return (
-                                <motion.div
+                                <div
                                     key={item.title}
-                                    className="overflow-hidden rounded-lg border border-zinc-200/80 bg-white"
-                                    initial={{ y: 40, opacity: 0 }}
-                                    whileInView={{ y: 0, opacity: 1 }}
-                                    viewport={{ once: true }}
-                                    transition={{ delay: index * 0.08, type: "spring", stiffness: 320, damping: 70, mass: 1 }}
+                                    className={index === 0 ? "" : "border-t border-zinc-200/80"}
                                 >
                                     <button
                                         type="button"
                                         onClick={() => setOpenIndex(isOpen ? null : index)}
-                                        className="flex w-full cursor-pointer items-center justify-between p-4 text-left transition hover:bg-zinc-50/30 md:px-6 md:py-4"
+                                        className="flex w-full cursor-pointer items-center justify-between gap-4 p-5 text-left transition hover:bg-zinc-50/60 md:px-6 md:py-5"
                                     >
-                                        <div className="flex items-center gap-4">
-                                            <div>{item.icon}</div>
-                                            <span className="text-sm text-zinc-700 md:text-base">{item.title}</span>
+                                        <div className="flex items-center gap-3.5 md:gap-4">
+                                            <div className="shrink-0">{item.icon}</div>
+                                            <span className="text-sm font-medium text-zinc-800 md:text-base md:font-normal md:text-zinc-700">
+                                                {item.title}
+                                            </span>
                                         </div>
                                         {isOpen ? (
                                             <Minus className="size-4 shrink-0 text-zinc-700" />
@@ -172,15 +176,32 @@ export function CoastalTrust() {
                                         }`}
                                     >
                                         <div className="overflow-hidden">
-                                            <p className="bg-zinc-50/10 p-4 pt-0 text-sm leading-relaxed text-zinc-500 md:px-10">
+                                            {/* Mobile: image + description reveal together, in place, right where the user tapped */}
+                                            <div className="flex flex-col gap-4 px-5 pb-5 md:hidden">
+                                                <div className="relative aspect-[16/10] w-full overflow-hidden rounded-lg bg-zinc-100">
+                                                    <Image
+                                                        src={item.image}
+                                                        alt={item.title}
+                                                        fill
+                                                        sizes="(max-width: 768px) 100vw, 0px"
+                                                        className="object-cover"
+                                                    />
+                                                </div>
+                                                <p className="text-sm leading-relaxed text-zinc-500">
+                                                    {item.description}
+                                                </p>
+                                            </div>
+
+                                            {/* Desktop: text only — the shared image sits in the sticky right column */}
+                                            <p className="hidden text-sm leading-relaxed text-zinc-500 md:block md:px-10 md:pb-5">
                                                 {item.description}
                                             </p>
                                         </div>
                                     </div>
-                                </motion.div>
+                                </div>
                             );
                         })}
-                    </div>
+                    </motion.div>
                 </div>
 
                 {/* Desktop right column */}

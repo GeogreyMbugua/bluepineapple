@@ -13,7 +13,7 @@ const experiences = [
         vessel: "Glass-bottomed Boat",
         location: "Mombasa",
         price: "Ksh 4,000/pax",
-        image: publicPath("/assets/creek-safaris.webp"),
+        image: publicPath("/assets/experiences/creek/creek1.webp"),
         href: "/trips/creek-safaris-mangrove",
     },
     {
@@ -23,7 +23,7 @@ const experiences = [
         vessel: "Big Boat",
         location: "Mombasa",
         price: "From Ksh 500",
-        image: publicPath("/assets/fort.webp"),
+        image: publicPath("/assets/experiences/fortjesus/fortstock.webp"),
         href: "/trips/fort-jesus-trip",
     },
     {
@@ -33,7 +33,7 @@ const experiences = [
         vessel: "",
         location: "Mombasa",
         price: "Ksh 3,000/pax",
-        image: publicPath("/assets/set.webp"),
+        image: publicPath("/assets/experiences/sunset/sunset1.webp"),
         href: "/trips/sunset-sailing",
     },
     {
@@ -43,7 +43,7 @@ const experiences = [
         vessel: "",
         location: "Mombasa",
         price: "Ksh 2,000/pax",
-        image: publicPath("/assets/events.webp"),
+        image: publicPath("/assets/experiences/events/event1.webp"),
         href: "/trips/birthdays-anniversaries",
     },
     {
@@ -53,7 +53,7 @@ const experiences = [
         vessel: "",
         location: "Mombasa",
         price: "Ksh 2,000/pax",
-        image: publicPath("/assets/snorkling-adventure.webp"),
+        image: publicPath("/assets/experiences/snorkeling/snorkeling.webp"),
         href: "/trips/snorkelling-reef",
     },
 ];

@@ -17,14 +17,14 @@ const defaultImages = [
 ];
 
 const coastalImages = [
-  publicPath("/assets/fleet.webp"),
-  publicPath("/assets/hunky11.webp"),
-  publicPath("/assets/creek-safaris.webp"),
-  publicPath("/assets/set.webp"),
-  publicPath("/assets/fort.webp"),
-  publicPath("/assets/crew.webp"),
-  publicPath("/assets/snorkling-adventure.webp"),
-  publicPath("/assets/hunky04.webp"),
+  publicPath("/assets/experiences/creek/creek2.webp"),
+  publicPath("/assets/experiences/fortjesus/fort2.webp"),
+  publicPath("/assets/experiences/sunset/sunset2.webp"),
+  publicPath("/assets/experiences/events/event2.webp"),
+  publicPath("/assets/experiences/snorkeling/snorkeling.webp"),
+  publicPath("/assets/experiences/creek/creek1.webp"),
+  publicPath("/assets/experiences/fortjesus/fort3.webp"),
+  publicPath("/assets/experiences/sunset/sunset1.webp"),
 ];
 
 export function Gallery({ variant = "default" }: { readonly variant?: GalleryVariant }) {

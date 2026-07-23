@@ -1,7 +1,6 @@
 import { CoastalHeroSection } from '@/app/sections/coastal-hero';
 import { CoastalTrust } from '@/app/sections/coastal-trust';
 import { Gallery } from '@/app/sections/gallery';
-import { CoastalWhyChooseUs } from '@/app/sections/coastal-why-choose-us';
 import { Testimonials } from '@/app/sections/testimonials';
 import { CallToAction } from '@/app/sections/call-to-action';
 import { Contact } from '@/app/sections/contact';
@@ -16,7 +15,6 @@ export function CoastalExperiencesPage() {
       <CoastalExperiences />
       <CoastalFleet />
       <Gallery variant="coastal" />
-      <CoastalWhyChooseUs />
       <Testimonials variant="coastal" />
       <CallToAction variant="coastal" />
       <Contact variant="coastal" />

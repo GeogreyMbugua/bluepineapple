@@ -25,7 +25,7 @@ const fleet: FleetBoat[] = [
     hourly: "Ksh 8,000/hr",
     daily: "Ksh 32,000/day",
     href: "/boats/setting-sons",
-    image: publicPath("/assets/setting.webp"),
+    image: publicPath("/assets/settingsons/setting01.webp"),
     features: ["Private charter", "Corporate events", "Harbour cruises"],
   },
   {
@@ -35,7 +35,7 @@ const fleet: FleetBoat[] = [
     hourly: "Ksh 5,000/hr",
     daily: "Ksh 20,000/day",
     href: "/boats/hunky-dory",
-    image: publicPath("/assets/hunky11.webp"),
+    image: publicPath("/assets/hunky/fleet01.webp"),
     features: ["Glass-bottom viewing", "Family friendly", "Marine tours"],
   },
 ];

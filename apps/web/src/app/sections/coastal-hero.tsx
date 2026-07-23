@@ -43,32 +43,37 @@ export function CoastalHeroSection() {
                 transition={{ duration: 1.8, ease: [0.22, 1, 0.36, 1] }}
             >
                 <motion.div
-                    className="absolute inset-0 h-full w-full bg-cover bg-no-repeat bg-[position:58%_40%] md:bg-center"
-                    style={{ backgroundImage: `url('${publicPath("/assets/coastal.webp")}')` }}
+                    className="absolute inset-0 h-full w-full bg-cover bg-no-repeat bg-center md:bg-[position:58%_40%]"
+                    style={{ backgroundImage: `url('${publicPath("/assets/hero/coastal.jpg")}')` }}
                     initial={{ scale: 1 }}
                     animate={{ scale: 1.08 }}
                     transition={{ duration: 20, ease: "linear", repeat: Infinity, repeatType: "reverse" }}
                 />
             </motion.div>
 
-            <div className="absolute inset-0 bg-gradient-to-b from-black/55 via-black/35 to-black/70 md:bg-gradient-to-r md:from-black/75 md:via-black/35 md:to-transparent" />
-            <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/20" />
+            {/* Overlay scoped to where the copy sits — top of the photo stays clean */}
+            <div
+                className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/75 via-black/35 via-40% to-transparent to-75% md:from-black/70 md:via-black/25 md:via-45%"
+                aria-hidden
+            />
 
             <motion.div
-                className="container-page relative z-10 flex min-h-[100dvh] flex-col justify-center pt-28 pb-24 md:pb-16"
+                className="container-page relative z-10 flex min-h-[100dvh] flex-col justify-end gap-12 pb-24 pt-32 md:justify-center md:gap-16 md:pb-16"
                 variants={container}
                 initial="hidden"
                 animate="show"
             >
-                <motion.div variants={fadeBlurUp} className="mb-6 flex items-center gap-4">
-                    <span className="h-px w-8 bg-white/30" aria-hidden />
-                    <span className="text-xs font-medium uppercase tracking-[0.2em] text-white/55">
+                {/* Eyebrow */}
+                <motion.div variants={fadeBlurUp} className="flex items-center gap-4">
+                    <span className="h-px w-8 bg-white/40" aria-hidden />
+                    <span className="text-xs font-semibold uppercase tracking-[0.2em] text-white/80">
                         Boat trips • Mombasa
                     </span>
                 </motion.div>
 
+                {/* Headline */}
                 <motion.h1
-                    className="max-w-[15ch] text-[2rem] font-medium leading-[1.12] tracking-[-0.02em] text-zinc-50 sm:text-5xl lg:text-6xl"
+                    className="max-w-[18ch] text-[2.25rem] font-medium leading-[1.2] tracking-[-0.02em] text-white sm:text-6xl md:text-7xl lg:text-[5.5rem] lg:leading-[1.1]"
                     variants={container}
                 >
                     {headlineLines.map((line) => (
@@ -80,39 +85,39 @@ export function CoastalHeroSection() {
                     ))}
                 </motion.h1>
 
-                <motion.p
-                    variants={fadeBlurUp}
-                    className="mt-6 max-w-[420px] text-pretty text-sm leading-relaxed text-white/65 sm:text-base"
-                >
-                    Fort Jesus harbour tours, mangrove creek safaris, snorkelling reefs and sunset sailings — curated for comfort, safety and unforgettable views.
-                </motion.p>
-
+                {/* Body copy + CTAs share the horizontal space now that we're not squeezed into a narrow card */}
                 <motion.div
                     variants={fadeBlurUp}
-                    className="mt-9 flex flex-col items-start gap-4 sm:flex-row sm:flex-wrap sm:items-center sm:gap-x-8"
+                    className="flex flex-col gap-8 md:flex-row md:items-end md:justify-between md:gap-16"
                 >
-                    <Link
-                        href="#experiences"
-                        className="group inline-flex min-h-11 items-center gap-2 rounded-full bg-cyan-950 px-6 py-3 text-sm font-semibold text-white transition-colors duration-200 hover:bg-cyan-900"
-                    >
-                        Explore experiences
-                        <ArrowUpRight size={16} />
-                    </Link>
-                    <Link
-                        href="/trips/fort-jesus-trip"
-                        className="group inline-flex min-h-11 items-center gap-2 rounded-full border border-white/25 px-5 py-2.5 text-sm font-medium text-white/95 transition-colors hover:border-white/50 hover:text-white sm:border-0 sm:px-0 sm:py-0"
-                    >
-                        Fort Jesus
-                        <ArrowUpRight
-                            size={16}
-                            className="transition-transform duration-200 group-hover:translate-x-0.5 group-hover:-translate-y-0.5"
-                        />
-                    </Link>
+                    <p className="max-w-[440px] text-pretty text-sm leading-relaxed text-white/85 sm:text-base">
+                        Fort Jesus harbour tours, mangrove creek safaris, snorkelling reefs and sunset sailings — curated for comfort, safety and unforgettable views.
+                    </p>
+
+                    <div className="flex flex-col items-start gap-4 sm:flex-row sm:flex-wrap sm:items-center sm:gap-4">
+                        <Link
+                            href="#experiences"
+                            className="group inline-flex min-h-11 items-center gap-2 rounded-full bg-cyan-950 px-6 py-3 text-sm font-semibold text-white transition-colors duration-200 hover:bg-cyan-900"
+                        >
+                            Explore experiences
+                            <ArrowUpRight size={16} />
+                        </Link>
+                        <Link
+                            href="/trips/fort-jesus-trip"
+                            className="group inline-flex min-h-11 items-center gap-2 rounded-full bg-white px-5 py-3 text-sm font-medium text-zinc-900 transition-colors hover:bg-zinc-100"
+                        >
+                            Fort Jesus
+                            <ArrowUpRight
+                                size={16}
+                                className="transition-transform duration-200 group-hover:translate-x-0.5 group-hover:-translate-y-0.5"
+                            />
+                        </Link>
+                    </div>
                 </motion.div>
             </motion.div>
 
             <motion.div
-                className="absolute bottom-[max(1.5rem,env(safe-area-inset-bottom))] left-1/2 z-10 flex -translate-x-1/2 flex-col items-center gap-2 text-white/60"
+                className="absolute bottom-[max(1.5rem,env(safe-area-inset-bottom))] left-1/2 z-10 flex -translate-x-1/2 flex-col items-center gap-2 text-white/80 [text-shadow:0_1px_10px_rgba(0,0,0,0.3)]"
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 transition={{ delay: 1.6, duration: 0.8 }}

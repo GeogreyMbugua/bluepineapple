@@ -10,9 +10,9 @@ const fleet = [
     hourly: "Ksh 8,000/hr",
     daily: "Ksh 32,000/day",
     images: [
-      "/assets/setting.webp",
-      "/assets/settings.webp",
-      "/assets/24setting.webp",
+      "/assets/settingsons/setting01.webp",
+      "/assets/settingsons/setting2.webp",
+      "/assets/settingsons/setting3.webp",
     ],
     features: [
       "Private Charter",
@@ -20,7 +20,7 @@ const fleet = [
       "Harbour Cruises",
     ],
     description: "Experience the Kenyan coastline aboard Setting Sons, a luxury coastal cruiser designed for comfort, safety, and unforgettable moments on the water. Perfect for corporate events, private celebrations, and large group charters.",
-    heroImage: "/assets/setting.webp",
+    heroImage: "/assets/settingsons/setting01.webp",
   },
   {
     name: "Hunky Dory",
@@ -30,9 +30,9 @@ const fleet = [
     hourly: "Ksh 5,000/hr",
     daily: "Ksh 20,000/day",
     images: [
-      "/assets/hunky11.webp",
-      "/assets/hunky04.webp",
-      "/assets/galleryImage3.webp",
+      "/assets/hunky/fleet01.webp",
+      "/assets/hunky/fleet02.webp",
+      "/assets/hunky/fleet03.webp",
     ],
     features: [
       "Glass Bottom",
@@ -40,7 +40,7 @@ const fleet = [
       "Marine Viewing",
     ],
     description: "Discover the underwater world aboard Hunky Dory, a glass-bottom boat offering a unique perspective of the Kenyan coast. Ideal for families, marine viewing, and intimate coastal adventures.",
-    heroImage: "/assets/hunky11.webp",
+    heroImage: "/assets/hunky/fleet01.webp",
   },
 ];
 
