@@ -13,7 +13,7 @@ const trustItems = [
         title: "Modern Fleet",
         description: "Fully equipped boats maintained for comfort, safety, and reliable coastal experiences.",
         icon: <Users className="size-4 text-zinc-700" />,
-        image: publicPath("/assets/hunky11.webp"),
+        image: publicPath("/assets/hunky/fleet02.webp"),
     },
     {
         title: "Fully Insured",
