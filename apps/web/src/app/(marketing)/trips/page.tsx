@@ -19,58 +19,83 @@ const fadeUp = {
 const experiences = [
     {
         title: "Fort Jesus",
-        subtitle: "Historical Boat Tour",
+        subtitle: "Hop on anywhere from Mtwapa Beach to Fort Jesus — like a water matatu along the Mombasa North Coast.",
         category: "cultural",
         duration: "8 hours",
+        vessel: "Big Boat",
         location: "Mombasa",
         price: "From Ksh 500",
-        image: publicPath("/assets/fort.webp"),
+        image: publicPath("/assets/experiences/fortjesus/fortstock.webp"),
         href: "/trips/fort-jesus-trip",
         featured: true,
+        images: [
+            publicPath("/assets/experiences/fortjesus/fortstock.webp"),
+            publicPath("/assets/experiences/fortjesus/fort2.webp"),
+            publicPath("/assets/experiences/fortjesus/fort3.webp"),
+        ],
     },
     {
-        title: "Sunset Sailing",
-        subtitle: "Golden hour on the water",
-        category: "leisure",
-        duration: "2h 30m",
-        location: "Mombasa",
-        price: "Ksh 3,000/pax",
-        image: publicPath("/assets/set.webp"),
-        href: "/trips/sunset-sailing",
-        featured: false,
-    },
-    {
-        title: "Creek Safaris",
-        subtitle: "Mangrove exploration",
+        title: "Creek Safaris / Mangrove",
+        subtitle: "Glide through tranquil estuaries like Mtwapa and Tudor Creek aboard a glass-bottomed boat — nature at its best.",
         category: "leisure",
         duration: "3 hours",
+        vessel: "Glass-bottomed Boat",
         location: "Mombasa",
         price: "Ksh 4,000/pax",
-        image: publicPath("/assets/creek-safaris.webp"),
+        image: publicPath("/assets/experiences/creek/creek1.webp"),
         href: "/trips/creek-safaris-mangrove",
         featured: false,
+        images: [
+            publicPath("/assets/experiences/creek/creek1.webp"),
+            publicPath("/assets/experiences/creek/creek2.webp"),
+        ],
     },
     {
-        title: "Snorkelling Reef",
-        subtitle: "Marine life encounters",
-        category: "adventure",
-        duration: "2 hours",
+        title: "Sunset",
+        subtitle: "A premier experience with Swahili snacks and Instagram-worthy sunset photo opportunities.",
+        category: "leisure",
+        duration: "2h 30m",
+        vessel: "",
         location: "Mombasa",
-        price: "Ksh 2,000/pax",
-        image: publicPath("/assets/snorkling-adventure.webp"),
-        href: "/trips/snorkelling-reef",
+        price: "Ksh 3,000/pax",
+        image: publicPath("/assets/experiences/sunset/sunset1.webp"),
+        href: "/trips/sunset-sailing",
         featured: false,
+        images: [
+            publicPath("/assets/experiences/sunset/sunset1.webp"),
+            publicPath("/assets/experiences/sunset/sunset2.webp"),
+        ],
     },
     {
         title: "Birthdays & Anniversaries",
-        subtitle: "Private celebrations",
+        subtitle: "Celebrate milestones aboard on the crystal clear waters of the Indian Ocean in Mombasa.",
         category: "family",
         duration: "2 hours",
+        vessel: "",
         location: "Mombasa",
         price: "Ksh 2,000/pax",
-        image: publicPath("/assets/events.webp"),
+        image: publicPath("/assets/experiences/events/event1.webp"),
         href: "/trips/birthdays-anniversaries",
         featured: false,
+        images: [
+            publicPath("/assets/experiences/events/event1.webp"),
+            publicPath("/assets/experiences/events/event2.webp"),
+        ],
+    },
+    {
+        title: "Snorkelling Reef",
+        subtitle: "Float above vibrant coral gardens surrounded by a dazzling array of tropical fish.",
+        category: "adventure",
+        duration: "2 hours",
+        vessel: "",
+        location: "Mombasa",
+        price: "Ksh 2,000/pax",
+        image: publicPath("/assets/experiences/snorkeling/snorkeling.webp"),
+        href: "/trips/snorkelling-reef",
+        featured: false,
+        images: [
+            publicPath("/assets/experiences/snorkeling/snorkeling.webp"),
+        ],
     },
 ];
 
@@ -82,6 +107,9 @@ const stats = [
 ];
 
 export default function TripsPage() {
+    const featured = experiences.find((exp) => exp.featured);
+    const regular = experiences.filter((exp) => !exp.featured);
+
     return (
         <main className="bg-background text-foreground">
             {/* ============================================
@@ -96,7 +124,7 @@ export default function TripsPage() {
                 >
                     <motion.div
                         className="absolute inset-0 h-full w-full bg-cover bg-center bg-no-repeat"
-                        style={{ backgroundImage: `url('${publicPath("/assets/hero1.webp")}')` }}
+                        style={{ backgroundImage: `url('${publicPath("/assets/hero/coastal.jpg")}')` }}
                         initial={{ scale: 1 }}
                         animate={{ scale: 1.08 }}
                         transition={{ duration: 20, ease: "linear", repeat: Infinity, repeatType: "reverse" }}
@@ -222,26 +250,82 @@ export default function TripsPage() {
             </section>
 
             {/* ============================================
-                  EXPERIENCES
+                  FEATURED EXPERIENCE: FORT JESUS
+            ============================================ */}
+            {featured && (
+                <section className="py-20 md:py-28 px-4 md:px-16 lg:px-24 xl:px-32 w-full bg-white">
+                    <div className="max-w-7xl mx-auto">
+                        <motion.div className="max-w-2xl" {...fadeUp}>
+                            <div className="flex items-center gap-1.5">
+                                <span className="size-1.5 bg-zinc-900" />
+                                <span className={eyebrowClass + " text-zinc-900"}>Featured Experience</span>
+                            </div>
+                            <h2 className={`mt-5 ${sectionTitleClass} text-zinc-900`}>
+                                {featured.title}
+                            </h2>
+                            <p className={`mt-3 ${bodyClass}`}>
+                                {featured.subtitle}
+                            </p>
+                        </motion.div>
+
+                        <div className="mt-10 grid grid-cols-2 gap-3 md:grid-cols-4 md:gap-4">
+                            {featured.images.map((src, idx) => (
+                                <motion.div
+                                    key={src}
+                                    className="relative aspect-[4/3] overflow-hidden rounded-xl bg-zinc-100"
+                                    initial={{ y: 30, opacity: 0 }}
+                                    whileInView={{ y: 0, opacity: 1 }}
+                                    viewport={{ once: true }}
+                                    transition={{ delay: idx * 0.1, type: "spring", stiffness: 320, damping: 70, mass: 1 }}
+                                >
+                                    <Image
+                                        src={src}
+                                        alt={`${featured.title} image ${idx + 1}`}
+                                        fill
+                                        className="object-cover"
+                                        sizes="(max-width: 768px) 50vw, 25vw"
+                                    />
+                                </motion.div>
+                            ))}
+                        </div>
+
+                        <motion.div
+                            className="mt-8 flex flex-wrap items-center gap-6 text-sm text-zinc-600"
+                            {...fadeUp}
+                        >
+                            <span className="font-medium text-zinc-900">{featured.duration}</span>
+                            <span className="w-px h-4 bg-zinc-300" />
+                            <span>{featured.location}</span>
+                            <span className="w-px h-4 bg-zinc-300" />
+                            <span className="font-semibold text-zinc-900">{featured.price}</span>
+                            <span className="w-px h-4 bg-zinc-300" />
+                            <span className="uppercase tracking-widest text-xs text-zinc-500">{featured.category}</span>
+                        </motion.div>
+                    </div>
+                </section>
+            )}
+
+            {/* ============================================
+                  ALL EXPERIENCES
             ============================================ */}
             <section id="experiences" className="py-20 md:py-28 px-4 md:px-16 lg:px-24 xl:px-32 w-full bg-white">
                 <div className="max-w-7xl mx-auto">
                     <motion.div className="max-w-2xl" {...fadeUp}>
                         <div className="flex items-center gap-1.5">
                             <span className="size-1.5 bg-zinc-900" />
-                            <span className={eyebrowClass + " text-zinc-900"}>Experiences</span>
+                            <span className={eyebrowClass + " text-zinc-900"}>All Experiences</span>
                         </div>
                         <h2 className={`mt-5 ${sectionTitleClass} text-zinc-900`}>
-                            Every route tells a story
+                            Explore all trips
                         </h2>
                         <p className={`mt-3 ${bodyClass}`}>
-                            Choose from handpriced coastal journeys — from historic harbour walks to reef snorkelling and sunset sailings.
+                            Browse premium coastal experiences in Mombasa — from Fort Jesus harbour routes to reef snorkelling, mangrove safaris, sunset sailings and private charters.
                         </p>
                     </motion.div>
 
-                    <div className="mt-12 grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
-                        {experiences.map((exp, index) => (
-                            <Link key={exp.title} href={exp.href} className="group relative h-[300px] md:h-[420px] w-full overflow-hidden">
+                    <div className="mt-12 grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
+                        {regular.map((exp, index) => (
+                            <Link key={exp.href} href={exp.href} className="group relative h-[300px] md:h-[420px] w-full overflow-hidden">
                                 <Image
                                     src={exp.image}
                                     alt={exp.title}
@@ -265,8 +349,14 @@ export default function TripsPage() {
                                     <p className="text-sm text-white/70 mt-1 max-w-xs">
                                         {exp.subtitle}
                                     </p>
-                                    <div className="mt-3 flex items-center gap-4 text-xs text-white/80">
+                                    <div className="mt-3 flex flex-wrap items-center gap-3 text-xs text-white/80">
                                         <span>{exp.duration}</span>
+                                        {exp.vessel ? (
+                                            <>
+                                                <span className="w-px h-3 bg-white/30" />
+                                                <span>{exp.vessel}</span>
+                                            </>
+                                        ) : null}
                                         <span className="w-px h-3 bg-white/30" />
                                         <span>{exp.location}</span>
                                         <span className="w-px h-3 bg-white/30" />
@@ -319,7 +409,7 @@ export default function TripsPage() {
                         transition={{ delay: 0.15, type: "spring", stiffness: 240, damping: 70, mass: 1 }}
                     >
                         <Image
-                            src={publicPath("/assets/24setting.webp")}
+                            src={publicPath("/assets/settingsons/setting01.webp")}
                             alt="Setting Sons luxury cruiser"
                             fill
                             className="object-cover"
@@ -334,7 +424,7 @@ export default function TripsPage() {
             <section className="relative py-36 px-4 md:px-16 lg:px-24 xl:px-32 w-full overflow-hidden">
                 <div className="absolute inset-0">
                     <Image
-                        src={publicPath("/assets/set.webp")}
+                        src={publicPath("/assets/experiences/sunset/sunset1.webp")}
                         alt="Sunset coastal experience"
                         fill
                         className="object-cover"

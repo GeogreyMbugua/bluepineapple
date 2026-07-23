@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { Building2, BriefcaseBusiness, Home, Hotel, Wrench } from "lucide-react";
+import { BriefcaseBusiness, Home, Hotel, Wrench } from "lucide-react";
 
 const services = [
     {

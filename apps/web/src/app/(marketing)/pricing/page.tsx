@@ -1,19 +1,11 @@
 "use client";
 
-import Link from "next/link";
-import Image from "next/image";
 import { motion } from "framer-motion";
+import Link from "next/link";
 import { MarketingShell } from '@/components/marketing/marketing-shell';
 import { primaryButtonClass, invertedButtonClass } from '@/components/marketing/button';
 import { sectionTitleClass, bodyClass } from '@/components/marketing/typography';
 import { publicPath } from '@/lib/paths';
-
-const fadeUp = {
-  initial: { y: 40, opacity: 0 },
-  whileInView: { y: 0, opacity: 1 },
-  viewport: { once: true },
-  transition: { type: "spring", stiffness: 320, damping: 70, mass: 1 },
-} as const;
 
 const packages = [
   {

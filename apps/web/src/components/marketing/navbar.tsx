@@ -52,9 +52,9 @@ export function Navbar({ variant = 'parent' }: NavbarProps) {
         <>
             <Link href="/trips" className={`transition-colors duration-500 ${coastalLinkColor}`}>Experiences</Link>
             <Link href="/trips/fort-jesus-trip" className={`transition-colors duration-500 ${coastalLinkColor}`}>Fort Jesus</Link>
-            <Link href="#fleet" className={`transition-colors duration-500 ${coastalLinkColor}`}>Our Fleet</Link>
-            <Link href="#gallery" className={`transition-colors duration-500 ${coastalLinkColor}`}>Gallery</Link>
-            <Link href="#contact" className={`transition-colors duration-500 ${coastalLinkColor}`}>Contact</Link>
+            <Link href="/boats" className={`transition-colors duration-500 ${coastalLinkColor}`}>Our Fleet</Link>
+            <Link href="/coastal-experiences#gallery" className={`transition-colors duration-500 ${coastalLinkColor}`}>Gallery</Link>
+            <Link href="/contact" className={`transition-colors duration-500 ${coastalLinkColor}`}>Contact</Link>
         </>
     );
 
@@ -76,9 +76,9 @@ export function Navbar({ variant = 'parent' }: NavbarProps) {
         <>
             <Link href="/trips" onClick={closeMobile} className={mobileLinkClass}>Experiences</Link>
             <Link href="/trips/fort-jesus-trip" onClick={closeMobile} className={mobileLinkClass}>Fort Jesus</Link>
-            <Link href="#fleet" onClick={closeMobile} className={mobileLinkClass}>Our Fleet</Link>
-            <Link href="#gallery" onClick={closeMobile} className={mobileLinkClass}>Gallery</Link>
-            <Link href="#contact" onClick={closeMobile} className={mobileLinkClass}>Contact</Link>
+            <Link href="/boats" onClick={closeMobile} className={mobileLinkClass}>Our Fleet</Link>
+            <Link href="/coastal-experiences#gallery" onClick={closeMobile} className={mobileLinkClass}>Gallery</Link>
+            <Link href="/contact" onClick={closeMobile} className={mobileLinkClass}>Contact</Link>
             <div className="mt-4 flex w-full max-w-xs flex-col gap-2 border-t border-zinc-200 pt-6">
                 <span className="mb-1 text-xs font-medium tracking-[0.2em] text-zinc-400 uppercase">Platforms</span>
                 <Link href="/coastal-experiences" onClick={closeMobile} className={mobileLinkClass}>Coastal Experiences</Link>
