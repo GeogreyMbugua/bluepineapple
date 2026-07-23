@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import Link from "next/link";
 import { ArrowLeft, ArrowUpRight } from "lucide-react";
 import {
@@ -48,13 +48,20 @@ export default function RouteFaresPlanner() {
   const [children, setChildren] = useState(0);
   const [returnTicket, setReturnTicket] = useState(true);
 
-  useEffect(() => {
+  const handleOriginChange = (value: Stop) => {
+    setOrigin(value);
+    const originIndex = stops.indexOf(value);
+    const validDestination = stops[Math.min(originIndex + 1, stops.length - 1)] as Stop;
+    setDestination(validDestination);
+  };
+
+  const handleDestinationChange = (value: Stop) => {
     const originIndex = stops.indexOf(origin);
-    const destinationIndex = stops.indexOf(destination);
-    if (destinationIndex <= originIndex) {
-      setDestination(stops[Math.min(originIndex + 1, stops.length - 1)] as Stop);
+    const destinationIndex = stops.indexOf(value);
+    if (destinationIndex > originIndex) {
+      setDestination(value);
     }
-  }, [origin, destination]);
+  };
 
   const summary = useMemo(
     () => calculateBooking(origin, destination, adults, children, returnTicket),
@@ -99,7 +106,7 @@ export default function RouteFaresPlanner() {
               Boarding point
               <select
                 value={origin}
-                onChange={(event) => setOrigin(event.target.value as Stop)}
+                onChange={(event) => handleOriginChange(event.target.value as Stop)}
                 className="mt-2 block w-full rounded-md border border-slate-300 bg-white px-3 py-3 text-sm text-slate-900 outline-none focus:border-slate-900"
               >
                 {stops.slice(0, stops.length - 1).map((stop) => (
@@ -114,7 +121,7 @@ export default function RouteFaresPlanner() {
               Destination
               <select
                 value={destination}
-                onChange={(event) => setDestination(event.target.value as Stop)}
+                onChange={(event) => handleDestinationChange(event.target.value as Stop)}
                 className="mt-2 block w-full rounded-md border border-slate-300 bg-white px-3 py-3 text-sm text-slate-900 outline-none focus:border-slate-900"
               >
                 {destinationOptions.map((stop) => (
