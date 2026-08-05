@@ -1,34 +1,35 @@
 import { BoatDetailClient } from './boat-detail-client';
 import Link from "next/link";
-import { headers } from "next/headers";
-
-async function getBaseUrl(): Promise<string> {
-  const headersList = await headers();
-  const host = headersList.get('host') || 'localhost:3000';
-  const protocol = process.env.NODE_ENV === 'production' ? 'https' : 'http';
-  return `${protocol}://${host}`;
-}
+import { vesselService } from '@blue-pineapple/iam';
 
 async function getVessel(slug: string) {
   try {
-    const base = await getBaseUrl();
-    const res = await fetch(`${base}/api/fleet/${slug}`, { cache: 'no-store' });
-    if (!res.ok) return null;
-    const json = await res.json();
-    return json.data;
+    const vessels = await vesselService.listActiveVessels();
+    const decodedSlug = decodeURIComponent(slug).toLowerCase();
+    const vessel = vessels.find((v) => v.slug && v.slug.toLowerCase() === decodedSlug);
+    if (!vessel) return null;
+
+    return {
+      name: vessel.name,
+      slug: vessel.slug,
+      subtitle: vessel.subtitle || vessel.type || 'Luxury Vessel',
+      capacity: vessel.capacity,
+      hourlyRate: vessel.hourlyRate ? `KES ${vessel.hourlyRate.toLocaleString()}/hr` : 'Contact for pricing',
+      dailyRate: vessel.dailyRate ? `KES ${vessel.dailyRate.toLocaleString()}/day` : 'Contact for pricing',
+      images: Array.isArray(vessel.images) && vessel.images.length > 0 ? (vessel.images as string[]) : [vessel.heroImage || '/images/boats/default.jpg'],
+      features: Array.isArray(vessel.features) ? (vessel.features as string[]) : [],
+      description: vessel.description || '',
+      heroImage: vessel.heroImage || '/images/boats/default.jpg',
+    };
   } catch (error) {
-    console.error('[BoatDetailPage] Fetch error:', error);
+    console.error('[BoatDetailPage] Error:', error);
     return null;
   }
 }
 
 async function getAllVessels() {
   try {
-    const base = await getBaseUrl();
-    const res = await fetch(`${base}/api/fleet`, { cache: 'no-store' });
-    if (!res.ok) return [];
-    const json = await res.json();
-    return json.data || [];
+    return await vesselService.listActiveVessels();
   } catch {
     return [];
   }
