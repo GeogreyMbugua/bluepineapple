@@ -32,10 +32,8 @@ export const ROUTES = {
   /** Partner portal */
   partner: {
     home: '/partner',
-    overview: '/partner/overview',
     bookings: '/partner/bookings',
-    fleet: '/partner/fleet',
-    analytics: '/partner/analytics',
+    rewards: '/partner/rewards',
     settings: '/partner/settings',
   },
 
@@ -45,6 +43,7 @@ export const ROUTES = {
     users: '/admin/users',
     partners: '/admin/partners',
     bookings: '/admin/bookings',
+    rewards: '/admin/rewards',
     operations: '/admin/operations',
     crm: '/admin/crm',
     commercial: '/admin/commercial',

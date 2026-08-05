@@ -15,7 +15,10 @@ const DEFAULT_TIMEOUT_MS = 30_000;
  * Build a URL with query parameters.
  */
 function buildUrl(base: string, path: string, params?: Record<string, string | number | boolean | undefined>): string {
-  const url = new URL(path, base);
+  const baseUrl = new URL(base);
+  const separator = path.startsWith('/') ? '' : '/';
+  const joinedPath = baseUrl.pathname.replace(/\/$/, '') + separator + path;
+  const url = new URL(joinedPath, baseUrl.origin);
 
   if (params) {
     for (const [key, value] of Object.entries(params)) {

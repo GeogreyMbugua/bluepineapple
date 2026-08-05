@@ -2,21 +2,37 @@ import { z } from "zod";
 
 export const CreateVesselSchema = z.object({
   name: z.string().min(2, "Vessel name must be at least 2 characters").max(200),
+  slug: z.string().min(1, "Slug is required"),
   registration: z.string().max(100).optional().nullable(),
   capacity: z.number().int().positive("Capacity must be a positive integer"),
   type: z.enum(["FERRY", "SPEEDBOAT", "DHOW", "CATAMARAN", "CATAMARAN_LUXURY"]).optional().nullable(),
   operatorName: z.string().max(200).optional().nullable(),
   ownerName: z.string().max(200).optional().nullable(),
+  subtitle: z.string().max(500).optional().nullable(),
+  description: z.string().max(5000).optional().nullable(),
+  hourlyRate: z.string().max(100).optional().nullable(),
+  dailyRate: z.string().max(100).optional().nullable(),
+  heroImage: z.string().max(500).optional().nullable(),
+  images: z.array(z.string()).optional().nullable(),
+  features: z.array(z.string()).optional().nullable(),
   notes: z.string().max(2000).optional().nullable(),
 });
 
 export const UpdateVesselSchema = z.object({
   name: z.string().min(2).max(200).optional(),
+  slug: z.string().min(1).max(200).optional(),
   registration: z.string().max(100).optional().nullable(),
   capacity: z.number().int().positive().optional(),
   type: z.enum(["FERRY", "SPEEDBOAT", "DHOW", "CATAMARAN", "CATAMARAN_LUXURY"]).optional().nullable(),
   operatorName: z.string().max(200).optional().nullable(),
   ownerName: z.string().max(200).optional().nullable(),
+  subtitle: z.string().max(500).optional().nullable(),
+  description: z.string().max(5000).optional().nullable(),
+  hourlyRate: z.string().max(100).optional().nullable(),
+  dailyRate: z.string().max(100).optional().nullable(),
+  heroImage: z.string().max(500).optional().nullable(),
+  images: z.array(z.string()).optional().nullable(),
+  features: z.array(z.string()).optional().nullable(),
   notes: z.string().max(2000).optional().nullable(),
 });
 

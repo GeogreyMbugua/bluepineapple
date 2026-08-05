@@ -12,6 +12,7 @@ export type SessionData = {
 export type SessionTokenPayload = {
   sub: string; // userId
   sid: string; // sessionId
+  roles?: readonly string[];
   iat?: number;
   exp?: number;
 };

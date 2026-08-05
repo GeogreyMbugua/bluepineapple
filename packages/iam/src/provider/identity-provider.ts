@@ -56,8 +56,8 @@ export class IdentityProvider {
     if (options?.ipAddress) sessionContext.ipAddress = options.ipAddress;
     if (options?.userAgent) sessionContext.userAgent = options.userAgent;
     const { sessionId, refreshToken, expiresAt } = await createSession(verified.userId, sessionContext);
-    const accessToken = signAccessToken(verified.userId, sessionId);
     const claims = await claimsService.buildClaims(verified.userId, sessionId);
+    const accessToken = signAccessToken(verified.userId, sessionId, claims.roles);
     return {
       accessToken,
       refreshToken,
@@ -68,8 +68,8 @@ export class IdentityProvider {
 
   async refresh(refreshToken: string): Promise<RefreshResult> {
     const rotated = await rotateRefreshToken(refreshToken);
-    const accessToken = signAccessToken(rotated.userId, rotated.sessionId);
     const claims = await claimsService.buildClaims(rotated.userId, rotated.sessionId);
+    const accessToken = signAccessToken(rotated.userId, rotated.sessionId, claims.roles);
     return {
       accessToken,
       refreshToken: rotated.newRefreshToken,

@@ -1,8 +1,10 @@
 'use client';
 
+import { useRouter } from 'next/navigation';
 import { createContext, useContext, useEffect, useState, type ReactNode } from 'react';
 import type { AuthUser } from '@/features/auth/types';
-import { getCurrentUser, refreshSession, logout } from '@/features/auth/services';
+import { getCurrentUser, logout } from '@/features/auth/services';
+import { useClerk } from '@clerk/nextjs';
 
 interface SessionContextValue {
   readonly user: AuthUser | null;
@@ -28,6 +30,8 @@ export function SessionProvider({ children }: { readonly children: ReactNode }) 
   const [user, setUser] = useState<AuthUser | null>(null);
   const [expiresAt, setExpiresAt] = useState<number | null>(null);
   const [isLoading, setLoading] = useState(true);
+  const router = useRouter();
+  const { signOut: clerkSignOut } = useClerk();
 
   useEffect(() => {
     void (async () => {
@@ -42,26 +46,20 @@ export function SessionProvider({ children }: { readonly children: ReactNode }) 
     })();
   }, []);
 
-  const handleRefresh = async () => {
-    setLoading(true);
-    try {
-      const result = await refreshSession();
-      if (result) {
-        setUser(result.user);
-        setExpiresAt(result.expiresAt);
-      } else {
-        setUser(null);
-        setExpiresAt(null);
-      }
-    } finally {
-      setLoading(false);
-    }
-  };
-
   const handleLogout = async () => {
-    await logout();
+    try {
+      await logout();
+    } catch {
+      // best-effort
+    }
+    try {
+      await clerkSignOut();
+    } catch {
+      // best-effort
+    }
     setUser(null);
     setExpiresAt(null);
+    router.push('/login');
   };
 
   const value: SessionContextValue = {
@@ -69,12 +67,20 @@ export function SessionProvider({ children }: { readonly children: ReactNode }) 
     expiresAt,
     isAuthenticated: !!user,
     isLoading,
-    refresh: handleRefresh,
+    refresh: async () => {
+      setLoading(true);
+      try {
+        const userData = await getCurrentUser();
+        setUser(userData);
+      } finally {
+        setLoading(false);
+      }
+    },
     logout: handleLogout,
     updateUser: setUser,
   };
 
-  return <SessionContext value={value}>{children}</SessionContext>;
+  return <SessionContext.Provider value={value}>{children}</SessionContext.Provider>;
 }
 
 export function useSession(): SessionContextValue {

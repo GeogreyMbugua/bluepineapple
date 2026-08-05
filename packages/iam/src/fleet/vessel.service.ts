@@ -28,11 +28,19 @@ export class VesselService {
 
     const vessel = await vesselRepository.create({
       name: nameUpper,
+      slug: data.slug,
       registration: data.registration,
       capacity: data.capacity,
       type: data.type,
       operatorName: data.operatorName,
       ownerName: data.ownerName,
+      subtitle: data.subtitle,
+      description: data.description,
+      hourlyRate: data.hourlyRate,
+      dailyRate: data.dailyRate,
+      heroImage: data.heroImage,
+      images: data.images,
+      features: data.features,
       notes: data.notes,
       status: "ACTIVE",
     });
@@ -76,6 +84,13 @@ export class VesselService {
       type: data.type,
       operatorName: data.operatorName,
       ownerName: data.ownerName,
+      subtitle: data.subtitle,
+      description: data.description,
+      hourlyRate: data.hourlyRate,
+      dailyRate: data.dailyRate,
+      heroImage: data.heroImage,
+      images: data.images,
+      features: data.features,
       notes: data.notes,
     });
 

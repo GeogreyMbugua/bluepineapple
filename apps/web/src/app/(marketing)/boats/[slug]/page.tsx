@@ -1,62 +1,51 @@
 import { BoatDetailClient } from './boat-detail-client';
 import Link from "next/link";
+import { headers } from "next/headers";
 
-const fleet = [
-  {
-    name: "Setting Sons",
-    slug: "setting-sons",
-    subtitle: "Luxury Coastal Cruiser",
-    capacity: "Up to 35 Guests",
-    hourly: "Ksh 8,000/hr",
-    daily: "Ksh 32,000/day",
-    images: [
-      "/assets/settingsons/setting01.webp",
-      "/assets/settingsons/setting2.webp",
-      "/assets/settingsons/setting3.webp",
-    ],
-    features: [
-      "Private Charter",
-      "Corporate Events",
-      "Harbour Cruises",
-    ],
-    description: "Experience the Kenyan coastline aboard Setting Sons, a luxury coastal cruiser designed for comfort, safety, and unforgettable moments on the water. Perfect for corporate events, private celebrations, and large group charters.",
-    heroImage: "/assets/settingsons/setting01.webp",
-  },
-  {
-    name: "Hunky Dory",
-    slug: "hunky-dory",
-    subtitle: "Glass Bottom Boat",
-    capacity: "Up to 14 Guests",
-    hourly: "Ksh 5,000/hr",
-    daily: "Ksh 20,000/day",
-    images: [
-      "/assets/hunky/fleet01.webp",
-      "/assets/hunky/fleet02.webp",
-      "/assets/hunky/fleet03.webp",
-    ],
-    features: [
-      "Glass Bottom",
-      "Family Friendly",
-      "Marine Viewing",
-    ],
-    description: "Discover the underwater world aboard Hunky Dory, a glass-bottom boat offering a unique perspective of the Kenyan coast. Ideal for families, marine viewing, and intimate coastal adventures.",
-    heroImage: "/assets/hunky/fleet01.webp",
-  },
-];
-
-function getBoat(slug: string) {
-  return fleet.find((boat) => boat.slug === slug);
+async function getBaseUrl(): Promise<string> {
+  const headersList = await headers();
+  const host = headersList.get('host') || 'localhost:3000';
+  const protocol = process.env.NODE_ENV === 'production' ? 'https' : 'http';
+  return `${protocol}://${host}`;
 }
 
-export function generateStaticParams() {
-  return fleet.map((boat) => ({
-    slug: boat.slug,
+async function getVessel(slug: string) {
+  try {
+    const base = await getBaseUrl();
+    const res = await fetch(`${base}/api/fleet/${slug}`, { cache: 'no-store' });
+    if (!res.ok) return null;
+    const json = await res.json();
+    return json.data;
+  } catch (error) {
+    console.error('[BoatDetailPage] Fetch error:', error);
+    return null;
+  }
+}
+
+async function getAllVessels() {
+  try {
+    const base = await getBaseUrl();
+    const res = await fetch(`${base}/api/fleet`, { cache: 'no-store' });
+    if (!res.ok) return [];
+    const json = await res.json();
+    return json.data || [];
+  } catch {
+    return [];
+  }
+}
+
+export async function generateStaticParams() {
+  const vessels = await getAllVessels();
+  return vessels.map((vessel: { slug: string }) => ({
+    slug: vessel.slug,
   }));
 }
 
 export default async function BoatDetailPage({ params }: { readonly params: Promise<{ slug: string }> }) {
-  const { slug } = await params;
-  const boat = getBoat(slug);
+  const resolved = await params;
+  const rawSlug = typeof resolved.slug === 'string' ? resolved.slug : Array.isArray(resolved.slug) ? resolved.slug[0] : '';
+  const slug = rawSlug.trim();
+  const boat = await getVessel(slug);
 
   if (!boat) {
     return (

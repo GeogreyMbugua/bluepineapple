@@ -18,6 +18,7 @@ export const CreateBookingSchema = z.object({
   specialRequests: z.string().max(2000).optional().nullable(),
   notes: z.string().max(2000).optional().nullable(),
   idempotencyKey: z.string().max(200).optional().nullable(),
+  source: z.enum(["PARTNER", "DIRECT", "ADMIN", "HOTEL", "CORPORATE"]).optional(),
   bookingGuests: z
     .array(
       z.object({

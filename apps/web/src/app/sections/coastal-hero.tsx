@@ -22,17 +22,6 @@ const fadeBlurUp: Variants = {
     },
 };
 
-const lineUp: Variants = {
-    hidden: { opacity: 0, y: 64 },
-    show: {
-        opacity: 1,
-        y: 0,
-        transition: { type: "spring", stiffness: 200, damping: 26, mass: 1 },
-    },
-};
-
-const headlineLines = ["Discover the coast", "with Blue Pineapple"];
-
 export function CoastalHeroSection() {
     return (
         <section className="relative min-h-[100dvh] w-full overflow-hidden bg-black">
@@ -72,18 +61,11 @@ export function CoastalHeroSection() {
                 </motion.div>
 
                 {/* Headline */}
-                <motion.h1
-                    className="max-w-[18ch] text-[2.25rem] font-medium leading-[1.2] tracking-[-0.02em] text-white sm:text-6xl md:text-7xl lg:text-[5.5rem] lg:leading-[1.1]"
-                    variants={container}
-                >
-                    {headlineLines.map((line) => (
-                        <span key={line} className="block overflow-hidden">
-                            <motion.span variants={lineUp} className="block">
-                                {line}
-                            </motion.span>
-                        </span>
-                    ))}
-                </motion.h1>
+                <h1 className="text-center text-[25px] font-bold uppercase tracking-[0.7rem] text-white md:text-[35px] lg:text-[45px]">
+                    Discover the coast
+                    <br />
+                    with Blue Pineapple
+                </h1>
 
                 {/* Body copy + CTAs share the horizontal space now that we're not squeezed into a narrow card */}
                 <motion.div

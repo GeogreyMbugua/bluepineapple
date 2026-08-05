@@ -56,13 +56,44 @@ export class DepartureRepository {
         status: { in: [DepartureStatus.SCHEDULED, DepartureStatus.BOARDING] },
         departureDateTime: { gte: new Date() },
       },
-      orderBy: { departureDateTime: "asc" },
+      orderBy: { departureDateTime: 'asc' },
       take: limit,
       include: {
         vessel: true,
-        route: true,
+        route: { include: { stops: { orderBy: { sequence: 'asc' } } } },
         experience: true,
       },
+    });
+  }
+
+  async findAvailable(filters: {
+    experienceId?: string;
+    routeId?: string;
+    date?: string;
+    limit?: number;
+  }) {
+    const { experienceId, routeId, date, limit = 50 } = filters;
+
+    return prisma.departure.findMany({
+      where: {
+        status: DepartureStatus.SCHEDULED,
+        availableCapacity: { gt: 0 },
+        ...(experienceId && { experienceId }),
+        ...(routeId && { routeId }),
+        ...(date && {
+          departureDateTime: {
+            gte: new Date(date + 'T00:00:00Z'),
+            lt: new Date(date + 'T23:59:59Z'),
+          },
+        }),
+      },
+      include: {
+        vessel: true,
+        route: { include: { stops: { orderBy: { sequence: 'asc' } } } },
+        experience: true,
+      },
+      orderBy: { departureDateTime: 'asc' },
+      take: limit,
     });
   }
 
@@ -128,6 +159,38 @@ export class DepartureRepository {
       data: {
         availableCapacity: { increment: amount },
         bookedSeats: { decrement: amount },
+      },
+    });
+  }
+
+  async findByDateTime(dateTime: Date) {
+    return prisma.departure.findFirst({
+      where: { departureDateTime: dateTime },
+      include: { route: true, experience: true, vessel: true },
+    });
+  }
+
+  async upsertForDateTime(data: {
+    routeId: string;
+    experienceId: string;
+    vesselId: string;
+    departureDateTime: Date;
+    totalCapacity: number;
+  }) {
+    const id = `${data.routeId}-${data.departureDateTime.toISOString()}`;
+    return prisma.departure.upsert({
+      where: { id },
+      update: {},
+      create: {
+        id,
+        routeId: data.routeId,
+        experienceId: data.experienceId,
+        vesselId: data.vesselId,
+        departureDateTime: data.departureDateTime,
+        totalCapacity: data.totalCapacity,
+        bookedSeats: 0,
+        availableCapacity: data.totalCapacity,
+        status: DepartureStatus.SCHEDULED,
       },
     });
   }

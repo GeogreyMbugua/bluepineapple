@@ -1,3 +1,5 @@
+import { calculatePricing, formatKsh } from "../lib/pricing/engine";
+
 export const trip = {
   name: "Fort Jesus Historical Boat Tour",
   tagline: "A premium coastal cruise to Fort Jesus with iconic views and time to explore Old Town.",
@@ -30,10 +32,6 @@ export const stops = [
 ] as const;
 
 export type Stop = (typeof stops)[number];
-
-// Fare by number of stops travelled (index 0 unused, index = stop count).
-// 1 stop: 500 · 2 stops: 750 · 3 stops: 1,000 · then +400/stop through 7 · full route (8): 3,000 flat.
-export const stopRates = [0, 500, 750, 1000, 1400, 1800, 2200, 2600, 3000] as const;
 
 export const quickFares = [
   { label: "1 stop", price: 500 },
@@ -145,8 +143,39 @@ export const tripDetails = [
   { label: "Vessel", value: "Big Boat" },
 ];
 
-export function formatKsh(value: number) {
-  return `Ksh ${value.toLocaleString("en-US")}`;
+export { formatKsh, getTodayDate } from "../lib/pricing/engine";
+
+export function calculateBooking(
+  origin: Stop,
+  destination: Stop,
+  adults: number,
+  children: number,
+  infants: number,
+  returnTicket: boolean,
+) {
+  const result = calculatePricing({
+    origin,
+    destination,
+    adults,
+    children,
+    infants,
+    returnTicket,
+  });
+
+  return {
+    stopCount: result.stopCount,
+    adultFare: result.oneWayAdultFare,
+    childFare: result.oneWayChildFare,
+    subtotal: result.subtotal,
+    discountRate: result.discountRate,
+    discounts: result.appliedDiscounts,
+    total: result.total,
+    totalLabel: formatKsh(result.total),
+    baseLabel: formatKsh(result.oneWayAdultFare),
+    adultLabel: formatKsh(result.oneWayAdultFare),
+    childLabel: formatKsh(result.oneWayChildFare),
+    discountLabel: result.appliedDiscounts.length > 0 ? result.appliedDiscounts.join(" • ") : "Standard fare applies",
+  };
 }
 
 export function getTodayDate() {
@@ -157,47 +186,3 @@ export function getTodayDate() {
   return `${year}-${month}-${day}`;
 }
 
-export function calculateBooking(
-  origin: Stop,
-  destination: Stop,
-  adults: number,
-  children: number,
-  returnTicket: boolean,
-) {
-  const originIndex = stops.indexOf(origin);
-  const destinationIndex = stops.indexOf(destination);
-  const stopCount = Math.max(1, destinationIndex - originIndex);
-  const baseFare = stopRates[stopCount]!;
-  const adultFare = baseFare;
-  const childFare = Math.round(baseFare * 0.5);
-  const subtotal = adultFare * adults + childFare * children;
-
-  let discountRate = 0;
-  const discounts: string[] = [];
-  if (adults === 2 && children === 0) {
-    discountRate += 0.1;
-    discounts.push("10% couple savings");
-  }
-  if (adults + children >= 4) {
-    discountRate += 0.08;
-    discounts.push("8% group savings");
-  }
-
-  const discounted = Math.round(subtotal * (1 - discountRate));
-  const total = returnTicket ? Math.round(discounted * 1.8) : discounted;
-
-  return {
-    stopCount,
-    adultFare,
-    childFare,
-    subtotal,
-    discountRate,
-    discounts,
-    total,
-    totalLabel: formatKsh(total),
-    baseLabel: formatKsh(baseFare),
-    adultLabel: formatKsh(adultFare),
-    childLabel: formatKsh(childFare),
-    discountLabel: discounts.length > 0 ? discounts.join(" • ") : "Standard fare applies",
-  };
-}

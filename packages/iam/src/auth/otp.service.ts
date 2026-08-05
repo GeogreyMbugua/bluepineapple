@@ -23,11 +23,14 @@ export class OtpService {
 
     // Find user by email or phone
     let user = await userRepository.findByEmail(identifier);
+    console.log('[OTP] findByEmail result:', user ? { id: user.id, email: user.email } : 'null');
     if (!user) {
       user = await userRepository.findByPhone(identifier);
+      console.log('[OTP] findByPhone result:', user ? { id: user.id, phone: user.phone } : 'null');
     }
 
     if (!user) {
+      console.log('[OTP] User not found for identifier:', identifier);
       // For security, don't reveal if user exists
       throw new UnauthorizedError("Invalid identifier");
     }

@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { trip } from "../_data/trip";
 
 export function StickyBookBar() {
@@ -8,12 +9,12 @@ export function StickyBookBar() {
           <p className="text-[10px] uppercase tracking-[0.1em] text-slate-500">From</p>
           <p className="text-base font-semibold text-slate-950">Ksh {trip.priceFrom}</p>
         </div>
-        <a
-          href={trip.whatsapp.reserve}
+        <Link
+          href="/trips/fort-jesus-trip/book"
           className="inline-flex min-h-11 w-full max-w-[220px] flex-1 items-center justify-center rounded-md bg-[#0d3b66] px-5 text-sm font-semibold text-white transition hover:bg-[#0b335a]"
         >
           Reserve spot
-        </a>
+        </Link>
       </div>
     </div>
   );

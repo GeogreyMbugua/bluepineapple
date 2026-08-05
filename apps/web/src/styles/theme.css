@@ -1,147 +1,426 @@
-/*
- * Blue Pineapple — Design Tokens
- *
- * All brand colors, spacing, typography, and visual tokens are defined here
- * using Tailwind v4's @theme directive. Import this file from globals.css.
- */
+@import 'tailwindcss';
 
-/* ------------------------------------------------------------------ */
-/* Light-mode CSS custom properties                                    */
-/* ------------------------------------------------------------------ */
-:root {
-  /* Brand */
-  --color-brand-50: oklch(0.97 0.02 220);
-  --color-brand-100: oklch(0.93 0.04 220);
-  --color-brand-200: oklch(0.87 0.07 220);
-  --color-brand-300: oklch(0.78 0.11 220);
-  --color-brand-400: oklch(0.68 0.15 220);
-  --color-brand-500: oklch(0.58 0.18 220);
-  --color-brand-600: oklch(0.50 0.18 220);
-  --color-brand-700: oklch(0.42 0.16 220);
-  --color-brand-800: oklch(0.35 0.13 220);
-  --color-brand-900: oklch(0.28 0.10 220);
-  --color-brand-950: oklch(0.20 0.07 220);
-  /* Blue Pineapple specific tokens */
-  --color-navy: #1B3A5C;
-  --color-navy-deep: #122A44;
-  --color-gold: #C9A227;
-  --color-gold-soft: #E4C878;
-  --color-sea: #4FA8C9;
-  --color-sea-deep: #2F6690;
-  --color-paper: #FBF9F4;
+@theme {
+  /* Typography */
+  --font-sans:
+    'Satoshi', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji',
+    'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
+  --font-mono: var(--font-geist-mono), ui-monospace, monospace;
 
-  /* Surfaces */
-  --color-background: #254d74;
-  --color-foreground: #0a0a0a;
-  --color-muted: #f5f5f5;
-  --color-muted-foreground: #737373;
+  /* Breakpoints */
+  --breakpoint-2xsm: 375px;
+  --breakpoint-xsm: 425px;
+  --breakpoint-3xl: 2000px;
+
+  /* Brand palette */
+  --color-deep-twilight: #03045e;
+  --color-navy: #023e8a;
+  --color-blue: #0077b6;
+  --color-cyan: #00b4d8;
+  --color-light-cyan: #caf0f8;
+
+  /* Derived brand shades */
+  --color-navy-light: #045ea8;
+  --color-blue-light: #3399cc;
+  --color-cyan-light: #66ccee;
+  --color-deep-twilight-light: #1a4db8;
+
+  /* Neutral surfaces (professional light) */
+  --color-background: #ffffff;
+  --color-foreground: #03045e;
+  --color-muted: #f4f7fb;
+  --color-muted-foreground: #4a5568;
   --color-card: #ffffff;
-  --color-card-foreground: #0a0a0a;
-  --color-border: #e5e5e5;
-  --color-ring: oklch(0.58 0.18 220);
+  --color-card-foreground: #03045e;
+  --color-border: #e2e8f0;
+  --color-border-subtle: #f0f4f8;
+  --color-ring: #00b4d8;
+
+  /* Primary brand */
+  --color-primary: #023e8a;
+  --color-primary-deep: #03045e;
+  --color-primary-foreground: #ffffff;
 
   /* Semantic */
-  --color-success: oklch(0.60 0.18 145);
-  --color-warning: oklch(0.75 0.18 75);
-  --color-error: oklch(0.58 0.22 25);
-  --color-info: oklch(0.60 0.16 250);
+  --color-success: #2f855a;
+  --color-success-soft: #f0fff4;
+  --color-warning: #c05621;
+  --color-warning-soft: #fffaf0;
+  --color-error: #c53030;
+  --color-error-soft: #fff5f5;
+  --color-info: #0077b6;
+  --color-info-soft: #e6f7ff;
+
+  /* Template UI tokens (light mode only) */
+  --color-current: currentColor;
+  --color-transparent: transparent;
+  --color-white: #ffffff;
+
+  --color-stroke: #e2e8f0;
+  --color-stroke-dark: #023e8a;
+
+  --color-dark-2: #1a202c;
+  --color-dark-3: #2d3748;
+  --color-dark-4: #4a5568;
+  --color-dark-5: #718096;
+  --color-dark-6: #a0aec0;
+  --color-dark-7: #cbd5e0;
+  --color-dark-8: #e2e8f0;
+  --color-dark: #03045e;
+
+  --color-gray-1: #ffffff;
+  --color-gray-2: #f7fafc;
+  --color-gray-3: #edf2f7;
+  --color-gray-4: #e2e8f0;
+  --color-gray-5: #cbd5e0;
+  --color-gray-6: #a0aec0;
+  --color-gray-7: #718096;
+  --color-gray: #f4f7fb;
+  --color-gray-dark: #edf2f7;
+
+  --color-green: #2f855a;
+  --color-green-dark: #276749;
+  --color-green-light-1: #f0fff4;
+  --color-green-light-2: #c6f6d5;
+  --color-green-light-3: #9ae6b4;
+  --color-green-light-4: #68d391;
+  --color-green-light-5: #48bb78;
+  --color-green-light-6: #38a169;
+  --color-green-light-7: #2f855a;
+  --color-green-light: #48bb78;
+
+  --color-red: #c53030;
+  --color-red-dark: #9b2c2c;
+  --color-red-light-2: #feb2b2;
+  --color-red-light-3: #fc8181;
+  --color-red-light-4: #f56565;
+  --color-red-light-5: #e53e3e;
+  --color-red-light-6: #c53030;
+  --color-red-light: #e53e3e;
+
+  --color-blue: #0077b6;
+  --color-blue-dark: #005f8f;
+  --color-blue-light-2: #bde0fe;
+  --color-blue-light-3: #90e0ef;
+  --color-blue-light-4: #00b4d8;
+  --color-blue-light-5: #caf0f8;
+  --color-blue-light: #0096c7;
+
+  --color-orange-light: #dd6b20;
+  --color-yellow-dark-2: #b7791f;
+  --color-yellow-dark: #c05621;
+  --color-yellow-light-4: #fefcbf;
+  --color-yellow-light: #ecc94b;
+
+  /* Typography scale */
+  --text-heading-1: 60px;
+  --text-heading-1--line-height: 72px;
+  --text-heading-2: 48px;
+  --text-heading-2--line-height: 58px;
+  --text-heading-3: 40px;
+  --text-heading-3--line-height: 48px;
+  --text-heading-4: 35px;
+  --text-heading-4--line-height: 45px;
+  --text-heading-5: 28px;
+  --text-heading-5--line-height: 40px;
+  --text-heading-6: 24px;
+  --text-heading-6--line-height: 30px;
+  --text-body-2xlg: 22px;
+  --text-body-2xlg--line-height: 28px;
+  --text-body-sm: 14px;
+  --text-body-sm--line-height: 22px;
+  --text-body-xs: 12px;
+  --text-body-xs--line-height: 20px;
+
+  /* Border radius — sharp edges, no rounding */
+  --radius-sm: 0px;
+  --radius-md: 0px;
+  --radius-lg: 0px;
+  --radius-xl: 0px;
+  --radius-2xl: 0px;
+
+  /* Spacing */
+  --container-3: 0.75rem;
+  --container-4: 1rem;
+  --container-7: 1.75rem;
+  --container-9: 2.25rem;
+  --container-10: 2.5rem;
+  --container-11: 2.75rem;
+  --container-13: 3.25rem;
+  --container-14: 3.5rem;
+  --container-15: 3.75rem;
+  --container-16: 4rem;
+  --container-25: 6.25rem;
+  --container-30: 7.5rem;
+  --container-34: 8.5rem;
+  --container-35: 8.75rem;
+  --container-40: 10rem;
+  --container-44: 11rem;
+  --container-45: 11.25rem;
+  --container-60: 15rem;
+  --container-70: 17.5rem;
+  --container-90: 22.5rem;
+  --container-94: 23.5rem;
+  --container-100: 25rem;
+  --container-103: 25.75rem;
+  --container-125: 31.25rem;
+  --container-150: 37.5rem;
+  --container-180: 45rem;
+  --container-203: 50.75rem;
+  --container-230: 57.5rem;
+  --container-270: 67.5rem;
+  --container-280: 70rem;
+  --container-2_5: 0.625rem;
+  --container-10_5: 2.625rem;
+  --container-22_5: 5.625rem;
+  --container-42_5: 10.625rem;
+  --container-46_5: 11.625rem;
+  --container-132_5: 33.125rem;
+  --container-142_5: 35.625rem;
+  --container-242_5: 60.625rem;
+  --container-292_5: 73.125rem;
+
+  /* Max heights */
+  --max-height-35: 8.75rem;
+  --max-height-70: 17.5rem;
+  --max-height-90: 22.5rem;
+  --max-height-300: 18.75rem;
+  --max-height-550: 34.375rem;
+
+  /* Min widths */
+  --min-width-75: 18.75rem;
+  --min-width-22_5: 5.625rem;
+  --min-width-42_5: 10.625rem;
+  --min-width-47_5: 11.875rem;
+
+  /* Z-index */
+  --z-index-1: 1;
+  --z-index-9: 9;
+  --z-index-99: 99;
+  --z-index-999: 999;
+  --z-index-9999: 9999;
+  --z-index-99999: 99999;
+  --z-index-999999: 999999;
+
+  /* Aspect ratios */
+  --aspect-4/3: 4 / 3;
+  --aspect-21/9: 21 / 9;
+
+  /* Premium surfaces */
+  --color-surface-primary: #ffffff;
+  --color-surface-secondary: #f4f5f7;
+  --color-surface-tertiary: #eef0f4;
+  --color-surface-elevated: #ffffff;
+
+  /* Shadows (subtle, premium) */
+  --shadow-1: 0px 1px 2px 0px rgba(0, 0, 0, 0.03);
+  --shadow-2: 0px 2px 4px 0px rgba(0, 0, 0, 0.04);
+  --shadow-3:
+    0px 4px 12px 0px rgba(0, 0, 0, 0.05),
+    0px 1px 3px 0px rgba(0, 0, 0, 0.03);
+  --shadow-4:
+    0px 8px 24px 0px rgba(0, 0, 0, 0.06),
+    0px 2px 6px 0px rgba(0, 0, 0, 0.03);
+  --shadow-5:
+    0px 12px 32px 0px rgba(205, 180, 219, 0.12),
+    0px 4px 12px 0px rgba(0, 0, 0, 0.03);
+  --shadow-card: 0px 1px 2px 0px rgba(0, 0, 0, 0.03);
+  --shadow-card-2: 0px 4px 8px -2px rgba(0, 0, 0, 0.04);
+  --shadow-card-3: 0px 1px 3px 0px rgba(0, 0, 0, 0.05);
+
+  /* Drop shadows */
+  --drop-shadow-1: 0px 1px 0px #f3f4f6;
+  --drop-shadow-2: 0px 1px 3px rgba(0, 0, 0, 0.06);
+  --drop-shadow-3: 0px 0px 3px rgba(0, 0, 0, 0.08);
+  --drop-shadow-4: 0px 0px 2px rgba(0, 0, 0, 0.1);
+  --drop-shadow-5: 0px 1px 4px rgba(0, 0, 0, 0.08);
+  --drop-shadow-card: 0px 4px 10px rgba(0, 0, 0, 0.04);
+
+  /* Animations */
+  --animate-linspin: linspin 1568.2353ms linear infinite;
+  --animate-easespin: easespin 5332ms cubic-bezier(0.4, 0, 0.2, 1) infinite both;
+  --animate-left-spin: left-spin 1333ms cubic-bezier(0.4, 0, 0.2, 1) infinite
+    both;
+  --animate-right-spin: right-spin 1333ms cubic-bezier(0.4, 0, 0.2, 1) infinite
+    both;
+  --animate-ping-once: ping 5s cubic-bezier(0, 0, 0.2, 1);
+  --animate-rotating: rotating 30s linear infinite;
+  --animate-topbottom: topbottom 60s infinite alternate linear;
+  --animate-bottomtop: bottomtop 60s infinite alternate linear;
+  --animate-spin-1_5: spin 1.5s linear infinite;
+  --animate-spin-2: spin 2s linear infinite;
+  --animate-spin-3: spin 3s linear infinite;
+  --animate-line1: line 10s infinite linear;
+  --animate-line2: line-revert 8s infinite linear;
+  --animate-line3: line 7s infinite linear;
 }
 
-/* ------------------------------------------------------------------ */
-/* Dark-mode overrides                                                 */
-/* ------------------------------------------------------------------ */
-@media (prefers-color-scheme: dark) {
-  :root {
-    --color-background: #0a0a0a;
-    --color-foreground: #fafafa;
-    --color-muted: #171717;
-    --color-muted-foreground: #a3a3a3;
-    --color-card: #141414;
-    --color-card-foreground: #fafafa;
-    --color-border: #262626;
-    --color-ring: oklch(0.68 0.15 220);
-
-    --color-success: oklch(0.65 0.20 145);
-    --color-warning: oklch(0.78 0.18 75);
-    --color-error: oklch(0.62 0.22 25);
-    --color-info: oklch(0.65 0.16 250);
+@keyframes linspin {
+  100% {
+    transform: rotate(360deg);
+  }
+}
+@keyframes easespin {
+  12.5% {
+    transform: rotate(135deg);
+  }
+  25% {
+    transform: rotate(270deg);
+  }
+  37.5% {
+    transform: rotate(405deg);
+  }
+  50% {
+    transform: rotate(540deg);
+  }
+  62.5% {
+    transform: rotate(675deg);
+  }
+  75% {
+    transform: rotate(810deg);
+  }
+  87.5% {
+    transform: rotate(945deg);
+  }
+  100% {
+    transform: rotate(1080deg);
+  }
+}
+@keyframes left-spin {
+  0% {
+    transform: rotate(130deg);
+  }
+  50% {
+    transform: rotate(-5deg);
+  }
+  100% {
+    transform: rotate(130deg);
+  }
+}
+@keyframes right-spin {
+  0% {
+    transform: rotate(-130deg);
+  }
+  50% {
+    transform: rotate(5deg);
+  }
+  100% {
+    transform: rotate(-130deg);
+  }
+}
+@keyframes rotating {
+  0%,
+  100% {
+    transform: rotate(360deg);
+  }
+  50% {
+    transform: rotate(0deg);
+  }
+}
+@keyframes topbottom {
+  0%,
+  100% {
+    transform: translate3d(0, -100%, 0);
+  }
+  50% {
+    transform: translate3d(0, 0, 0);
+  }
+}
+@keyframes bottomtop {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0);
+  }
+  50% {
+    transform: translate3d(0, -100%, 0);
+  }
+}
+@keyframes line {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(100%);
+  }
+}
+@keyframes line-revert {
+  0%,
+  100% {
+    transform: translateY(100%);
+  }
+  50% {
+    transform: translateY(0);
   }
 }
 
 /* ------------------------------------------------------------------ */
-/* Tailwind v4 theme registration                                      */
+/* Utilities                                                           */
 /* ------------------------------------------------------------------ */
-@theme inline {
-  /* Typography */
-  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
-  --font-mono: var(--font-geist-mono), ui-monospace, monospace;
-
-  /* Brand palette */
-  --color-brand-50: var(--color-brand-50);
-  --color-brand-100: var(--color-brand-100);
-  --color-brand-200: var(--color-brand-200);
-  --color-brand-300: var(--color-brand-300);
-  --color-brand-400: var(--color-brand-400);
-  --color-brand-500: var(--color-brand-500);
-  --color-brand-600: var(--color-brand-600);
-  --color-brand-700: var(--color-brand-700);
-  --color-brand-800: var(--color-brand-800);
-  --color-brand-900: var(--color-brand-900);
-  --color-brand-950: var(--color-brand-950);
-
-  /* Surfaces */
-  --color-background: var(--color-background);
-  --color-foreground: var(--color-foreground);
-  --color-muted: var(--color-muted);
-  --color-muted-foreground: var(--color-muted-foreground);
-  --color-card: var(--color-card);
-  --color-card-foreground: var(--color-card-foreground);
-  --color-border: var(--color-border);
-  --color-ring: var(--color-ring);
-
-  /* Semantic */
-  --color-success: var(--color-success);
-  --color-warning: var(--color-warning);
-  --color-error: var(--color-error);
-  --color-info: var(--color-info);
-
-  /* Blue Pineapple tokens */
-  --color-navy: var(--color-navy);
-  --color-navy-deep: var(--color-navy-deep);
-  --color-gold: var(--color-gold);
-  --color-gold-soft: var(--color-gold-soft);
-  --color-sea: var(--color-sea);
-  --color-sea-deep: var(--color-sea-deep);
-  --color-paper: var(--color-paper);
-
-  /* Border radius */
-  --radius-sm: 0.375rem;
-  --radius-md: 0.5rem;
-  --radius-lg: 0.75rem;
-  --radius-xl: 1rem;
-  --radius-2xl: 1.5rem;
-
-  /* Shadows */
-  --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
-  --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
-  --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+@utility no-scrollbar {
+  /* Chrome, Safari and Opera */
+  &::-webkit-scrollbar {
+    display: none;
+  }
+  -ms-overflow-style: none; /* IE and Edge */
+  scrollbar-width: none; /* Firefox */
 }
 
-/* ------------------------------------------------------------------ */
-/* Real Estate theme overrides                                         */
-/* ------------------------------------------------------------------ */
-.theme-real-estate {
-  --color-brand-50: oklch(0.97 0.02 70);
-  --color-brand-100: oklch(0.93 0.04 70);
-  --color-brand-200: oklch(0.87 0.07 70);
-  --color-brand-300: oklch(0.78 0.11 70);
-  --color-brand-400: oklch(0.68 0.15 70);
-  --color-brand-500: oklch(0.58 0.18 70);
-  --color-brand-600: oklch(0.50 0.18 70);
-  --color-brand-700: oklch(0.42 0.16 70);
-  --color-brand-800: oklch(0.35 0.13 70);
-  --color-brand-900: oklch(0.28 0.10 70);
-  --color-brand-950: oklch(0.20 0.07 70);
+@utility custom-scrollbar {
+  @apply overflow-auto;
 
-  --color-ring: oklch(0.58 0.18 70);
+  &::-webkit-scrollbar {
+    @apply size-2;
+  }
+
+  &::-webkit-scrollbar-track {
+    @apply bg-transparent;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    @apply bg-gray-3 relative flex-1 rounded-full hover:bg-gray-4;
+  }
+}
+
+@utility chat-height {
+  @apply h-[calc(100vh-8.125rem)] lg:h-[calc(100vh-5.625rem)];
+}
+
+@utility inbox-height {
+  @apply h-[calc(100vh-8.125rem)] lg:h-[calc(100vh-5.625rem)];
+}
+
+/*
+  The default border color has changed to `currentcolor` in Tailwind CSS v4,
+  so we've added these compatibility styles to make sure everything still
+  looks the same as it did with Tailwind CSS v3.
+*/
+@layer base {
+  *,
+  ::after,
+  ::before,
+  ::backdrop,
+  ::file-selector-button {
+    border-color: var(--color-gray-200, currentcolor);
+  }
+}
+
+@layer base {
+  body {
+    @apply bg-background text-foreground;
+  }
+}
+
+/* Admin UI overrides */
+nav li a[aria-current="page"],
+nav li button[aria-expanded="true"] {
+  @apply bg-light-cyan text-dark;
+}
+
+table tbody tr:hover {
+  @apply bg-cyan/20;
+}
+
+*:focus-visible {
+  @apply outline-none ring-2 ring-cyan/50 ring-offset-2;
 }

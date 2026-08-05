@@ -16,17 +16,17 @@ export function Pricing() {
 
             <div className="mt-6 flex flex-col gap-3 sm:flex-row">
               <Link
-                href="/trips/fort-jesus-trip/route-fares"
+                href="/trips/fort-jesus-trip/book"
                 className="inline-flex min-h-11 flex-1 items-center justify-center rounded-md border border-slate-300 bg-white px-5 py-2.5 text-sm font-semibold text-slate-950 transition hover:border-slate-400"
               >
                 View Full Fares
               </Link>
-              <a
-                href={trip.whatsapp.returnTrip}
+              <Link
+                href="/trips/fort-jesus-trip/book"
                 className="inline-flex min-h-11 flex-1 items-center justify-center rounded-md bg-[#0d3b66] px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-[#0b335a]"
               >
                 Book Now
-              </a>
+              </Link>
             </div>
           </div>
 
@@ -41,12 +41,12 @@ export function Pricing() {
               ))}
             </ul>
             <div className="mt-6 flex flex-col gap-3 sm:flex-row">
-              <a
-                href={trip.whatsapp.returnTrip}
+              <Link
+                href="/trips/fort-jesus-trip/book"
                 className="inline-flex min-h-11 flex-1 items-center justify-center rounded-md bg-[#0d3b66] px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-[#0b335a]"
               >
                 Book Now
-              </a>
+              </Link>
               <a
                 href={trip.whatsapp.question}
                 className="inline-flex min-h-11 flex-1 items-center justify-center rounded-md border border-slate-300 bg-white px-5 py-2.5 text-sm font-semibold text-slate-950 transition hover:border-slate-400"

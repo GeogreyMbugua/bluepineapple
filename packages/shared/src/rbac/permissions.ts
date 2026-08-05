@@ -46,6 +46,12 @@ export const PERMISSIONS = [
   // Investments
   "investment.read",
   "investment.manage",
+
+  // Fleet
+  "fleet.read",
+  "fleet.create",
+  "fleet.update",
+  "fleet.manage",
 ] as const;
 
 /** Union type of all valid permission keys. */

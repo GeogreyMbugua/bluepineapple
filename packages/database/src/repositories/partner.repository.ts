@@ -6,8 +6,11 @@ export class PartnerRepository {
     return prisma.partnerProfile.findUnique({ where: { id } });
   }
 
-  async findByUserId(userId: string): Promise<PartnerProfile | null> {
-    return prisma.partnerProfile.findUnique({ where: { userId } });
+  async findByUserId(userId: string): Promise<(PartnerProfile & { payoutAccounts: PartnerPayoutAccount[] }) | null> {
+    return prisma.partnerProfile.findUnique({
+      where: { userId },
+      include: { payoutAccounts: true },
+    });
   }
 
   async findByPartnerCode(partnerCode: string): Promise<PartnerProfile | null> {

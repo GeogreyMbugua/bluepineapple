@@ -1,42 +1,62 @@
-import { apiServer } from '@/services/api/server';
-import { getServerCookie } from '@/lib/cookies/server';
+import { auth } from '@clerk/nextjs/server';
 import type { AuthUser } from '@blue-pineapple/iam';
 import { AuthorizationError } from '@/services/api/errors';
+import { userRepository } from '@blue-pineapple/database';
 
 export interface Session {
   user: AuthUser | null;
   expiresAt: number | null;
 }
 
-/**
- * Retrieve the current user session on the server.
- * Uses the JWT from cookies to fetch the current user.
- */
+function flattenUser(dbUser: Awaited<ReturnType<typeof userRepository.findByClerkUserId>>): AuthUser | null {
+  if (!dbUser) return null;
+
+  const roles = dbUser.roles.map((ur) => ur.role.name);
+  const permissionKeys = Array.from(
+    new Set(
+      dbUser.roles.flatMap((ur) =>
+        ur.role.permissions.map((rp) => rp.permission.key)
+      )
+    )
+  );
+
+  return {
+    id: dbUser.id,
+    email: dbUser.email ?? null,
+    phone: dbUser.phone ?? null,
+    firstName: dbUser.firstName ?? null,
+    lastName: dbUser.lastName ?? null,
+    status: dbUser.status,
+    roles: roles as any,
+    permissions: permissionKeys as any,
+  };
+}
+
 export async function getServerSession(): Promise<Session> {
-  const token = await getServerCookie('bp_jwt');
-
-  if (!token) {
-    return { user: null, expiresAt: null };
-  }
-
   try {
-    const response = await apiServer.get<{ data: AuthUser }>('/auth/me', {
-      headers: { Authorization: `Bearer ${token}` },
-    });
+    const clerkSession = await auth();
+    const clerkUserId = clerkSession.userId;
 
-    // Decode JWT expiry
-    const expiresAt = decodeJwtExpiry(token);
+    if (!clerkUserId) {
+      return { user: null, expiresAt: null };
+    }
 
-    return { user: response.data, expiresAt };
+    const dbUser = await userRepository.findByClerkUserId(clerkUserId);
+    if (!dbUser) {
+      return { user: null, expiresAt: null };
+    }
+
+    const expiresAt = Date.now() + 3600 * 1000;
+
+    return {
+      user: flattenUser(dbUser),
+      expiresAt,
+    };
   } catch {
     return { user: null, expiresAt: null };
   }
 }
 
-/**
- * Require authentication, redirect if not authenticated.
- * Returns the user or redirects to login.
- */
 export async function requireAuth(): Promise<AuthUser> {
   const { user } = await getServerSession();
 
@@ -47,9 +67,6 @@ export async function requireAuth(): Promise<AuthUser> {
   return user;
 }
 
-/**
- * Require a specific role, throw if missing.
- */
 export async function requireRole(role: string): Promise<AuthUser> {
   const user = await requireAuth();
 
@@ -60,9 +77,6 @@ export async function requireRole(role: string): Promise<AuthUser> {
   return user;
 }
 
-/**
- * Require a specific permission, throw if missing.
- */
 export async function requirePermission(permission: string): Promise<AuthUser> {
   const user = await requireAuth();
 
@@ -71,13 +85,4 @@ export async function requirePermission(permission: string): Promise<AuthUser> {
   }
 
   return user;
-}
-
-function decodeJwtExpiry(token: string): number {
-  try {
-    const payload = JSON.parse(atob(token.split('.')[1] ?? '{}')) as { exp?: number };
-    return (payload.exp ?? Math.floor(Date.now() / 1000) + 3600) * 1000;
-  } catch {
-    return Date.now() + 3600 * 1000;
-  }
 }

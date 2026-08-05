@@ -3,119 +3,126 @@
 import { motion } from "framer-motion";
 import Image from "next/image";
 import Link from "next/link";
-import { ArrowUpRight } from "lucide-react";
 import { publicPath } from "@/lib/paths";
+import { useEffect, useState } from "react";
 
 type FleetBoat = {
   name: string;
-  subtitle: string;
-  capacity: string;
-  hourly: string;
-  daily: string;
   href: string;
   image: string;
+  subtitle: string;
+  description: string;
+  capacity: number;
+  hourlyRate: string;
+  dailyRate: string;
   features: string[];
 };
 
-const fleet: FleetBoat[] = [
-  {
-    name: "Setting Sons",
-    subtitle: "Luxury Coastal Cruiser",
-    capacity: "Up to 35 guests",
-    hourly: "Ksh 8,000/hr",
-    daily: "Ksh 32,000/day",
-    href: "/boats/setting-sons",
-    image: publicPath("/assets/settingsons/setting01.webp"),
-    features: ["Private charter", "Corporate events", "Harbour cruises"],
-  },
-  {
-    name: "Hunky Dory",
-    subtitle: "Glass Bottom Boat",
-    capacity: "Up to 14 guests",
-    hourly: "Ksh 5,000/hr",
-    daily: "Ksh 20,000/day",
-    href: "/boats/hunky-dory",
-    image: publicPath("/assets/hunky/fleet01.webp"),
-    features: ["Glass-bottom viewing", "Family friendly", "Marine tours"],
-  },
-];
+function mapVesselToBoat(vessel: {
+  name: string;
+  slug: string;
+  subtitle?: string | null;
+  description?: string | null;
+  capacity: number;
+  hourlyRate?: string | null;
+  dailyRate?: string | null;
+  images?: string[] | null;
+}): FleetBoat {
+  return {
+    name: vessel.name,
+    href: `/boats/${vessel.slug}`,
+    image: publicPath(vessel.images?.[0] || "/assets/settingsons/setting01.webp"),
+    subtitle: vessel.subtitle || "",
+    description: vessel.description || "",
+    capacity: vessel.capacity,
+    hourlyRate: vessel.hourlyRate || "",
+    dailyRate: vessel.dailyRate || "",
+    features: [],
+  };
+}
 
 export function CoastalFleet() {
+  const [boats, setBoats] = useState<FleetBoat[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    void (async () => {
+      try {
+        const res = await fetch('/api/fleet', { cache: 'no-store' });
+        if (res.ok) {
+          const json = await res.json();
+          const vessels = json.data || [];
+          setBoats(vessels.map(mapVesselToBoat));
+        }
+      } catch {
+        // Keep empty array on error
+      } finally {
+        setIsLoading(false);
+      }
+    })();
+  }, []);
+
+  if (isLoading) {
+    return (
+      <section id="fleet" className="bg-white px-4 py-16 sm:px-6 sm:py-20 lg:px-8">
+        <div className="mx-auto max-w-6xl">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            {[1, 2, 3].map((i) => (
+              <div key={i} className="space-y-4">
+                <div className="aspect-[16/9] bg-slate-100 animate-pulse rounded-2xl" />
+                <div className="space-y-2">
+                  <div className="h-5 bg-slate-100 animate-pulse rounded w-2/3" />
+                  <div className="h-4 bg-slate-100 animate-pulse rounded w-full" />
+                  <div className="h-4 bg-slate-100 animate-pulse rounded w-4/5" />
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+    );
+  }
+
   return (
     <section id="fleet" className="bg-white px-4 py-16 sm:px-6 sm:py-20 lg:px-8">
       <div className="mx-auto max-w-6xl">
-        <motion.div
-          initial={{ y: -10, opacity: 0 }}
-          whileInView={{ y: 0, opacity: 1 }}
-          viewport={{ once: true }}
-          className="max-w-2xl"
-        >
-          <p className="text-sm tracking-[0.24em] text-cyan-600 uppercase">Our fleet</p>
-          <h2 className="mt-4 text-3xl font-semibold tracking-tight text-slate-950 sm:text-4xl md:text-5xl">
-            Boats built for unforgettable coastal trips
-          </h2>
-          <p className="mt-4 text-base leading-7 text-slate-600">
-            Choose the right vessel for your private charter, family outing, or scenic harbour cruise.
-          </p>
-        </motion.div>
-
-        <div className="mt-12 grid gap-6 lg:grid-cols-2 lg:gap-8">
-          {fleet.map((boat) => (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          {boats.map((boat, index) => (
             <motion.article
               key={boat.name}
               initial={{ y: 30, opacity: 0 }}
               whileInView={{ y: 0, opacity: 1 }}
               viewport={{ once: true }}
-              transition={{ duration: 0.5, ease: "easeOut" }}
-              className="group overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition hover:shadow-md md:rounded-[28px] md:bg-slate-50"
+              transition={{
+                delay: index * 0.08,
+                duration: 0.5,
+                ease: "easeOut",
+              }}
             >
-              <Link href={boat.href} className="block">
-                <div className="relative aspect-[4/3] overflow-hidden bg-slate-200">
+              <Link href={boat.href} className="group block h-full">
+                <div className="relative aspect-[16/9] overflow-hidden rounded-2xl bg-slate-100">
                   <Image
                     src={boat.image}
                     alt={boat.name}
                     fill
-                    className="object-cover transition duration-500 group-hover:scale-105"
+                    className="object-cover transition-transform duration-700 ease-out group-hover:scale-[1.03]"
                   />
                 </div>
-
-                <div className="space-y-4 p-5 sm:space-y-5 sm:p-8">
+                <div className="mt-4 space-y-2">
                   <div>
-                    <p className="text-xs tracking-[0.24em] text-cyan-600 uppercase">Boat charter</p>
-                    <h3 className="mt-2 text-2xl font-semibold tracking-tight text-slate-950 sm:mt-3 sm:text-3xl">
+                    <h3 className="text-lg font-semibold text-zinc-900 group-hover:text-cyan-700 transition-colors">
                       {boat.name}
                     </h3>
-                    <p className="mt-2 text-sm text-slate-600">{boat.subtitle}</p>
+                    {boat.subtitle && (
+                      <p className="text-sm text-zinc-500">{boat.subtitle}</p>
+                    )}
                   </div>
-
-                  <div className="grid grid-cols-2 gap-3">
-                    <div className="rounded-xl bg-slate-50 px-3 py-3 text-sm text-slate-700 md:rounded-3xl md:bg-white md:px-4 md:shadow-sm">
-                      <p className="text-[11px] tracking-[0.22em] text-slate-400 uppercase">Capacity</p>
-                      <p className="mt-1.5 font-semibold md:mt-2">{boat.capacity}</p>
-                    </div>
-                    <div className="rounded-xl bg-slate-50 px-3 py-3 text-sm text-slate-700 md:rounded-3xl md:bg-white md:px-4 md:shadow-sm">
-                      <p className="text-[11px] tracking-[0.22em] text-slate-400 uppercase">Rates</p>
-                      <p className="mt-1.5 font-semibold leading-snug md:mt-2">
-                        <span className="block">{boat.hourly}</span>
-                        <span className="mt-0.5 block text-slate-500">{boat.daily}</span>
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="flex flex-wrap gap-2">
-                    {boat.features.map((feature) => (
-                      <span
-                        key={feature}
-                        className="rounded-full bg-slate-50 px-3 py-1 text-xs font-medium text-slate-700 md:bg-white"
-                      >
-                        {feature}
-                      </span>
-                    ))}
-                  </div>
-
-                  <div className="inline-flex items-center gap-2 text-sm font-semibold text-cyan-950">
-                    View details
-                    <ArrowUpRight className="h-4 w-4" />
+                  <p className="text-sm text-zinc-600 line-clamp-2">
+                    {boat.description}
+                  </p>
+                  <div className="flex items-center justify-between pt-2 text-xs text-zinc-500">
+                    <span>Capacity: {boat.capacity}</span>
+                    {boat.hourlyRate && <span>{boat.hourlyRate}</span>}
                   </div>
                 </div>
               </Link>

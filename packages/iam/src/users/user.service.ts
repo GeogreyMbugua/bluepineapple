@@ -23,6 +23,10 @@ export class UserService {
     return user.id;
   }
 
+  async list() {
+    return userRepository.list();
+  }
+
   async updateProfile(userId: string, profile: UserProfileUpdate) {
     return userRepository.update(userId, profile);
   }

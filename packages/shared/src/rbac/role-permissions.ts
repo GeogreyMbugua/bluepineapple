@@ -33,13 +33,24 @@ export const ROLE_PERMISSIONS: Record<Role, readonly ["*"] | readonly Permission
 
     "reward.read",
     "reward.manage",
+
+    "fleet.read",
+    "fleet.create",
+    "fleet.update",
+    "fleet.manage",
   ],
 
   PARTNER: [
+    "partner.read",
+    "partner.update",
+
     "booking.read",
     "booking.create",
+    "booking.cancel",
 
     "experience.read",
+
+    "fleet.read",
 
     "reward.read",
   ],

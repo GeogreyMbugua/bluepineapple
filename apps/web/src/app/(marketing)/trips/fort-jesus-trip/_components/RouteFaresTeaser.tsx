@@ -54,10 +54,10 @@ export function RouteFaresTeaser() {
             </p>
           </div>
           <Link
-            href="/trips/fort-jesus-trip/route-fares"
+            href="/trips/fort-jesus-trip/book"
             className="inline-flex min-h-11 w-full shrink-0 items-center justify-center rounded-md bg-[#0d3b66] px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-[#0b335a] sm:w-auto"
           >
-            View full route & fares
+            Book now
           </Link>
         </div>
       </div>

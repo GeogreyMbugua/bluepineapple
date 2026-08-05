@@ -170,21 +170,31 @@ enum VesselStatus {
 model Vessel {
   id              String        @id @default(uuid())
   name            String        @unique
+  slug            String        @unique
   registration    String?       @unique
   capacity        Int
   status          VesselStatus  @default(ACTIVE)
   type            VesselType?
   operatorName    String?
   ownerName       String?
+  subtitle        String?
+  description     String?
+  hourlyRate      String?
+  dailyRate       String?
+  heroImage       String?
+  images          Json?
+  features        Json?
   notes           String?
   createdAt       DateTime      @default(now())
   updatedAt       DateTime      @updatedAt
 
   departures      Departure[]
   maintenanceLogs VesselMaintenanceLog[]
+  blockedDates    BlockedDate[]
 
   @@index([status])
   @@index([name])
+  @@index([slug])
   @@map("vessels")
 }
 
@@ -248,6 +258,23 @@ model Departure {
   @@index([departureDateTime])
   @@index([status])
   @@map("departures")
+}
+
+model BlockedDate {
+  id          String    @id @default(uuid())
+  date        DateTime
+  reason      String
+  blockedBy   String?
+  vesselId    String?
+  isRecurring Boolean   @default(false)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  vessel Vessel? @relation(fields: [vesselId], references: [id], onDelete: SetNull)
+
+  @@index([date])
+  @@index([vesselId])
+  @@map("blocked_dates")
 }
 
 //
@@ -318,7 +345,7 @@ model Booking {
   totalAmount         Decimal          @db.Decimal(10, 2)
   currency            String           @default("KES")
   status              BookingStatus    @default(PENDING)
-  paymentStatus       BookingPaymentStatus    @default(PENDING)
+  paymentStatus       PaymentStatus    @default(PENDING)
   source              BookingSource    @default(PARTNER)
   pickupStopId        String?
   specialRequests     String?
@@ -460,6 +487,8 @@ model User {
 
   lastLoginAt DateTime?
 
+  clerkUserId String? @unique
+
   roles UserRole[]
 
   sessions  Session[]
@@ -475,6 +504,7 @@ model User {
   updatedAt DateTime @updatedAt
 
   @@index([status])
+  @@index([clerkUserId])
   @@map("users")
 }
 
@@ -667,6 +697,7 @@ model PartnerProfile {
 
   bookings Booking[]
   rewards RewardTransaction[]
+  partnerRewards PartnerReward[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -725,9 +756,45 @@ model PartnerStatusHistory {
 
   createdAt DateTime @default(now())
 
-@@index([partnerId])
-@@index([changedByUserId])
-@@map("partner_status_history")
+  @@index([partnerId])
+  @@index([changedByUserId])
+  @@map("partner_status_history")
+}
+
+enum RewardTier {
+  BRONZE
+  SILVER
+  GOLD
+  PLATINUM
+}
+
+enum PartnerRewardStatus {
+  ISSUED
+  REDEEMED
+  EXPIRED
+}
+
+model PartnerReward {
+  id String @id @default(uuid())
+
+  partnerId String
+  partner PartnerProfile @relation(fields: [partnerId], references: [id], onDelete: Cascade)
+
+  tier RewardTier
+  year Int
+  discountPercentage Int
+  bookingsCount Int
+  voucherCode String @unique
+  status PartnerRewardStatus @default(ISSUED)
+
+  issuedAt DateTime @default(now())
+  redeemedAt DateTime?
+  expiresAt DateTime
+
+  @@index([partnerId])
+  @@index([year])
+  @@index([voucherCode])
+  @@map("partner_rewards")
 }
 
 //
@@ -2165,6 +2232,7 @@ enum PaymentMethod {
 
 enum PaymentStatus {
   PENDING
+  PAID
   AUTHORIZED
   CAPTURED
   FAILED

@@ -93,7 +93,7 @@ export class BookingService {
           currency: "KES",
           status: "PENDING",
           paymentStatus: "PENDING",
-          source: "PARTNER",
+          source: data.source ?? "PARTNER",
           pickupStopId: data.pickupStopId ?? null,
           specialRequests: data.specialRequests ?? null,
           notes: data.notes ?? null,

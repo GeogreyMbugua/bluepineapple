@@ -7,9 +7,9 @@ if (!JWT_SECRET) {
   // do not throw at import time; allow runtime checks in functions
 }
 
-export function signAccessToken(userId: string, sessionId: string): string {
+export function signAccessToken(userId: string, sessionId: string, roles: readonly string[] = []): string {
   if (!JWT_SECRET) throw new UnauthorizedError("JWT secret is not configured");
-  const payload: SessionTokenPayload = { sub: userId, sid: sessionId };
+  const payload: SessionTokenPayload = { sub: userId, sid: sessionId, roles };
   return jwt.sign(payload as object, JWT_SECRET, { algorithm: "HS256", expiresIn: "15m" });
 }
 

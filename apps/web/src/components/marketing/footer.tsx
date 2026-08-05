@@ -37,6 +37,8 @@ const footerNavigation = [
             { label: "Book a Trip", href: "/trips" },
             { label: "Partner with Us", href: "/partner" },
             { label: "Client Care", href: ROUTES.marketing.contact },
+            { label: "Partner Login", href: "/partner/login" },
+            { label: "Admin Login", href: "/login" },
         ],
     },
 ];
@@ -76,70 +78,70 @@ export function Footer() {
     const phoneLink = CONTACT.phone.replace(/\s+/g, "");
 
     return (
-        <footer className="border-t border-white/10 bg-[var(--color-navy)] text-white">
-            <div className="mx-auto max-w-7xl xl:max-w-[1500px] px-6 lg:px-8 py-10 lg:py-12">
-                <div className="grid gap-8 md:grid-cols-2 xl:grid-cols-[420px_repeat(3,1fr)] xl:items-start">
-                    <div className="space-y-6">
-                        <div className="flex items-start gap-4">
-                            <Link href="/" aria-label="Blue Pineapple Holdings — Home" className="inline-flex items-center gap-3">
-                                <Image src="/brand/logo.png" alt="Blue Pineapple Holdings" width={64} height={64} priority className="rounded-2xl border border-white/10 bg-white/5" />
-                            </Link>
-                            <div>
-                                <div className="text-lg font-semibold">Blue Pineapple Holdings Ltd</div>
-                                <div className="text-xs uppercase tracking-[0.18em] text-[var(--color-gold)]">Coastal Living. Smart Investments.</div>
-                            </div>
+    <footer className="border-t border-white/10 bg-[var(--color-navy)] text-white">
+        <div className="mx-auto max-w-7xl xl:max-w-[1500px] px-6 lg:px-8 py-10 lg:py-12">
+            <div className="grid gap-8 md:grid-cols-2 xl:grid-cols-[420px_repeat(3,1fr)] xl:items-start">
+                <div className="space-y-6">
+                    <div className="flex items-start gap-4">
+                        <Link href="/" aria-label="Blue Pineapple Holdings — Home" className="inline-flex items-center gap-3">
+                            <Image src="/brand/logo.png" alt="Blue Pineapple Holdings" width={64} height={64} priority className="rounded-2xl border border-white/10 bg-white/5" />
+                        </Link>
+                        <div>
+                            <div className="text-lg font-semibold text-white">Blue Pineapple Holdings Ltd</div>
+                            <div className="text-xs uppercase tracking-[0.18em] text-[var(--color-cyan)]">Coastal Living. Smart Investments.</div>
                         </div>
+                    </div>
 
-                        <p className="max-w-xl text-sm leading-6 text-zinc-300">
-                            We create exceptional coastal experiences and premium real estate opportunities across Mombasa and the Kenyan coast.
-                        </p>
+                    <p className="max-w-xl text-sm leading-6 text-zinc-300">
+                        We create exceptional coastal experiences and premium real estate opportunities across Mombasa and the Kenyan coast.
+                    </p>
 
-                        <p className="text-sm text-zinc-300">
-                            📍 {CONTACT.location} • {CONTACT.hours}
-                        </p>
+                    <p className="text-sm text-zinc-300">
+                        📍 {CONTACT.location} • {CONTACT.hours}
+                    </p>
 
-                        <div className="flex flex-wrap items-center gap-3">
-                            {socials.map((social) => (
-                                <a
-                                    key={social.name}
-                                    href={social.href}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    aria-label={social.name}
-                                    className="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-white/10 bg-white/5 text-zinc-100 transition hover:border-[var(--color-gold)] hover:text-white"
-                                >
-                                    {social.icon}
-                                </a>
+                    <div className="flex flex-wrap items-center gap-3">
+                        {socials.map((social) => (
+                            <a
+                                key={social.name}
+                                href={social.href}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                aria-label={social.name}
+                                className="inline-flex h-10 w-10 items-center justify-center border border-white/10 bg-white/5 text-zinc-100 transition hover:border-[var(--color-cyan)] hover:text-white"
+                            >
+                                {social.icon}
+                            </a>
+                        ))}
+                    </div>
+                </div>
+
+                {footerNavigation.map((section) => (
+                    <div key={section.title}>
+                        <div className="text-sm font-semibold text-white">{section.title}</div>
+                        <div className="mt-4 space-y-3 text-sm text-zinc-300">
+                            {section.items.map((item) => (
+                                <Link key={item.label} href={item.href} className="block transition hover:text-white">
+                                    {item.label}
+                                </Link>
                             ))}
                         </div>
                     </div>
-
-                    {footerNavigation.map((section) => (
-                        <div key={section.title}>
-                            <div className="text-sm font-semibold text-white">{section.title}</div>
-                            <div className="mt-4 space-y-3 text-sm text-zinc-300">
-                                {section.items.map((item) => (
-                                    <Link key={item.label} href={item.href} className="block transition hover:text-white">
-                                        {item.label}
-                                    </Link>
-                                ))}
-                            </div>
-                        </div>
-                    ))}
-                </div>
-
-                <div className="mt-10 border-t border-white/10 pt-5 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-                    <div className="flex flex-wrap gap-6 text-sm text-zinc-300">
-                        <span>
-                            Phone: <a href={`tel:${phoneLink}`} className="text-white transition hover:text-[var(--color-gold)]">{CONTACT.phone}</a>
-                        </span>
-                        <span>
-                            Email: <a href={`mailto:${CONTACT.email}`} className="text-white transition hover:text-[var(--color-gold)]">{CONTACT.email}</a>
-                        </span>
-                    </div>
-                    <p className="text-sm text-zinc-500">© {year} Blue Pineapple Holdings Ltd. All rights reserved.</p>
-                </div>
+                ))}
             </div>
-        </footer>
+
+            <div className="mt-10 border-t border-white/10 pt-5 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+                <div className="flex flex-wrap gap-6 text-sm text-zinc-300">
+                    <span>
+                        Phone: <a href={`tel:${phoneLink}`} className="text-white transition hover:text-[var(--color-cyan)]">{CONTACT.phone}</a>
+                    </span>
+                    <span>
+                        Email: <a href={`mailto:${CONTACT.email}`} className="text-white transition hover:text-[var(--color-cyan)]">{CONTACT.email}</a>
+                    </span>
+                </div>
+                <p className="text-sm text-zinc-500">© {year} Blue Pineapple Holdings Ltd. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
     );
 }

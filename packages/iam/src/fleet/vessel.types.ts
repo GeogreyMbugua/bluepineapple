@@ -3,12 +3,20 @@ import type { VesselMaintenanceLog, VesselStatus, VesselType } from "@prisma/cli
 export interface VesselData {
   id: string;
   name: string;
+  slug: string;
   registration?: string | null;
   capacity: number;
   status: VesselStatus;
   type?: VesselType | null;
   operatorName?: string | null;
   ownerName?: string | null;
+  subtitle?: string | null;
+  description?: string | null;
+  hourlyRate?: string | null;
+  dailyRate?: string | null;
+  heroImage?: string | null;
+  images?: string[] | null;
+  features?: string[] | null;
   notes?: string | null;
   createdAt: Date;
   updatedAt: Date;

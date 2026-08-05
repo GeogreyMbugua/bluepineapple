@@ -23,6 +23,7 @@ export class ClaimsBuilder {
       userType: this.deriveUserType(user),
       ...(user.email ? { email: user.email } : {}),
       ...(user.phone ? { phone: user.phone } : {}),
+      ...(user.partnerProfile?.id ? { partnerId: user.partnerProfile.id } : {}),
     };
 
     return Object.freeze(claims);

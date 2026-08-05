@@ -12,6 +12,7 @@ export interface JwtClaims {
 
   email?: string;
   phone?: string;
+  partnerId?: string;
 }
 
 export type JwtClaimsBase = Omit<JwtClaims, "sessionId">;

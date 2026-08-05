@@ -44,17 +44,16 @@ export const DASHBOARD_NAV: readonly NavGroup[] = [
 /** Partner portal sidebar navigation */
 export const PARTNER_NAV: readonly NavGroup[] = [
   {
-    title: 'Management',
+    title: 'Bookings',
     items: [
-      { label: 'Overview', href: ROUTES.partner.overview, icon: 'bar-chart' },
+      { label: 'Overview', href: ROUTES.partner.home, icon: 'home' },
       { label: 'Bookings', href: ROUTES.partner.bookings, icon: 'calendar' },
-      { label: 'Fleet', href: ROUTES.partner.fleet, icon: 'truck' },
     ],
   },
   {
-    title: 'Insights',
+    title: 'Account',
     items: [
-      { label: 'Analytics', href: ROUTES.partner.analytics, icon: 'trending-up' },
+      { label: 'Rewards', href: ROUTES.partner.rewards, icon: 'gift' },
       { label: 'Settings', href: ROUTES.partner.settings, icon: 'settings' },
     ],
   },
@@ -74,6 +73,7 @@ export const ADMIN_NAV: readonly NavGroup[] = [
     title: 'Operations',
     items: [
       { label: 'Bookings', href: ROUTES.admin.bookings, icon: 'calendar' },
+      { label: 'Rewards', href: ROUTES.admin.rewards, icon: 'gift' },
       { label: 'Operations', href: ROUTES.admin.operations, icon: 'activity' },
       { label: 'CRM', href: ROUTES.admin.crm, icon: 'contact' },
       { label: 'Commercial', href: ROUTES.admin.commercial, icon: 'briefcase' },

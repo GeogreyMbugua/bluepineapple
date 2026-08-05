@@ -7,9 +7,7 @@ import {
   calculateBooking,
   getTodayDate,
   offers,
-  stopRates,
   stops,
-  trip,
   type Stop,
 } from "../_data/trip";
 
@@ -46,6 +44,7 @@ export default function RouteFaresPlanner() {
   const [date, setDate] = useState(getTodayDate());
   const [adults, setAdults] = useState(1);
   const [children, setChildren] = useState(0);
+  const [infants, setInfants] = useState(0);
   const [returnTicket, setReturnTicket] = useState(true);
 
   const handleOriginChange = (value: Stop) => {
@@ -64,8 +63,8 @@ export default function RouteFaresPlanner() {
   };
 
   const summary = useMemo(
-    () => calculateBooking(origin, destination, adults, children, returnTicket),
-    [origin, destination, adults, children, returnTicket],
+    () => calculateBooking(origin, destination, adults, children, infants, returnTicket),
+    [origin, destination, adults, children, infants, returnTicket]
   );
 
   const destinationOptions = useMemo(() => {
@@ -73,9 +72,17 @@ export default function RouteFaresPlanner() {
     return stops.slice(originIndex + 1);
   }, [origin]);
 
-  const fullFareTable = stopRates
-    .map((price, count) => ({ count, price }))
-    .filter((row) => row.count > 0);
+  const fullOneWayFareTable = useMemo(() => {
+    return Object.entries({ 1: 500, 2: 750, 3: 1000, 4: 1400, 5: 1800, 6: 2200, 7: 2600, 8: 3000 })
+      .map(([count, price]) => ({ count: Number(count), price }))
+      .filter((row) => row.count > 0);
+  }, []);
+
+  const fullReturnFareTable = useMemo(() => {
+    return Object.entries({ 1: 900, 2: 1300, 3: 1700, 4: 2300, 5: 2900, 6: 3500, 7: 4100, 8: 5000 })
+      .map(([count, price]) => ({ count: Number(count), price }))
+      .filter((row) => row.count > 0);
+  }, []);
 
   return (
     <main className="min-h-screen bg-[#f7f3eb] pb-24 text-slate-950 sm:pb-16">
@@ -133,7 +140,7 @@ export default function RouteFaresPlanner() {
             </label>
           </div>
 
-          <div className="mt-5 grid gap-5 sm:grid-cols-3">
+          <div className="mt-5 grid gap-5 sm:grid-cols-4">
             <label className="block text-sm font-medium text-slate-900">
               Travel date
               <input
@@ -165,6 +172,18 @@ export default function RouteFaresPlanner() {
                 max={10}
                 value={children}
                 onChange={(event) => setChildren(Math.max(0, Number(event.target.value)))}
+                className="mt-2 block w-full rounded-md border border-slate-300 bg-white px-3 py-3 text-sm text-slate-900 outline-none focus:border-slate-900"
+              />
+            </label>
+
+            <label className="block text-sm font-medium text-slate-900">
+              Infants (under 5)
+              <input
+                type="number"
+                min={0}
+                max={10}
+                value={infants}
+                onChange={(event) => setInfants(Math.max(0, Number(event.target.value)))}
                 className="mt-2 block w-full rounded-md border border-slate-300 bg-white px-3 py-3 text-sm text-slate-900 outline-none focus:border-slate-900"
               />
             </label>
@@ -200,18 +219,23 @@ export default function RouteFaresPlanner() {
               <p>
                 {children} child{children !== 1 ? "ren" : ""}
               </p>
+              {infants > 0 && (
+                <p>
+                  {infants} infant{infants !== 1 ? "s" : ""} (free)
+                </p>
+              )}
             </div>
           </div>
 
           <p className="mt-4 text-sm text-slate-600">{summary.discountLabel}</p>
 
-          <a
-            href={trip.whatsapp.reserve}
+          <Link
+            href="/trips/fort-jesus-trip/book"
             className="mt-6 inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-md bg-[#0d3b66] px-6 py-3 text-sm font-semibold text-white transition hover:bg-[#0b335a]"
           >
             Reserve now
             <ArrowUpRight size={16} />
-          </a>
+          </Link>
         </div>
 
         {/* Route visualization */}
@@ -225,19 +249,39 @@ export default function RouteFaresPlanner() {
         {/* Full fare table */}
         <div className="mt-5 rounded-lg bg-white p-5 shadow-sm sm:p-8">
           <p className="text-xs font-semibold uppercase tracking-[0.12em] text-slate-500">Full fare table</p>
-          <ul className="mt-4 divide-y divide-slate-100">
-            {fullFareTable.map((row) => (
-              <li key={row.count} className="flex items-center justify-between py-2.5 text-sm">
-                <span className="text-slate-700">
-                  {row.count} stop{row.count > 1 ? "s" : ""}
-                  {row.count === stops.length - 1 ? " (full route)" : ""}
-                </span>
-                <span className="font-semibold text-slate-950">KES {row.price.toLocaleString("en-US")}</span>
-              </li>
-            ))}
-          </ul>
+          <div className="mt-4 grid gap-6 sm:grid-cols-2">
+            <div>
+              <h3 className="text-sm font-semibold text-slate-900 mb-3">One-way fares (per adult)</h3>
+              <ul className="divide-y divide-slate-100">
+                {fullOneWayFareTable.map((row) => (
+                  <li key={row.count} className="flex items-center justify-between py-2.5 text-sm">
+                    <span className="text-slate-700">
+                      {row.count} stop{row.count > 1 ? "s" : ""}
+                      {row.count === stops.length - 1 ? " (full route)" : ""}
+                    </span>
+                    <span className="font-semibold text-slate-950">KES {row.price.toLocaleString("en-US")}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+            <div>
+              <h3 className="text-sm font-semibold text-slate-900 mb-3">Return fares (per adult)</h3>
+              <ul className="divide-y divide-slate-100">
+                {fullReturnFareTable.map((row) => (
+                  <li key={row.count} className="flex items-center justify-between py-2.5 text-sm">
+                    <span className="text-slate-700">
+                      {row.count} stop{row.count > 1 ? "s" : ""}
+                      {row.count === stops.length - 1 ? " (full route)" : ""}
+                    </span>
+                    <span className="font-semibold text-slate-950">KES {row.price.toLocaleString("en-US")}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </div>
           <p className="mt-4 text-xs leading-relaxed text-slate-500">
-            Fares shown are per adult, one-way. Children pay half fare. Return tickets are 1.8x the one-way total.
+            Fares shown are per adult. Children aged 5-15 pay half fare. Infants under 5 travel free. Discounts apply to
+            the base fare before any return surcharge.
           </p>
         </div>
 

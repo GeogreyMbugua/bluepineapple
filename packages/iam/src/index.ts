@@ -112,6 +112,13 @@ export {
   auditLogger,
 } from "./audit";
 
+// ── Authorization Services ──────────────────────────────────────────────
+
+export {
+  RoleManagementService,
+  roleManagementService,
+} from "./authorization/role-management.service";
+
 // ── User Domain ─────────────────────────────────────────────────────────
 
 export {
@@ -416,6 +423,18 @@ export type {
   RewardCalculationInput,
   RewardCalculationResult,
 } from "./rewards/reward.types";
+
+// ── Finance Domain ────────────────────────────────────────────────────────
+
+export {
+  CommissionService,
+  commissionService,
+} from "./finance/commission.service";
+
+export {
+  PartnerRewardService,
+  partnerRewardService,
+} from "./rewards/partner-reward.service";
 
 // ── Operations Domain ────────────────────────────────────────────────────────
 

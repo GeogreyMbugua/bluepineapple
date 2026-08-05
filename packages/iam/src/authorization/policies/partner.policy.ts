@@ -22,4 +22,8 @@ export class PartnerPolicy extends BasePolicy {
   static canDelete(user: AuthUser, _partner: PartnerResource): boolean {
     return user.roles.includes("ADMIN" as any);
   }
+
+  static canCreate(user: AuthUser): boolean {
+    return user.roles.includes("ADMIN" as any) || user.roles.includes("SUPER_ADMIN" as any);
+  }
 }

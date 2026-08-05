@@ -3,24 +3,22 @@ import { apiClient } from '@/services/api';
 import type { AuthUser } from '../types';
 
 export const authApi = {
-  requestOtp: (data: { channel: 'email' | 'sms'; value: string }) =>
+  requestOtp: (data: { identifier: string }) =>
     apiClient.post<SuccessResponse<{ sent: boolean }>>('/auth/otp/request', {
-      channel: data.channel,
-      value: data.value,
+      identifier: data.identifier,
     }),
 
-  verifyOtp: (data: { channel: 'email' | 'sms'; value: string; otp: string }) =>
-    apiClient.post<SuccessResponse<{ token: string; refresh_token: string; user: AuthUser }>>(
+  verifyOtp: (data: { identifier: string; otpCode: string }) =>
+    apiClient.post<SuccessResponse<{ user: AuthUser; expiresAt: number }>>(
       '/auth/otp/verify',
       {
-        channel: data.channel,
-        value: data.value,
-        otp: data.otp,
+        identifier: data.identifier,
+        otpCode: data.otpCode,
       },
     ),
 
   refreshSession: () =>
-    apiClient.post<SuccessResponse<{ token: string; refresh_token: string; user: AuthUser }>>(
+    apiClient.post<SuccessResponse<{ user: AuthUser; expiresAt: number }>>(
       '/auth/session/refresh',
     ),
 

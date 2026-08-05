@@ -28,7 +28,8 @@
       ],
       "@blue-pineapple/iam": ["../../packages/iam/src/index.ts"],
       "@blue-pineapple/shared": ["../../packages/shared/src/index.ts"],
-      "@blue-pineapple/shared/*": ["../../packages/shared/src/*"]
+      "@blue-pineapple/shared/*": ["../../packages/shared/src/*"],
+      "@blue-pineapple/database": ["../../packages/database/src/index.ts"]
     }
   },
 

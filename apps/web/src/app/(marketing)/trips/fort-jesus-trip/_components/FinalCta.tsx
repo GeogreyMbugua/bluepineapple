@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { trip } from "../_data/trip";
 
 export function FinalCta() {
@@ -13,17 +14,16 @@ export function FinalCta() {
               Reserve a coastal passage that feels effortless.
             </h2>
             <p className="mt-4 max-w-xl text-[15px] leading-relaxed text-slate-600 sm:text-base sm:leading-7">
-              Our team will confirm your selected route and complete your booking with thoughtful service and clear
-              expectations.
+              Select your route, date, and passengers online. Instant fare calculation and confirmation.
             </p>
           </div>
           <div className="rounded-lg bg-white p-6 shadow-sm sm:p-8">
-            <a
-              href={trip.whatsapp.reserve}
+            <Link
+              href="/trips/fort-jesus-trip/book"
               className="inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-md bg-[#0d3b66] px-6 py-3.5 text-sm font-semibold text-white transition hover:bg-[#0b335a]"
             >
               Reserve your journey
-            </a>
+            </Link>
             <div className="mt-6 space-y-4 text-sm text-slate-600">
               <div>
                 <p className="font-semibold text-slate-950">WhatsApp</p>

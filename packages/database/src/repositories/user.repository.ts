@@ -11,6 +11,27 @@ export class UserRepository {
     });
   }
 
+  async list() {
+    return prisma.user.findMany({
+      include: {
+        roles: {
+          include: {
+            role: {
+              include: {
+                permissions: {
+                  include: {
+                    permission: true,
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+      orderBy: { createdAt: 'desc' },
+    });
+  }
+
   /**
    * Find a user by their ID and include their assigned roles and permissions.
    */
@@ -18,6 +39,7 @@ export class UserRepository {
     const user = await prisma.user.findUnique({
       where: { id },
       include: {
+        partnerProfile: true,
         roles: {
           include: {
             role: {
@@ -51,6 +73,31 @@ export class UserRepository {
       roles,
       permissions: permissionKeys,
     };
+  }
+
+  /**
+   * Find a user by their Clerk user ID.
+   */
+  async findByClerkUserId(clerkUserId: string) {
+    return prisma.user.findUnique({
+      where: { clerkUserId },
+      include: {
+        partnerProfile: true,
+        roles: {
+          include: {
+            role: {
+              include: {
+                permissions: {
+                  include: {
+                    permission: true,
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    });
   }
 
   /**

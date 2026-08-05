@@ -25,9 +25,9 @@ type Boat = {
   name: string;
   slug: string;
   subtitle: string;
-  capacity: string;
-  hourly: string;
-  daily: string;
+  capacity: number;
+  hourlyRate: string;
+  dailyRate: string;
   images: string[];
   features: string[];
   description: string;
@@ -40,12 +40,12 @@ function BoatDetailClient({ boat }: { readonly boat: Boat }) {
       {/* ============================================
             HERO
       ============================================ */}
-      <section className="relative min-h-[80vh] w-full overflow-hidden bg-black">
+      <section className="relative min-h-[60vh] w-full bg-black">
         <div className="absolute inset-0 bg-cover bg-center bg-no-repeat" style={{ backgroundImage: `url('${boat.heroImage}')` }} />
         <div className="absolute inset-0 bg-gradient-to-r from-black/75 via-black/35 to-transparent" />
         <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/20" />
 
-        <div className="container-page relative z-10 flex min-h-[80vh] flex-col justify-center pt-28 pb-16">
+        <div className="container-page relative z-10 flex min-h-[60vh] flex-col justify-center pt-24 pb-12">
           <motion.div
             initial={{ y: 50, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
@@ -73,7 +73,7 @@ function BoatDetailClient({ boat }: { readonly boat: Boat }) {
               </Link>
             </div>
             <div className="mt-8 flex items-baseline gap-2">
-              <span className="text-4xl font-medium text-white">{boat.hourly.replace("/hr", "")}</span>
+              <span className="text-4xl font-medium text-white">{boat.hourlyRate.replace("/hr", "")}</span>
               <span className="text-sm text-white/60">per hour</span>
             </div>
           </motion.div>
@@ -115,7 +115,7 @@ function BoatDetailClient({ boat }: { readonly boat: Boat }) {
             {boat.images.map((img, i) => (
               <motion.div
                 key={i}
-                className="relative aspect-[4/3] rounded-2xl overflow-hidden"
+                className="relative aspect-[16/9] bg-slate-900"
                 initial={{ y: 30, opacity: 0 }}
                 whileInView={{ y: 0, opacity: 1 }}
                 viewport={{ once: true }}
@@ -132,12 +132,13 @@ function BoatDetailClient({ boat }: { readonly boat: Boat }) {
             DETAILS
       ============================================ */}
       <section className="py-16 md:py-25 px-4 md:px-16 lg:px-24 xl:px-32 w-full bg-white">
-        <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-20">
+        <div className="max-w-7xl mx-auto">
           <motion.div
             initial={{ y: 50, opacity: 0 }}
             whileInView={{ y: 0, opacity: 1 }}
             viewport={{ once: true }}
             transition={{ type: "spring", stiffness: 240, damping: 70, mass: 1 }}
+            className="max-w-2xl"
           >
             <div className="flex items-center gap-1.5">
               <span className="size-1.5 bg-zinc-900"></span>
@@ -145,27 +146,27 @@ function BoatDetailClient({ boat }: { readonly boat: Boat }) {
                 VESSEL DETAILS
               </span>
             </div>
-            <h2 className="text-3xl md:text-4xl text-zinc-900 mt-4 leading-tight font-medium max-w-2xl tracking-tight">
+            <h2 className="text-3xl md:text-4xl text-zinc-900 mt-4 leading-tight font-medium tracking-tight">
               {boat.name} — {boat.subtitle}
             </h2>
-            <p className="text-zinc-500 text-sm md:text-base mt-3 max-w-2xl">
+            <p className="text-zinc-500 text-sm md:text-base mt-3">
               {boat.description}
             </p>
 
             <div className="mt-10 grid grid-cols-2 gap-6">
-              <div className="bg-zinc-50 rounded-xl p-6">
+              <div className="bg-zinc-50 p-6">
                 <span className="text-xs text-zinc-500 uppercase tracking-wider">Hourly Charter</span>
-                <span className="block text-2xl font-medium text-zinc-900 mt-1">{boat.hourly}</span>
+                <span className="block text-2xl font-medium text-zinc-900 mt-1">{boat.hourlyRate}</span>
               </div>
-              <div className="bg-zinc-50 rounded-xl p-6">
+              <div className="bg-zinc-50 p-6">
                 <span className="text-xs text-zinc-500 uppercase tracking-wider">Full Day</span>
-                <span className="block text-2xl font-medium text-zinc-900 mt-1">{boat.daily}</span>
+                <span className="block text-2xl font-medium text-zinc-900 mt-1">{boat.dailyRate}</span>
               </div>
-              <div className="bg-zinc-50 rounded-xl p-6">
+              <div className="bg-zinc-50 p-6">
                 <span className="text-xs text-zinc-500 uppercase tracking-wider">Capacity</span>
                 <span className="block text-2xl font-medium text-zinc-900 mt-1">{boat.capacity}</span>
               </div>
-              <div className="bg-zinc-50 rounded-xl p-6">
+              <div className="bg-zinc-50 p-6">
                 <span className="text-xs text-zinc-500 uppercase tracking-wider">Type</span>
                 <span className="block text-2xl font-medium text-zinc-900 mt-1">{boat.subtitle}</span>
               </div>
@@ -177,7 +178,7 @@ function BoatDetailClient({ boat }: { readonly boat: Boat }) {
                 {boat.features.map((feature) => (
                   <span
                     key={feature}
-                    className="rounded-full bg-cyan-50 px-4 py-2 text-sm text-cyan-950"
+                    className="bg-cyan-50 px-4 py-2 text-sm text-cyan-950"
                   >
                     {feature}
                   </span>
@@ -187,7 +188,7 @@ function BoatDetailClient({ boat }: { readonly boat: Boat }) {
           </motion.div>
 
           <motion.div
-            className="relative h-[400px] md:h-[520px] w-full rounded-2xl overflow-hidden"
+            className="relative mt-12 h-[300px] md:h-[400px] w-full bg-slate-200"
             initial={{ y: 50, opacity: 0, scale: 0.96 }}
             whileInView={{ y: 0, opacity: 1, scale: 1 }}
             viewport={{ once: true }}
@@ -219,7 +220,7 @@ function BoatDetailClient({ boat }: { readonly boat: Boat }) {
               SAFETY & COMFORT
             </span>
           </motion.div>
-          <motion.h2 className="text-3xl md:text-4xl text-zinc-900 mt-4 leading-tight font-medium max-w-2xl tracking-tight"
+          <motion.h2 className="text-3xl md:text-4xl text-zinc-900 mt-4 leading-tight font-medium tracking-tight"
             initial={{ y: 50, opacity: 0 }}
             whileInView={{ y: 0, opacity: 1 }}
             viewport={{ once: true }}
@@ -232,7 +233,7 @@ function BoatDetailClient({ boat }: { readonly boat: Boat }) {
             {safetyItems.map((item, i) => (
               <motion.div
                 key={i}
-                className="flex items-center gap-3 bg-white rounded-xl p-5"
+                className="flex items-center gap-3 bg-white p-5"
                 initial={{ y: 20, opacity: 0 }}
                 whileInView={{ y: 0, opacity: 1 }}
                 viewport={{ once: true }}
@@ -262,7 +263,7 @@ function BoatDetailClient({ boat }: { readonly boat: Boat }) {
               AVAILABLE OFFERS
             </span>
           </motion.div>
-          <motion.h2 className="text-3xl md:text-4xl text-zinc-900 mt-4 leading-tight font-medium max-w-2xl tracking-tight"
+          <motion.h2 className="text-3xl md:text-4xl text-zinc-900 mt-4 leading-tight font-medium tracking-tight"
             initial={{ y: 50, opacity: 0 }}
             whileInView={{ y: 0, opacity: 1 }}
             viewport={{ once: true }}
@@ -275,7 +276,7 @@ function BoatDetailClient({ boat }: { readonly boat: Boat }) {
             {offers.map((offer, i) => (
               <motion.div
                 key={i}
-                className="bg-zinc-50 rounded-xl p-6 border border-zinc-100"
+                className="bg-zinc-50 p-6 border border-zinc-100"
                 initial={{ y: 20, opacity: 0 }}
                 whileInView={{ y: 0, opacity: 1 }}
                 viewport={{ once: true }}

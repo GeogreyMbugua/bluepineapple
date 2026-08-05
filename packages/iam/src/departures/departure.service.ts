@@ -283,8 +283,39 @@ export class DepartureService {
     return departureRepository.findUpcoming(limit);
   }
 
+  async getAvailableDepartures(filters: {
+    experienceId?: string;
+    routeId?: string;
+    date?: string;
+    limit?: number;
+  }) {
+    return departureRepository.findAvailable(filters);
+  }
+
   async getCapacityInfo(departureId: string) {
     return bookingCapacityService.getCapacityInfo(departureId);
+  }
+
+  async listActiveRoutes() {
+    return routeRepository.findActive();
+  }
+
+  async listActiveExperiences() {
+    return experienceRepository.findActive();
+  }
+
+  async listActiveVessels() {
+    return vesselRepository.findActive();
+  }
+
+  async upsertDepartureForDateTime(params: {
+    routeId: string;
+    experienceId: string;
+    vesselId: string;
+    departureDateTime: Date;
+    totalCapacity: number;
+  }) {
+    return departureRepository.upsertForDateTime(params);
   }
 }
 

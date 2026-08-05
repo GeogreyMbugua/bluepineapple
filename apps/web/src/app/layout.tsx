@@ -2,7 +2,12 @@ import type { Metadata, Viewport } from 'next';
 import { Inter, Geist_Mono } from 'next/font/google';
 import { defaultMetadata, defaultViewport } from '@/config/metadata';
 import { AppProviders } from '@/providers';
+import { ClerkProvider } from '@clerk/nextjs';
+import { rewardEngine } from '@blue-pineapple/iam';
+import { Toasts } from '@/components/admin/ui/toasts';
 import './globals.css';
+
+rewardEngine.start();
 
 const inter = Inter({
   variable: '--font-inter',
@@ -31,9 +36,12 @@ export default function RootLayout({
       suppressHydrationWarning
     >
       <body className="min-h-full flex flex-col bg-background text-foreground">
-        <AppProviders>
-          {children}
-        </AppProviders>
+        <ClerkProvider>
+          <AppProviders>
+            {children}
+            <Toasts />
+          </AppProviders>
+        </ClerkProvider>
       </body>
     </html>
   );
