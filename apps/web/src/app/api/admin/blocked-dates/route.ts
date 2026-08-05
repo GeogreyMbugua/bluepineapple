@@ -13,11 +13,15 @@ export async function GET(request: NextRequest) {
     const vesselId = searchParams.get('vesselId');
 
     const where: Record<string, unknown> = {};
+    const dateFilter: Record<string, Date> = {};
     if (startDate) {
-      where.date = { ...where.date, gte: new Date(startDate + 'T00:00:00Z') };
+      dateFilter.gte = new Date(startDate + 'T00:00:00Z');
     }
     if (endDate) {
-      where.date = { ...where.date, lte: new Date(endDate + 'T23:59:59Z') };
+      dateFilter.lte = new Date(endDate + 'T23:59:59Z');
+    }
+    if (startDate || endDate) {
+      where.date = dateFilter;
     }
     if (vesselId) {
       where.vesselId = vesselId;

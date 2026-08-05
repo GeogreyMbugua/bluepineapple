@@ -212,7 +212,7 @@ export default function EditExperiencePage() {
                 label="Price"
                 type="number"
                 value={experience.defaultPrice?.toString() || ''}
-                onChange={(e) => setExperience({ ...experience, defaultPrice: e.target.value ? parseFloat(e.target.value) : null })}
+                onChange={(e) => setExperience({ ...experience, defaultPrice: e.target.value ? e.target.value : null })}
               />
               <Input
                 label="Currency"

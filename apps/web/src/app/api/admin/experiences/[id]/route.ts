@@ -49,7 +49,7 @@ export async function PATCH(
     const body = await request.json();
     const validated = UpdateExperienceSchema.parse(body);
 
-    const experience = await experienceService.updateExperience(validated, id);
+    const experience = await experienceService.updateExperience(id, validated);
 
     return Response.json({ data: experience, timestamp: new Date().toISOString() });
   } catch (error) {

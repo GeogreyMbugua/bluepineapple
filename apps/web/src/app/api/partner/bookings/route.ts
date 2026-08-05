@@ -12,8 +12,8 @@ const PartnerBookingSchema = z.object({
   totalAmount: z.number().nonnegative('Total amount cannot be negative').optional(),
   guest: z
     .object({
-      firstName: z.string().min(1).max(100).optional(),
-      lastName: z.string().min(1).max(100).optional(),
+      firstName: z.string().min(1).max(100),
+      lastName: z.string().min(1).max(100),
       email: z.string().email().optional().nullable(),
       phone: z.string().min(7).max(20).optional().nullable(),
     })

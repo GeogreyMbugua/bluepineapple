@@ -17,7 +17,7 @@ export async function GET(request: NextRequest) {
     let users = await userService.list();
 
     if (!includePartners) {
-      users = users.filter((u) => !u.partnerProfile);
+      users = users.filter((u) => !(u as unknown as { partnerProfile?: unknown }).partnerProfile);
     }
 
     let formatted = users.map((u) => {

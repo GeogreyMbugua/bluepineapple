@@ -25,7 +25,7 @@ async function getDashboardData(cookieHeader: string) {
   return json.data;
 }
 
-async function getPartnerStats(cookieHeader: string) {
+async function getPartnerStats(cookieHeader: string): Promise<Array<PartnerRow & { yearlyBookings: number }>> {
   const base = await getBaseUrl();
   const res = await fetch(`${base}/api/admin/partners/stats`, {
     cache: 'no-store',
@@ -33,7 +33,7 @@ async function getPartnerStats(cookieHeader: string) {
   });
   if (!res.ok) return [];
   const json = await res.json();
-  return json.data;
+  return json.data || [];
 }
 
 async function getTripCalendar(cookieHeader: string) {

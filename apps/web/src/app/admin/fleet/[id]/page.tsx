@@ -179,7 +179,7 @@ export default function AdminVesselDetailPage() {
               <label className="text-sm font-medium text-dark">Type</label>
               <select
                 value={vessel.type || ''}
-                onChange={(e) => setVessel({ ...vessel, type: e.target.value })}
+                onChange={(e) => setVessel({ ...vessel, type: (e.target.value || null) as VesselData['type'] })}
                 className="mt-1 w-full border border-stroke bg-white px-3 py-2 text-sm text-dark outline-none focus:border-primary focus:ring-1 focus:ring-primary"
               >
                 <option value="">Select type</option>

@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { Webhook } from 'svix';
 import { userRepository } from '@blue-pineapple/database';
 import { roleRepository } from '@blue-pineapple/database';
-import type { Prisma } from '@prisma/client';
+import type { Prisma } from '@blue-pineapple/database';
 
 const CLERK_WEBHOOK_SECRET = process.env.CLERK_WEBHOOK_SECRET;
 

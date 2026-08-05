@@ -29,7 +29,7 @@ export default function BookFortJesusPage() {
   const [infants, setInfants] = useState(0);
   const [returnTicket, setReturnTicket] = useState(false);
   const [origin, setOrigin] = useState<Stop>(stops[0]);
-  const [destination, setDestination] = useState<Stop>(stops[stops.length - 1]);
+  const [destination, setDestination] = useState<Stop>(stops[stops.length - 1] as Stop);
   const [status, setStatus] = useState<BookingStatus>("idle");
   const [error, setError] = useState<string | null>(null);
   const [bookingReference, setBookingReference] = useState<string | null>(null);
@@ -273,7 +273,7 @@ export default function BookFortJesusPage() {
                   value={destination}
                   onChange={(event) => {
                     const originIndex = stops.indexOf(origin);
-                    const destinationIndex = stops.indexOf(event.target.value);
+                    const destinationIndex = stops.indexOf(event.target.value as Stop);
                     if (destinationIndex > originIndex) {
                       setDestination(event.target.value as Stop);
                     }

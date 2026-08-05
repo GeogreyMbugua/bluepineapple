@@ -95,3 +95,15 @@ export interface ExperienceRow {
   createdAt: string;
   updatedAt: string;
 }
+
+export interface PartnerBooking {
+  id: string;
+  bookingReference: string;
+  experience: string;
+  status: string;
+  paymentStatus: string;
+  totalAmount: string;
+  totalGuests: number;
+  createdAt: string;
+}
+

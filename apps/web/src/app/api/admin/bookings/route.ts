@@ -1,6 +1,7 @@
 import { NextRequest } from 'next/server';
 import { requireAdminAuth } from '@/lib/api/admin-helpers';
 import { bookingService } from '@blue-pineapple/iam';
+import { BookingStatus } from '@blue-pineapple/database';
 import type { BookingRow } from '@/components/admin/types';
 
 export async function GET(request: NextRequest) {
@@ -12,7 +13,7 @@ export async function GET(request: NextRequest) {
     const status = searchParams.get('status') || 'PENDING';
     const limit = parseInt(searchParams.get('limit') || '20', 10);
 
-    const bookings = await bookingService.searchBookings({ status, limit });
+    const bookings = await bookingService.searchBookings({ status: status as BookingStatus, limit });
 
     const mapped: BookingRow[] = bookings.map((booking) => ({
       id: booking.id,

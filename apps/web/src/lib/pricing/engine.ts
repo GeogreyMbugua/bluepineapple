@@ -71,7 +71,7 @@ export function calculatePassengerFares(
   returnFare: number,
   adults: number,
   children: number,
-  infants: number,
+  _infants: number,
   returnTicket: boolean
 ): {
   adultSubtotal: number;

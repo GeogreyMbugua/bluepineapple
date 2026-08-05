@@ -318,9 +318,12 @@ describe('Pricing Engine', () => {
     it('produces deterministic output for all valid stop pairs', () => {
       for (let i = 0; i < STOPS.length; i++) {
         for (let j = i + 1; j < STOPS.length; j++) {
+          const origin = STOPS[i];
+          const destination = STOPS[j];
+          if (!origin || !destination) continue;
           const result = calculatePricing({
-            origin: STOPS[i],
-            destination: STOPS[j],
+            origin,
+            destination,
             adults: 1,
             children: 0,
             infants: 0,

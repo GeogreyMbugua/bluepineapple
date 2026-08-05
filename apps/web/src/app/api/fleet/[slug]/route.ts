@@ -1,7 +1,7 @@
 import { NextRequest } from 'next/server';
 import { vesselService } from '@blue-pineapple/iam';
 
-export async function GET(request: NextRequest, { params }: { params: Promise<{ slug: string }> }) {
+export async function GET(_request: NextRequest, { params }: { params: Promise<{ slug: string }> }) {
   try {
     const { slug } = await params;
     const decodedSlug = decodeURIComponent(slug);
