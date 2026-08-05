@@ -19,6 +19,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       NODE_ENV: production
+      IS_GITHUB_PAGES: true
       NEXT_PUBLIC_API_URL: https://bluepineapple.pages.dev
       NEXT_PUBLIC_APP_URL: https://bluepineapple.pages.dev
       NEXT_PUBLIC_GOOGLE_MAPS_KEY: AIzaSyDummyKeyForMapsValidation123
