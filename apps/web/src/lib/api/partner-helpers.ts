@@ -1,7 +1,7 @@
 import { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
 import { auth } from '@clerk/nextjs/server';
-import type { AuthUser } from '@blue-pineapple/iam';
+import type { AuthUser, Role, Permission } from '@blue-pineapple/iam';
 import { userRepository } from '@blue-pineapple/database';
 
 export async function requirePartnerAuth(_req: NextRequest): Promise<AuthUser | Response> {
@@ -40,8 +40,8 @@ export async function requirePartnerAuth(_req: NextRequest): Promise<AuthUser | 
       firstName: dbUser.firstName ?? null,
       lastName: dbUser.lastName ?? null,
       status: dbUser.status,
-      roles: roles as any,
-      permissions: permissionKeys as any,
+      roles: roles as Role[],
+      permissions: permissionKeys as Permission[],
     };
 
     const hasPartnerRole = user.roles.some((role) => role === 'PARTNER');

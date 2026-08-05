@@ -1,5 +1,5 @@
 import { auth } from '@clerk/nextjs/server';
-import type { AuthUser } from '@blue-pineapple/iam';
+import type { AuthUser, Role, Permission } from '@blue-pineapple/iam';
 import { AuthorizationError } from '@/services/api/errors';
 import { userRepository } from '@blue-pineapple/database';
 
@@ -27,8 +27,8 @@ function flattenUser(dbUser: Awaited<ReturnType<typeof userRepository.findByCler
     firstName: dbUser.firstName ?? null,
     lastName: dbUser.lastName ?? null,
     status: dbUser.status,
-    roles: roles as any,
-    permissions: permissionKeys as any,
+    roles: roles as Role[],
+    permissions: permissionKeys as Permission[],
   };
 }
 
