@@ -1,11 +1,5 @@
 import { v2 as cloudinary } from 'cloudinary';
 
-if (!process.env.CLOUDINARY_URL) {
-  throw new Error('CLOUDINARY_URL is not set');
-}
-
-cloudinary.config();
-
 export interface UploadResult {
   url: string;
   publicId: string;
@@ -14,7 +8,18 @@ export interface UploadResult {
   format: string;
 }
 
+function getCloudinaryConfig() {
+  const url = process.env.CLOUDINARY_URL;
+  if (!url) {
+    throw new Error('CLOUDINARY_URL is not set');
+  }
+  return url;
+}
+
 export async function uploadToCloudinary(file: File | Buffer, folder = 'blue-pineapple'): Promise<UploadResult> {
+  getCloudinaryConfig();
+  cloudinary.config();
+
   let buffer: Buffer;
 
   if (file instanceof File) {
@@ -57,5 +62,7 @@ export async function uploadToCloudinary(file: File | Buffer, folder = 'blue-pin
 }
 
 export async function deleteFromCloudinary(publicId: string): Promise<void> {
+  getCloudinaryConfig();
+  cloudinary.config();
   await cloudinary.uploader.destroy(publicId);
 }
