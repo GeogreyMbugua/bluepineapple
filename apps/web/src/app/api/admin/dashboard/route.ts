@@ -31,7 +31,7 @@ export async function GET(request: NextRequest) {
     const recentActivity = recentBookings.map((booking) => ({
       id: booking.id,
       action: `New booking ${booking.bookingReference}`,
-      target: (booking.partner as any)?.user?.email ?? (booking.partner as any)?.companyName ?? 'Unknown',
+      target: booking.partner?.user?.email ?? booking.partner?.companyName ?? 'Unknown',
       time: formatTimeAgo(booking.createdAt),
       status: booking.status,
     }));

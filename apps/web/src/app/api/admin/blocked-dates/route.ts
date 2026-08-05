@@ -12,7 +12,7 @@ export async function GET(request: NextRequest) {
     const endDate = searchParams.get('endDate');
     const vesselId = searchParams.get('vesselId');
 
-    const where: any = {};
+    const where: Record<string, unknown> = {};
     if (startDate) {
       where.date = { ...where.date, gte: new Date(startDate + 'T00:00:00Z') };
     }

@@ -3,12 +3,25 @@
 import { useEffect, useState, useMemo } from "react";
 import Link from "next/link";
 import { ArrowLeft, Check } from "lucide-react";
-import { stops, calculateBooking, getTodayDate, type Stop } from "../_data/trip";
+import { calculateBooking, getTodayDate, type Stop } from "../_data/trip";
+
+type RouteStop = {
+  id: string;
+  name: string;
+  code: string;
+};
+
+type DepartureData = {
+  id: string;
+  departureDateTime: string;
+  availableCapacity: number;
+  route?: { stops: RouteStop[] };
+};
 
 type BookingStatus = "idle" | "loading" | "success" | "error";
 
 export default function BookFortJesusPage() {
-  const [departures, setDepartures] = useState<any[]>([]);
+  const [departures, setDepartures] = useState<DepartureData[]>([]);
   const [selectedDeparture, setSelectedDeparture] = useState<string>("");
   const [date, setDate] = useState(getTodayDate());
   const [adults, setAdults] = useState(1);
@@ -104,7 +117,7 @@ export default function BookFortJesusPage() {
           },
           totalGuests: adults + children + infants,
           totalAmount: summary.total,
-          pickupStopId: selectedDepartureData?.route?.stops?.find((s: any) => s.name === origin)?.id || null,
+           pickupStopId: selectedDepartureData?.route?.stops?.find((s) => s.name === origin)?.id || null,
           specialRequests: "",
           bookingGuests: [
             {

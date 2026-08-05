@@ -2,8 +2,32 @@ import { NextRequest, NextResponse } from 'next/server';
 import { Webhook } from 'svix';
 import { userRepository } from '@blue-pineapple/database';
 import { roleRepository } from '@blue-pineapple/database';
+import type { Prisma } from '@prisma/client';
 
 const CLERK_WEBHOOK_SECRET = process.env.CLERK_WEBHOOK_SECRET;
+
+type ClerkEmailAddress = {
+  email_address: string;
+  verification?: { status: string };
+};
+
+type ClerkPhoneNumber = {
+  phone_number: string;
+  verification?: { status: string };
+};
+
+type ClerkUser = {
+  id: string;
+  email_addresses: ClerkEmailAddress[];
+  phone_numbers: ClerkPhoneNumber[];
+  first_name: string | null;
+  last_name: string | null;
+};
+
+type ClerkWebhookEvent = {
+  type: string;
+  data: ClerkUser;
+};
 
 export async function POST(request: NextRequest) {
   if (!CLERK_WEBHOOK_SECRET) {
@@ -19,9 +43,9 @@ export async function POST(request: NextRequest) {
 
   const wh = new Webhook(CLERK_WEBHOOK_SECRET);
 
-  let event: any;
+  let event: ClerkWebhookEvent;
   try {
-    event = wh.verify(JSON.stringify(payload), svixHeaders);
+    event = wh.verify(JSON.stringify(payload), svixHeaders) as ClerkWebhookEvent;
   } catch {
     return NextResponse.json({ error: 'Invalid webhook signature' }, { status: 401 });
   }
@@ -50,9 +74,9 @@ export async function POST(request: NextRequest) {
   }
 }
 
-async function handleUserCreated(clerkUser: any) {
-  const email = clerkUser.email_addresses?.find((e: any) => e.verification?.status === 'verified')?.email_address;
-  const phone = clerkUser.phone_numbers?.find((p: any) => p.verification?.status === 'verified')?.phone_number;
+async function handleUserCreated(clerkUser: ClerkUser) {
+  const email = clerkUser.email_addresses?.find((e) => e.verification?.status === 'verified')?.email_address;
+  const phone = clerkUser.phone_numbers?.find((p) => p.verification?.status === 'verified')?.phone_number;
 
   const existingByEmail = email ? await userRepository.findByEmail(email) : null;
   const existingByPhone = phone ? await userRepository.findByPhone(phone) : null;
@@ -64,12 +88,12 @@ async function handleUserCreated(clerkUser: any) {
         clerkUserId: clerkUser.id,
         emailVerifiedAt: email ? new Date() : undefined,
         phoneVerifiedAt: phone ? new Date() : undefined,
-      } as any);
+      } as Prisma.UserUpdateInput);
     } else if (existing && existing.clerkUserId === clerkUser.id) {
       await userRepository.update(existing.id, {
         emailVerifiedAt: email ? new Date() : undefined,
         phoneVerifiedAt: phone ? new Date() : undefined,
-      } as any);
+      } as Prisma.UserUpdateInput);
     }
     return;
   }
@@ -86,7 +110,7 @@ async function handleUserCreated(clerkUser: any) {
     clerkUserId: clerkUser.id,
     emailVerifiedAt: email ? new Date() : undefined,
     phoneVerifiedAt: phone ? new Date() : undefined,
-  } as any);
+  } as Prisma.UserCreateInput);
 
   const partnerRole = await roleRepository.findByName('PARTNER');
   if (partnerRole) {
@@ -94,15 +118,15 @@ async function handleUserCreated(clerkUser: any) {
   }
 }
 
-async function handleUserUpdated(clerkUser: any) {
+async function handleUserUpdated(clerkUser: ClerkUser) {
   const dbUser = await userRepository.findByClerkUserId(clerkUser.id);
   if (!dbUser) {
     await handleUserCreated(clerkUser);
     return;
   }
 
-  const email = clerkUser.email_addresses?.find((e: any) => e.verification?.status === 'verified')?.email_address;
-  const phone = clerkUser.phone_numbers?.find((p: any) => p.verification?.status === 'verified')?.phone_number;
+  const email = clerkUser.email_addresses?.find((e) => e.verification?.status === 'verified')?.email_address;
+  const phone = clerkUser.phone_numbers?.find((p) => p.verification?.status === 'verified')?.phone_number;
 
   await userRepository.update(dbUser.id, {
     email: email ?? dbUser.email,
@@ -111,14 +135,14 @@ async function handleUserUpdated(clerkUser: any) {
     lastName: clerkUser.last_name ?? dbUser.lastName,
     emailVerifiedAt: email ? new Date() : dbUser.emailVerifiedAt,
     phoneVerifiedAt: phone ? new Date() : dbUser.phoneVerifiedAt,
-  } as any);
+  } as Prisma.UserUpdateInput);
 }
 
-async function handleUserDeleted(clerkUser: any) {
+async function handleUserDeleted(clerkUser: ClerkUser) {
   const dbUser = await userRepository.findByClerkUserId(clerkUser.id);
   if (dbUser) {
     await userRepository.update(dbUser.id, {
       status: 'SUSPENDED',
-    } as any);
+    } as Prisma.UserUpdateInput);
   }
 }

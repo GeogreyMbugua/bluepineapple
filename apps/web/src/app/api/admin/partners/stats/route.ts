@@ -27,7 +27,7 @@ export async function GET(request: NextRequest) {
       orderBy: { joinedAt: 'desc' },
     });
 
-    const partnerStats = partners.map((partner: any) => ({
+    const partnerStats = partners.map((partner) => ({
       id: partner.id,
       companyName: partner.companyName,
       email: partner.user?.email,
