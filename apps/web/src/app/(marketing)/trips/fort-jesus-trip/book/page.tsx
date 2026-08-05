@@ -3,7 +3,7 @@
 import { useEffect, useState, useMemo } from "react";
 import Link from "next/link";
 import { ArrowLeft, Check } from "lucide-react";
-import { calculateBooking, getTodayDate, type Stop } from "../_data/trip";
+import { stops, calculateBooking, getTodayDate, type Stop } from "../_data/trip";
 
 type RouteStop = {
   id: string;
@@ -41,7 +41,7 @@ export default function BookFortJesusPage() {
     idNumber: "",
   });
 
-  const [additionalGuests, setAdditionalGuests] = useState<{ fullName: string; phoneNumber: string }[]>([
+  const [additionalGuests, _setAdditionalGuests] = useState<{ fullName: string; phoneNumber: string }[]>([
     { fullName: "", phoneNumber: "" },
   ]);
 

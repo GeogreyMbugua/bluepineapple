@@ -1,5 +1,4 @@
 import Link from "next/link";
-import { trip } from "../_data/trip";
 
 export function FinalCta() {
   return (

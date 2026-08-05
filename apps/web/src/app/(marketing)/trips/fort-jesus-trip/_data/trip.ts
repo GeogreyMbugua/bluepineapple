@@ -1,4 +1,4 @@
-import { calculatePricing, formatKsh } from "../lib/pricing/engine";
+import { calculatePricing, formatKsh } from "../../../../../lib/pricing/engine";
 
 export const trip = {
   name: "Fort Jesus Historical Boat Tour",
@@ -143,7 +143,7 @@ export const tripDetails = [
   { label: "Vessel", value: "Big Boat" },
 ];
 
-export { formatKsh, getTodayDate } from "../lib/pricing/engine";
+export { formatKsh } from "../../../../../lib/pricing/engine";
 
 export function calculateBooking(
   origin: Stop,
