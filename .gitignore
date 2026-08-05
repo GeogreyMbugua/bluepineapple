@@ -18,3 +18,6 @@ packages/shared/.turbo
 .env.production
 
 .DS_Store
+
+nextjs-admin-dashboard/
+docs/Agents.Partner list.xlsx
