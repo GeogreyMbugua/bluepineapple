@@ -1,13 +1,7 @@
 import type { NextConfig } from 'next';
 
-const isGitHubPages = process.env.IS_GITHUB_PAGES === 'true';
-
 const nextConfig: NextConfig = {
   reactCompiler: true,
-  ...(isGitHubPages ? {
-    output: 'export',
-    trailingSlash: true,
-  } : {}),
   images: {
     unoptimized: true,
   },
