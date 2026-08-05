@@ -1,5 +1,6 @@
 {
-  "buildCommand": "pnpm run build",
-  "outputDirectory": ".next",
-  "installCommand": "pnpm install"
+  "buildCommand": "pnpm --filter @blue-pineapple/database run generate && pnpm --filter @blue-pineapple/web run build",
+  "outputDirectory": "apps/web/.next",
+  "installCommand": "pnpm install",
+  "framework": null
 }
