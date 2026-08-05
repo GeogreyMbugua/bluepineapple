@@ -27,6 +27,7 @@ jobs:
         run: |
           pnpm lint
           pnpm --filter @blue-pineapple/database run generate
+          mkdir -p apps/web/.next/types && echo 'export {}' > apps/web/.next/types/routes.d.ts
           pnpm --filter @blue-pineapple/iam run typecheck
           pnpm --filter @blue-pineapple/web run typecheck
           pnpm --filter @blue-pineapple/iam run test -- --run --silent
