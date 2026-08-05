@@ -1,4 +1,4 @@
 {
   "framework": "nextjs",
-  "buildCommand": "pnpm --filter @blue-pineapple/database run generate && pnpm --filter @blue-pineapple/web run build"
+  "outputDirectory": ".next"
 }
