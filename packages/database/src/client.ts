@@ -5,7 +5,7 @@ export { BookingStatus, VesselType } from '@prisma/client';
 
 const isProduction = process.env.NODE_ENV === 'production';
 
-const connectionLimit = isProduction ? 5 : 10;
+const connectionLimit = isProduction ? 1 : 10;
 
 const getDatabaseUrlWithLimit = (): string | undefined => {
   const url = process.env.DATABASE_URL;
