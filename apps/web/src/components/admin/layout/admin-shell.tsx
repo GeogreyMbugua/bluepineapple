@@ -3,10 +3,12 @@
 import { Sidebar } from './sidebar';
 import { Header } from './header';
 import { SidebarProvider } from './sidebar/sidebar-context';
+import { ProgressBar } from '@/components/admin/progress-bar';
 
 export function AdminShell({ children }: { children: React.ReactNode }) {
   return (
     <SidebarProvider>
+      <ProgressBar />
       <div className="flex min-h-screen bg-background">
         <Sidebar />
         <div className="w-full bg-surface-secondary">

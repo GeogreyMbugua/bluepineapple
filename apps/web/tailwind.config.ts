@@ -21,9 +21,22 @@ const config: Config = {
           deep: '#2F6690',
         },
         paper: '#FBF9F4',
+        cyan: {
+          DEFAULT: '#4FA8C9',
+          deep: '#2F6690',
+        },
       },
       fontFamily: {
         serif: ['var(--font-fraunces)', 'Georgia', 'serif'],
+      },
+      animation: {
+        progress: 'progress 1s ease-in-out infinite',
+      },
+      keyframes: {
+        progress: {
+          '0%': { transform: 'translateX(-100%)' },
+          '100%': { transform: 'translateX(100%)' },
+        },
       },
     },
   },
