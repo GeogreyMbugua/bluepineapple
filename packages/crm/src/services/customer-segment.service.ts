@@ -1,5 +1,4 @@
 import {
-  prisma,
   customerSegmentRepository,
   customerSegmentAssignmentRepository,
   customerTimelineRepository,

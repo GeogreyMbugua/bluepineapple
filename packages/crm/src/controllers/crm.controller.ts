@@ -5,7 +5,7 @@ import {
   customerTimelineService,
   customerRelationshipService,
 } from "../services";
-import { CustomerPolicy, SegmentPolicy } from "../policies";
+import { SegmentPolicy } from "../policies";
 
 export class CRMController {
   async createCustomer(ctx: { body: any; actorId?: string }) {

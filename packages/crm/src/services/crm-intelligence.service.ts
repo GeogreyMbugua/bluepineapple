@@ -124,7 +124,7 @@ export class CRMIntelligenceService {
     };
   }
 
-  async recalculateIntelligence(customerId: string, actorId?: string) {
+  async recalculateIntelligence(customerId: string, _actorId?: string) {
     const customer = await customerRepository.findById(customerId);
     if (!customer) {
       throw new Error("Customer not found");

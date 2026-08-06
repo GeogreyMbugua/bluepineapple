@@ -1,5 +1,4 @@
 import {
-  prisma,
   customerInteractionRepository,
   customerTimelineRepository,
 } from "@blue-pineapple/database";

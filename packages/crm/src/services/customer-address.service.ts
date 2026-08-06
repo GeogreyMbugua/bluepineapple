@@ -1,7 +1,6 @@
 import {
   prisma,
   customerAddressRepository,
-  customerTimelineRepository,
 } from "@blue-pineapple/database";
 import { auditLogger } from "@blue-pineapple/iam/audit/audit-logger";
 import { CustomerPolicy } from "../policies/crm.policies";

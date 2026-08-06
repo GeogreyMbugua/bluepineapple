@@ -1,5 +1,4 @@
 import {
-  prisma,
   customerRelationshipRepository,
   customerTimelineRepository,
 } from "@blue-pineapple/database";
@@ -87,7 +86,7 @@ export class CustomerRelationshipService {
     return { success: true };
   }
 
-  async deleteByCustomer(customerId: string, actorId?: string) {
+  async deleteByCustomer(customerId: string, _actorId?: string) {
     await customerRelationshipRepository.deleteByCustomer(customerId);
     return { success: true };
   }

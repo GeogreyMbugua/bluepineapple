@@ -1,5 +1,4 @@
 import {
-  prisma,
   customerTagRepository,
 } from "@blue-pineapple/database";
 import { auditLogger } from "@blue-pineapple/iam/audit/audit-logger";

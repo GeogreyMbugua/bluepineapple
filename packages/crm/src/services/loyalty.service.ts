@@ -1,5 +1,4 @@
 import {
-  prisma,
   loyaltyTierRepository,
   loyaltyAccountRepository,
   customerRepository,

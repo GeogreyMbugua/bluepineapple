@@ -1,7 +1,6 @@
 import {
   prisma,
   customerRepository,
-  customerContactRepository,
   customerTimelineRepository,
   customerTagRepository,
   customerSegmentAssignmentRepository,
@@ -263,7 +262,7 @@ export class CustomerService {
     type: any,
     isEmergency = false,
     isPrimary = false,
-    actorId?: string
+    _actorId?: string
   ) {
     const existing = await customerRelationshipRepository.findOneByUnique(
       customerId,

@@ -1,5 +1,4 @@
 import { prisma } from "@blue-pineapple/database";
-import { auditLogger } from "@blue-pineapple/iam/audit/audit-logger";
 
 export class CRMAuditService {
   async log(action: string, entityType: string, entityId: string, actorId?: string, details?: any) {

@@ -1,12 +1,9 @@
 import {
   customerPreferenceService,
   customerSegmentService,
-  customerTagService,
   customerInteractionService,
   customerDocumentService,
   customerConsentService,
-  customerRelationshipService,
-  customerTimelineService,
   loyaltyService,
   crmIntelligenceService,
 } from "../services";
