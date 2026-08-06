@@ -176,6 +176,7 @@ export class DepartureRepository {
     vesselId: string;
     departureDateTime: Date;
     totalCapacity: number;
+    availableCapacity?: number;
   }) {
     const id = `${data.routeId}-${data.departureDateTime.toISOString()}`;
     return prisma.departure.upsert({
@@ -189,7 +190,7 @@ export class DepartureRepository {
         departureDateTime: data.departureDateTime,
         totalCapacity: data.totalCapacity,
         bookedSeats: 0,
-        availableCapacity: data.totalCapacity,
+        availableCapacity: data.availableCapacity ?? data.totalCapacity,
         status: DepartureStatus.SCHEDULED,
       },
     });

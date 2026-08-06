@@ -314,6 +314,7 @@ export class DepartureService {
     vesselId: string;
     departureDateTime: Date;
     totalCapacity: number;
+    availableCapacity?: number;
   }) {
     return departureRepository.upsertForDateTime(params);
   }

@@ -136,6 +136,7 @@ export async function POST(request: NextRequest) {
       vesselId,
       departureDateTime,
       totalCapacity: 35,
+      availableCapacity: 20,
     });
 
     const existingBookings = await bookingService.getDepartureBookings(departure.id);
