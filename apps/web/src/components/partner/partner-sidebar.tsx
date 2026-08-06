@@ -3,9 +3,11 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import Image from 'next/image';
+import { useState } from 'react';
 import { PARTNER_NAV } from '@/config/navigation';
 import { publicPath } from '@/lib/paths';
 import { useSession } from '@/providers/session-provider';
+import { cn } from '@/lib/utils';
 
 interface PartnerSidebarProps {
   isOpen?: boolean;
@@ -15,10 +17,11 @@ interface PartnerSidebarProps {
 export function PartnerSidebar({ isOpen = false, onClose }: PartnerSidebarProps) {
   const pathname = usePathname();
   const { logout } = useSession();
+  const [isNavigating, setIsNavigating] = useState(false);
 
   const isActive = (href: string) => {
     if (href === '/partner') {
-      return pathname === href;
+      return pathname === href || pathname === '/partner/(dashboard)';
     }
     return pathname.startsWith(href);
   };
@@ -27,19 +30,23 @@ export function PartnerSidebar({ isOpen = false, onClose }: PartnerSidebarProps)
     await logout();
   };
 
+  const handleNavClick = () => {
+    if (onClose) onClose();
+    setIsNavigating(true);
+  };
+
   return (
     <>
       <aside
-        className={`
-          fixed inset-y-0 left-0 z-50 w-64 border-r border-stroke bg-white
-          transform transition-transform duration-300 ease-in-out
-          md:relative md:translate-x-0 md:z-auto
-          ${isOpen ? 'translate-x-0' : '-translate-x-full'}
-        `}
+        className={cn(
+          'fixed inset-y-0 left-0 z-50 w-64 border-r border-stroke bg-white transition-transform duration-300 ease-in-out',
+          'md:relative md:translate-x-0',
+          isOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0',
+        )}
       >
         <div className="p-6 border-b border-stroke">
-          <Link href="/partner" className="flex items-center gap-3 group" onClick={onClose}>
-            <Image src={publicPath("/brand/logo.png")} alt="Blue Pineapple" width={32} height={32} className="size-8" />
+          <Link href="/partner" className="flex items-center gap-3 group" onClick={handleNavClick}>
+            <Image src={publicPath('/brand/logo.png')} alt="Blue Pineapple" width={32} height={32} className="size-8" />
             <div>
               <h2 className="text-base font-semibold text-dark">Partner Portal</h2>
               <p className="text-[11px] text-dark-6 uppercase tracking-wider">Management</p>
@@ -60,12 +67,17 @@ export function PartnerSidebar({ isOpen = false, onClose }: PartnerSidebarProps)
                     <Link
                       key={item.href}
                       href={item.href}
-                      onClick={onClose}
-                      className={`flex items-center gap-2.5 px-3 py-2 text-sm font-medium transition-all duration-200 ${
+                      onClick={handleNavClick}
+                      aria-current={active ? 'page' : undefined}
+                      aria-busy={isNavigating}
+                      className={cn(
+                        'flex items-center gap-2.5 px-3 py-2 text-sm font-medium transition-all duration-200',
+                        'focus:outline-none focus:ring-2 focus:ring-cyan focus:ring-offset-2',
                         active
                           ? 'bg-cyan/10 text-primary-deep'
-                          : 'text-dark-5 hover:bg-muted hover:text-dark-4'
-                      }`}
+                          : 'text-dark-5 hover:bg-muted hover:text-dark-4',
+                        isNavigating && 'pointer-events-none opacity-50',
+                      )}
                     >
                       {active && (
                         <span className="w-1 h-4 bg-primary rounded-full shrink-0" />
@@ -98,6 +110,7 @@ export function PartnerSidebar({ isOpen = false, onClose }: PartnerSidebarProps)
         <div
           className="fixed inset-0 z-40 bg-black/50 md:hidden"
           onClick={onClose}
+          aria-hidden="true"
         />
       )}
     </>

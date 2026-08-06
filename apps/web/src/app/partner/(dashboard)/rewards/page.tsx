@@ -1,19 +1,15 @@
-'use client';
+import { getServerSession } from '@/lib/auth';
+import { getPartnerRewardSummary } from '@/lib/services/partner-dashboard.service';
+import { Skeleton } from '@/components/admin/ui/skeleton';
 
-import { useState, useEffect } from 'react';
+export const dynamic = 'force-dynamic';
 
-type RewardSummary = {
-  partnerId: string;
-  year: number;
-  bookingCount: number;
-  tier: string | null;
-  discountPercentage: number;
-  isRewarded: boolean;
-  rewardStatus: string | null;
-  voucherCode: string | null;
-  bookingsToNextTier: number;
-  nextTier: string | null;
-};
+const TIER_THRESHOLDS = [
+  { tier: 'PLATINUM', minBookings: 50, discountPercentage: 20 },
+  { tier: 'GOLD', minBookings: 30, discountPercentage: 15 },
+  { tier: 'SILVER', minBookings: 15, discountPercentage: 10 },
+  { tier: 'BRONZE', minBookings: 5, discountPercentage: 5 },
+];
 
 const TIER_LABELS: Record<string, { label: string; color: string }> = {
   PLATINUM: { label: 'Platinum', color: 'bg-purple-100 text-purple-800' },
@@ -26,33 +22,56 @@ function getTierColor(tier: string): string {
   return TIER_LABELS[tier]?.color ?? 'bg-gray-100 text-gray-600';
 }
 
-export default function PartnerRewardsPage() {
-  const [summary, setSummary] = useState<RewardSummary | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [currentYear] = useState(new Date().getFullYear());
+function RewardsSkeleton() {
+  return (
+    <div className="space-y-6">
+      <div>
+        <Skeleton className="h-8 w-48" />
+        <Skeleton className="mt-1 h-4 w-64" />
+      </div>
 
-  useEffect(() => {
-    void (async () => {
-      try {
-        const res = await fetch(`/api/partner/rewards?year=${currentYear}`);
-        if (res.ok) {
-          const json = await res.json();
-          setSummary(json.data);
-        }
-      } catch {
-        // Handle error
-      } finally {
-        setIsLoading(false);
-      }
-    })();
-  }, [currentYear]);
+      <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
+        {[1, 2, 3, 4].map((i) => (
+          <div key={i} className="border border-stroke bg-white p-6 shadow-1">
+            <Skeleton className="h-4 w-24" />
+            <Skeleton className="mt-2 h-8 w-20" />
+          </div>
+        ))}
+      </div>
 
-  if (isLoading) {
-    return <div className="text-dark-6">Loading rewards...</div>;
+      <div className="border border-stroke bg-white p-6 shadow-1">
+        <Skeleton className="h-5 w-48 mb-4" />
+        <Skeleton className="h-4 w-full mb-2" />
+      </div>
+
+      <div className="border border-stroke bg-white p-6 shadow-1">
+        <Skeleton className="h-5 w-32 mb-4" />
+        <div className="space-y-3">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <Skeleton key={i} className="h-12 w-full" />
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export default async function PartnerRewardsPage() {
+  const session = await getServerSession();
+  if (!session.user) {
+    return null;
   }
 
+  const currentYear = new Date().getFullYear();
+  const summary = await getPartnerRewardSummary(session.user.id, currentYear);
+
   if (!summary) {
-    return <div className="text-dark-6">No reward data available</div>;
+    return (
+      <div className="space-y-6">
+        <h1 className="text-3xl font-bold text-dark">Rewards</h1>
+        <p className="text-dark-6 mt-1">No reward data available</p>
+      </div>
+    );
   }
 
   const tierInfo = summary.tier ? TIER_LABELS[summary.tier] : null;
@@ -136,9 +155,4 @@ export default function PartnerRewardsPage() {
   );
 }
 
-const TIER_THRESHOLDS = [
-  { tier: 'PLATINUM' as const, minBookings: 50, discountPercentage: 20 },
-  { tier: 'GOLD' as const, minBookings: 30, discountPercentage: 15 },
-  { tier: 'SILVER' as const, minBookings: 15, discountPercentage: 10 },
-  { tier: 'BRONZE' as const, minBookings: 5, discountPercentage: 5 },
-];
+export { RewardsSkeleton };
