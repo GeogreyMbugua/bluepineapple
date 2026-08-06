@@ -10,10 +10,10 @@ export async function GET(request: NextRequest) {
 
   try {
     const { searchParams } = new URL(request.url);
-    const status = searchParams.get('status') || 'PENDING';
+    const status = searchParams.get('status') || 'ALL';
     const limit = parseInt(searchParams.get('limit') || '20', 10);
 
-    const bookings = await bookingService.searchBookings({ status: status as BookingStatus, limit });
+    const bookings = await bookingService.searchBookings({ status: status as BookingStatus | string, limit });
 
     const mapped: BookingRow[] = bookings.map((booking) => ({
       id: booking.id,

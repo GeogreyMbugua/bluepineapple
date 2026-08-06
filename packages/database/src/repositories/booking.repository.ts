@@ -66,9 +66,9 @@ export class BookingRepository {
     });
   }
 
-  async findByStatus(status: BookingStatus, limit = 100) {
+  async findByStatus(status: BookingStatus | undefined, limit = 100) {
     return prisma.booking.findMany({
-      where: { status },
+      where: status ? { status } : undefined,
       orderBy: { createdAt: "desc" },
       take: limit,
       include: {

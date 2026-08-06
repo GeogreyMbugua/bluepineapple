@@ -5,6 +5,7 @@ import { BookingsTableContent } from '@/components/admin/bookings/bookings-table
 import type { BookingRow } from '@/components/admin/types';
 
 const STATUS_FILTERS = [
+  { label: 'All', value: 'ALL' },
   { label: 'Pending', value: 'PENDING' },
   { label: 'Confirmed', value: 'CONFIRMED' },
   { label: 'Completed', value: 'COMPLETED' },
@@ -19,7 +20,7 @@ interface BookingsClientProps {
 
 export function BookingsClient({ initialBookings }: BookingsClientProps) {
   const [bookings, setBookings] = useState<BookingRow[]>(initialBookings);
-  const [activeStatus, setActiveStatus] = useState<BookingStatus>('PENDING');
+  const [activeStatus, setActiveStatus] = useState<BookingStatus>('ALL');
   const [isPending, startTransition] = useTransition();
 
   const loadBookings = useCallback(async (status: BookingStatus) => {

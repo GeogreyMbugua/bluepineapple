@@ -377,9 +377,9 @@ export class BookingService {
     auditService.logRoleAssigned(actorId ?? "system", id, "BOOKING_UPDATED");
   }
 
-  async searchBookings(input: { status?: BookingStatus; page?: number; limit?: number }) {
-    const status = input.status ?? "PENDING";
-    return bookingRepository.findByStatus(status, input.limit ?? 20);
+  async searchBookings(input: { status?: BookingStatus | string; page?: number; limit?: number }) {
+    const status = input.status === 'ALL' ? undefined : (input.status ?? undefined);
+    return bookingRepository.findByStatus(status as BookingStatus | undefined, input.limit ?? 20);
   }
 
   async getDepartureBookings(departureId: string) {

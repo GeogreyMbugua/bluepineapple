@@ -9,10 +9,10 @@ export interface GetBookingsOptions {
 
 export async function getAdminBookings(options: GetBookingsOptions = {}): Promise<BookingRow[]> {
   try {
-    const { status = 'PENDING', limit = 50 } = options;
+    const { status, limit = 50 } = options;
 
     const bookings = await bookingService.searchBookings({
-      status: status as BookingStatus,
+      status: status === 'ALL' ? undefined : status,
       limit,
     });
 

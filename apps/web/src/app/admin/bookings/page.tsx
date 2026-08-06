@@ -12,7 +12,7 @@ export default async function AdminBookingsPage() {
   }
 
   // Initial server-side hydration — eliminates client-side loading flash
-  const initialBookings = await getAdminBookings({ status: 'PENDING', limit: 50 });
+  const initialBookings = await getAdminBookings({ limit: 50 });
 
   return (
     <div className="space-y-6">
