@@ -1,39 +1,20 @@
-import { auth } from '@clerk/nextjs/server';
-import { userRepository } from '@blue-pineapple/database';
+import { getServerSession } from '@/lib/auth';
 import { ok } from '@/lib/api/route-helpers';
 
 export async function GET() {
   try {
-    const clerkSession = await auth();
-    const clerkUserId = clerkSession.userId;
+    const session = await getServerSession();
 
-    if (!clerkUserId) {
-      return ok({ user: null, expiresAt: null });
+    if (!session.user) {
+      return ok(null);
     }
-
-    const dbUser = await userRepository.findByClerkUserId(clerkUserId);
-    if (!dbUser) {
-      return ok({ user: null, expiresAt: null });
-    }
-
-    const roles = dbUser.roles.map((ur) => ur.role.name);
-    const permissions = Array.from(
-      new Set(
-        dbUser.roles.flatMap((ur) =>
-          ur.role.permissions.map((rp) => rp.permission.key)
-        )
-      )
-    );
 
     return ok({
-      id: dbUser.id,
-      email: dbUser.email ?? null,
-      phone: dbUser.phone ?? null,
-      roles,
-      permissions,
-      expiresAt: Date.now() + 3600 * 1000,
+      ...session.user,
+      expiresAt: session.expiresAt,
     });
   } catch {
-    return ok({ user: null, expiresAt: null });
+    return ok(null);
   }
 }
+

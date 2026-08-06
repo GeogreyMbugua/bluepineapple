@@ -36,7 +36,7 @@ export default function RootLayout({
       suppressHydrationWarning
     >
       <body className="min-h-full flex flex-col bg-background text-foreground">
-        <ClerkProvider clerkJSUrl={process.env.NEXT_PUBLIC_CLERK_JS}>
+        <ClerkProvider>
           <AppProviders>
             {children}
             <Toasts />

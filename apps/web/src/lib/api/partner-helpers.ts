@@ -1,49 +1,19 @@
-import { NextRequest } from 'next/server';
-import { NextResponse } from 'next/server';
-import { auth } from '@clerk/nextjs/server';
-import type { AuthUser, Role, Permission } from '@blue-pineapple/iam';
-import { userRepository } from '@blue-pineapple/database';
+import { NextRequest, NextResponse } from 'next/server';
+import type { AuthUser } from '@blue-pineapple/iam';
+import { getServerSession } from '@/lib/auth';
 
 export async function requirePartnerAuth(_req: NextRequest): Promise<AuthUser | Response> {
   try {
-    const clerkSession = await auth();
-    const clerkUserId = clerkSession.userId;
+    const session = await getServerSession();
 
-    if (!clerkUserId) {
+    if (!session.user) {
       return NextResponse.json(
         { error: { code: 'UNAUTHORIZED', message: 'Authentication required' } },
         { status: 401 }
       );
     }
 
-    const dbUser = await userRepository.findByClerkUserId(clerkUserId);
-    if (!dbUser) {
-      return NextResponse.json(
-        { error: { code: 'UNAUTHORIZED', message: 'User not found' } },
-        { status: 401 }
-      );
-    }
-
-    const roles = dbUser.roles.map((ur) => ur.role.name);
-    const permissionKeys = Array.from(
-      new Set(
-        dbUser.roles.flatMap((ur) =>
-          ur.role.permissions.map((rp) => rp.permission.key)
-        )
-      )
-    );
-
-    const user: AuthUser = {
-      id: dbUser.id,
-      email: dbUser.email ?? null,
-      phone: dbUser.phone ?? null,
-      firstName: dbUser.firstName ?? null,
-      lastName: dbUser.lastName ?? null,
-      status: dbUser.status,
-      roles: roles as Role[],
-      permissions: permissionKeys as Permission[],
-    };
-
+    const user = session.user;
     const hasPartnerRole = user.roles.some((role) => role === 'PARTNER');
     if (!hasPartnerRole) {
       return NextResponse.json(
@@ -60,3 +30,4 @@ export async function requirePartnerAuth(_req: NextRequest): Promise<AuthUser | 
     );
   }
 }
+

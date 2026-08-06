@@ -21,11 +21,9 @@ export default async function PartnerLoginPage() {
     if (sessionUser.roles.includes('PARTNER' as never)) {
       redirect('/partner');
     }
-    redirect('/unauthorized');
-  }
-
-  if (clerkUserId && !sessionUser) {
-    redirect('/unauthorized');
+    if (sessionUser.roles.includes('ADMIN' as never) || sessionUser.roles.includes('SUPER_ADMIN' as never)) {
+      redirect('/admin');
+    }
   }
 
   return (
@@ -47,3 +45,4 @@ export default async function PartnerLoginPage() {
     </div>
   );
 }
+

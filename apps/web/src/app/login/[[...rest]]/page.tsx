@@ -18,16 +18,12 @@ export default async function AdminLoginPage() {
   const clerkUserId = clerkSession.userId;
 
   if (sessionUser && clerkUserId) {
-    if (sessionUser.roles.includes('PARTNER' as never)) {
-      redirect('/partner');
-    }
     if (sessionUser.roles.includes('ADMIN' as never) || sessionUser.roles.includes('SUPER_ADMIN' as never)) {
       redirect('/admin');
     }
-  }
-
-  if (clerkUserId && !sessionUser) {
-    redirect('/unauthorized');
+    if (sessionUser.roles.includes('PARTNER' as never)) {
+      redirect('/partner');
+    }
   }
 
   return (
@@ -49,3 +45,4 @@ export default async function AdminLoginPage() {
     </div>
   );
 }
+
