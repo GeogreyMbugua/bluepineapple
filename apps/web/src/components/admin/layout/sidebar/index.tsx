@@ -3,7 +3,7 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { useMemo, useEffect, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { buildNavData, getIconComponent, type NavItem } from './data';
 import { ArrowLeftIcon } from './icons';
 import { MenuItem } from './menu-item';
@@ -14,25 +14,26 @@ import { cn } from '@/lib/utils';
 export function Sidebar() {
   const pathname = usePathname();
   const { setIsOpen, isOpen, isMobile, toggleSidebar } = useSidebarContext();
-  const [expandedItems, setExpandedItems] = useState<string[]>([]);
+  const [manuallyExpanded, setManuallyExpanded] = useState<string[]>([]);
   const { user } = useSession();
 
   const navData = useMemo(() => buildNavData(user), [user]);
 
   const toggleExpanded = (title: string) => {
-    setExpandedItems((prev) => (prev.includes(title) ? prev.filter((t) => t !== title) : [...prev, title]));
+    setManuallyExpanded((prev) => (prev.includes(title) ? prev.filter((t) => t !== title) : [...prev, title]));
   };
 
-  useEffect(() => {
+  const expandedItems = useMemo(() => {
+    const expanded = new Set(manuallyExpanded);
     for (const section of navData) {
       for (const item of section.items) {
         if (item.items?.some((subItem) => subItem.href === pathname)) {
-          setExpandedItems((prev) => (prev.includes(item.title) ? prev : [...prev, item.title]));
-          return;
+          expanded.add(item.title);
         }
       }
     }
-  }, [pathname, navData]);
+    return Array.from(expanded);
+  }, [manuallyExpanded, pathname, navData]);
 
   const renderItem = (item: NavItem) => {
     const hasSubItems = item.items && item.items.length > 0;

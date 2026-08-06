@@ -130,7 +130,7 @@ export default async function AdminDashboardPage() {
           <p className="mt-1 text-sm text-dark-6">Select a date to view departures and bookings</p>
         </div>
         <div className="p-4 sm:p-6">
-          <FortJesusCalendar data={tripCalendar as any} />
+          <FortJesusCalendar data={tripCalendar} />
         </div>
       </div>
     </div>

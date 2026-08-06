@@ -73,7 +73,9 @@ export async function getServerSession(): Promise<Session> {
             } as Prisma.UserUpdateInput);
 
             // ⛔ Never provision partner resources for admin accounts
-            const existingRoleNames = (existingUser as any).roles?.map((r: any) => r.role.name) ?? [];
+            // findByEmail returns plain User (no roles join); re-query with roles to check admin status
+            const userWithRoles = await userRepository.findByClerkUserId(clerkUserId);
+            const existingRoleNames = userWithRoles?.roles.map((ur) => ur.role.name) ?? [];
             if (!isAdminRoleSet(existingRoleNames)) {
               await ensurePartnerRole(existingUser.id);
               await ensurePartnerProfile(existingUser.id, fullName);

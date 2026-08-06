@@ -180,11 +180,13 @@ export async function getAdminTripCalendar(experienceSlug = 'fort-jesus', startS
         experience: departure.experience?.name ?? 'Unknown',
         experienceCategory: departure.experience?.category ?? null,
         durationMinutes: departure.experience?.durationMinutes ?? null,
-        defaultPrice: departure.experience?.defaultPrice ? Number(departure.experience.defaultPrice) : null,
+        defaultPrice: departure.experience?.defaultPrice
+          ? String(departure.experience.defaultPrice)
+          : null,
         currency: departure.experience?.currency ?? 'KES',
         route: departure.route?.name ?? 'Unknown',
         routeCode: departure.route?.code ?? null,
-        stops: departure.route?.stops ?? [],
+        stops: (departure.route?.stops ?? []).map((s) => ({ name: s.name, code: s.code ?? '' })),
         vessel: departure.vessel?.name ?? 'Unknown',
         vesselType: departure.vessel?.type ?? null,
         totalCapacity: departure.totalCapacity,
@@ -198,13 +200,13 @@ export async function getAdminTripCalendar(experienceSlug = 'fort-jesus', startS
           status: b.status,
           paymentStatus: b.paymentStatus,
           totalGuests: b.totalGuests,
-          totalAmount: Number(b.totalAmount),
+          totalAmount: String(b.totalAmount),
           currency: b.currency,
           source: b.source,
           specialRequests: b.specialRequests,
           createdAt: b.createdAt.toISOString(),
           partner: b.partner ? {
-            companyName: b.partner.companyName,
+            companyName: b.partner.companyName ?? '',
             contact: b.partner.user ? `${b.partner.user.firstName ?? ''} ${b.partner.user.lastName ?? ''}`.trim() : null,
             email: b.partner.user?.email ?? null,
           } : null,
@@ -255,7 +257,7 @@ export async function getAdminTripCalendar(experienceSlug = 'fort-jesus', startS
       departures: calendar,
       blockedDates: blockedDates.map((b) => ({
         date: b.date.toISOString().split('T')[0] ?? '',
-        reason: b.reason ?? undefined,
+        reason: b.reason ?? '',
       })),
     };
   } catch (error) {

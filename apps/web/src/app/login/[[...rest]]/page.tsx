@@ -38,6 +38,10 @@ export default async function AdminLoginPage() {
             elements: {
               rootBox: 'mx-auto w-full max-w-md',
               card: 'border border-stroke shadow-1',
+              // Admin portal: credentials only — hide all OAuth providers
+              socialButtonsBlockButton: 'hidden',
+              socialButtonsIconButton: 'hidden',
+              dividerRow: 'hidden',
             },
           }}
         />

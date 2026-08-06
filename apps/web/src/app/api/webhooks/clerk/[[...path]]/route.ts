@@ -133,7 +133,10 @@ async function handleUserCreated(clerkUser: ClerkUser) {
         phoneVerifiedAt: isPhoneVerified ? new Date() : existing.phoneVerifiedAt,
       } as Prisma.UserUpdateInput);
 
-      const existingRoleNames = (existing as any).roles?.map((r: any) => r.role.name) ?? [];
+      // findByEmail/findByPhone return plain User (no roles join).
+      // Re-query with the now-linked clerkUserId to get the full roles relation.
+      const linkedUser = await userRepository.findByClerkUserId(clerkUser.id);
+      const existingRoleNames = linkedUser?.roles.map((ur) => ur.role.name) ?? [];
 
       // ⛔ Never provision partner resources for admin accounts
       if (isAdminRoleSet(existingRoleNames)) {
