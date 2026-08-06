@@ -1,4 +1,4 @@
-import { partnerRepository, roleRepository, userRepository } from '@blue-pineapple/database';
+import { partnerRepository, userRepository } from '@blue-pineapple/database';
 
 /**
  * Generates a unique partner referral code with the format P-XXXXXX.
@@ -40,10 +40,7 @@ export async function ensurePartnerProfile(userId: string, name?: string): Promi
  * No-ops if the role is already present.
  */
 export async function ensurePartnerRole(userId: string): Promise<void> {
-  const partnerRole = await roleRepository.findByName('PARTNER');
-  if (partnerRole) {
-    await userRepository.assignRole(userId, partnerRole.name);
-  }
+  await userRepository.assignRole(userId, 'PARTNER');
 }
 
 /**

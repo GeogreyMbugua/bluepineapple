@@ -254,7 +254,6 @@ export async function getAdminTripCalendar(experienceSlug = 'fort-jesus', startS
 
     return {
       dailySummary,
-      departures: calendar,
       blockedDates: blockedDates.map((b) => ({
         date: b.date.toISOString().split('T')[0] ?? '',
         reason: b.reason ?? '',
@@ -262,6 +261,6 @@ export async function getAdminTripCalendar(experienceSlug = 'fort-jesus', startS
     };
   } catch (error) {
     console.error('[AdminDashboardService] getAdminTripCalendar error:', error);
-    return { dailySummary: [], departures: [], blockedDates: [] };
+    return { dailySummary: [], blockedDates: [] };
   }
 }

@@ -51,7 +51,6 @@ type CalendarData = {
     totalBookings: number;
     departures: Departure[];
   }>;
-  departures: Departure[];
   blockedDates: Array<{ date: string; reason: string }>;
 };
 

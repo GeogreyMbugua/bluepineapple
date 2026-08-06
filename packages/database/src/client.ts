@@ -5,27 +5,29 @@ export { BookingStatus, VesselType } from '@prisma/client';
 
 const isProduction = process.env.NODE_ENV === 'production';
 
-const getPrismaConfig = () => {
-  const baseConfig: Parameters<typeof PrismaClient<undefined>['constructor']>[0] = {
-    log: isProduction ? ['error', 'warn'] : ['query', 'error', 'warn'],
-  };
+const connectionLimit = isProduction ? 5 : 10;
 
+const getDatabaseUrlWithLimit = (): string | undefined => {
   const url = process.env.DATABASE_URL;
-  if (url) {
-    const hasConnectionLimit = url.includes('connection_limit=');
-    if (!hasConnectionLimit) {
-      const limit = isProduction ? 5 : 10;
-      const separator = url.includes('?') ? '&' : '?';
-      baseConfig.datasources = {
-        db: { url: `${url}${separator}connection_limit=${limit}` },
-      };
-    }
-  }
+  if (!url) return undefined;
+  if (url.includes('connection_limit=')) return undefined;
 
-  return baseConfig;
+  const separator = url.includes('?') ? '&' : '?';
+  return `${url}${separator}connection_limit=${connectionLimit}`;
 };
 
-const prismaClientSingleton = () => new PrismaClient(getPrismaConfig());
+const prismaClientSingleton = () => {
+  const dbUrl = getDatabaseUrlWithLimit();
+  if (dbUrl) {
+    return new PrismaClient({
+      log: isProduction ? ['error', 'warn'] : ['query', 'error', 'warn'],
+      datasources: { db: { url: dbUrl } },
+    });
+  }
+  return new PrismaClient({
+    log: isProduction ? ['error', 'warn'] : ['query', 'error', 'warn'],
+  });
+};
 
 declare global {
   // eslint-disable-next-line no-var

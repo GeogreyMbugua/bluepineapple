@@ -1,11 +1,12 @@
 import { auth, clerkClient } from '@clerk/nextjs/server';
 import type { AuthUser, Role, Permission } from '@blue-pineapple/iam';
 import { AuthorizationError } from '@/services/api/errors';
-import { userRepository } from '@blue-pineapple/database';
+import { userRepository, partnerRepository } from '@blue-pineapple/database';
 import type { Prisma } from '@blue-pineapple/database';
 import {
   ensurePartnerProfile,
   ensurePartnerRole,
+  generatePartnerCode,
   isAdminRoleSet,
 } from '@/lib/auth/partner-provisioning';
 
@@ -101,11 +102,18 @@ export async function getServerSession(): Promise<Session> {
         console.error('Error during auto-linking Clerk user in getServerSession:', linkingErr);
       }
     } else {
-      // If user exists and is a PARTNER, ensure partnerProfile exists
       const isPartner = dbUser.roles.some((r) => r.role.name === 'PARTNER');
       if (isPartner && !dbUser.partnerProfile) {
         const fullName = `${dbUser.firstName ?? ''} ${dbUser.lastName ?? ''}`.trim();
-        await ensurePartnerProfile(dbUser.id, fullName);
+        const partnerCode = await generatePartnerCode();
+        const companyName = fullName || `Partner ${partnerCode}`;
+        await partnerRepository.create({
+          user: { connect: { id: dbUser.id } },
+          partnerCode,
+          companyName,
+          commissionRate: 10,
+          status: 'ACTIVE',
+        });
       }
     }
 
