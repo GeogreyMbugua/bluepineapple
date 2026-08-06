@@ -1,6 +1,6 @@
 import { NextRequest } from 'next/server';
 import { requirePartnerAuth } from '@/lib/api/partner-helpers';
-import { bookingService, departureService } from '@blue-pineapple/iam';
+import { bookingService, departureService, partnerService } from '@blue-pineapple/iam';
 import { z } from 'zod';
 import type { PartnerBooking } from '@/components/admin/types';
 
@@ -38,7 +38,7 @@ export async function GET(request: NextRequest) {
 
   try {
     const user = result;
-    const partner = await (await import('@blue-pineapple/iam')).partnerService.findByUserId(user.id);
+    const partner = await partnerService.findByUserId(user.id);
 
     if (!partner) {
       return Response.json(
@@ -75,7 +75,7 @@ export async function POST(request: NextRequest) {
 
   try {
     const user = result;
-    const partner = await (await import('@blue-pineapple/iam')).partnerService.findByUserId(user.id);
+    const partner = await partnerService.findByUserId(user.id);
 
     if (!partner) {
       return Response.json(
@@ -90,9 +90,11 @@ export async function POST(request: NextRequest) {
     const dateStr = validated.departureDate;
     const departureDateTime = new Date(`${dateStr}T09:30:00`);
 
-    const defaultRoute = await (await import('@blue-pineapple/iam')).departureService.listActiveRoutes();
-    const defaultExperience = await (await import('@blue-pineapple/iam')).departureService.listActiveExperiences();
-    const defaultVessel = await (await import('@blue-pineapple/iam')).departureService.listActiveVessels();
+    const [defaultRoute, defaultExperience, defaultVessel] = await Promise.all([
+      departureService.listActiveRoutes(),
+      departureService.listActiveExperiences(),
+      departureService.listActiveVessels(),
+    ]);
 
     const routeId = defaultRoute[0]?.id;
     const experienceId = defaultExperience[0]?.id;
@@ -119,14 +121,19 @@ export async function POST(request: NextRequest) {
       totalCapacity: 35,
     });
 
-    const existingBookings = await (await import('@blue-pineapple/iam')).bookingService.getDepartureBookings(departure.id);
+    const existingBookings = await bookingService.getDepartureBookings(departure.id);
     const onlineBooked = existingBookings
       .filter((b: { source: string; totalGuests: number }) => b.source === 'PARTNER' || b.source === 'ONLINE')
       .reduce((sum: number, b: { totalGuests: number }) => sum + b.totalGuests, 0);
 
     if (onlineBooked + validated.totalGuests > 20) {
       return Response.json(
-        { error: { code: 'CAPACITY_EXCEEDED', message: `Only ${20 - onlineBooked} online seats remaining for this departure. Max 20 online bookings allowed.` } },
+        {
+          error: {
+            code: 'CAPACITY_EXCEEDED',
+            message: `Only ${20 - onlineBooked} online seats remaining for this departure. Max 20 online bookings allowed.`,
+          },
+        },
         { status: 409 }
       );
     }

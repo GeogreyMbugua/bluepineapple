@@ -2,8 +2,9 @@
 
 import { useState, useEffect, useMemo } from 'react';
 import { useToast } from '@/providers/toast-provider';
-import { notifyNewBooking } from '@/hooks/use-booking-notifications';
 import { calculatePricing, type Stop } from '@/lib/pricing';
+
+type StopOption = { id: string; name: string; code: string };
 
 type BookingFormData = {
   departureDate: string;
@@ -13,17 +14,23 @@ type BookingFormData = {
   specialRequests: string;
 };
 
+type BookingResult = {
+  reference: string;
+  date: string;
+  guests: number;
+  totalAmount: number;
+};
+
 interface PartnerBookingFormProps {
   onBookingCreated: () => void;
-  partnerName?: string;
 }
 
-export function PartnerBookingForm({ onBookingCreated, partnerName = 'Partner' }: PartnerBookingFormProps) {
-  const [stops, setStops] = useState<{ id: string; name: string; code: string }[]>([]);
+export function PartnerBookingForm({ onBookingCreated }: PartnerBookingFormProps) {
+  const [stops, setStops] = useState<StopOption[]>([]);
   const [isLoadingStops, setIsLoadingStops] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [createdBooking, setCreatedBooking] = useState<{ reference: string; date: string; guests: number; totalAmount: number } | null>(null);
+  const [createdBooking, setCreatedBooking] = useState<BookingResult | null>(null);
   const { addToast } = useToast();
 
   const [formData, setFormData] = useState<BookingFormData>({
@@ -58,7 +65,9 @@ export function PartnerBookingForm({ onBookingCreated, partnerName = 'Partner' }
   useEffect(() => {
     void (async () => {
       try {
-        const res = await fetch('/api/partner/trips/calendar?startDate=' + new Date().toISOString().split('T')[0], { cache: 'no-store' });
+        const res = await fetch('/api/partner/trips/calendar?startDate=' + new Date().toISOString().split('T')[0], {
+          cache: 'no-store',
+        });
         if (res.ok) {
           const json = await res.json();
           const firstDay = json.data?.dailySummary?.[0];
@@ -67,7 +76,7 @@ export function PartnerBookingForm({ onBookingCreated, partnerName = 'Partner' }
           }
         }
       } catch {
-        // Handle error
+        // Handle error silently
       } finally {
         setIsLoadingStops(false);
       }
@@ -78,6 +87,12 @@ export function PartnerBookingForm({ onBookingCreated, partnerName = 'Partner' }
     e.preventDefault();
     setIsSubmitting(true);
     setError(null);
+
+    if (!formData.pickupStopId) {
+      setError('Please select a pickup stop');
+      setIsSubmitting(false);
+      return;
+    }
 
     try {
       const totalAmount = pricingSummary?.total ?? 0;
@@ -111,15 +126,6 @@ export function PartnerBookingForm({ onBookingCreated, partnerName = 'Partner' }
       });
 
       addToast(`Booking created successfully! Reference: ${json.data?.bookingReference ?? ''}`, 'success');
-
-      notifyNewBooking({
-        id: json.data?.id ?? '',
-        bookingReference: json.data?.bookingReference ?? '',
-        partnerName,
-        totalGuests: formData.totalGuests,
-        totalAmount: bookingTotal,
-      });
-
       onBookingCreated();
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to create booking');
@@ -128,13 +134,20 @@ export function PartnerBookingForm({ onBookingCreated, partnerName = 'Partner' }
     }
   };
 
-  return (
-    <div className="border border-stroke bg-white shadow-1">
-      <div className="border-b border-stroke border-l-[3px] border-l-primary px-6 py-5">
-        <h2 className="text-xl font-bold text-dark">New Booking</h2>
-        <p className="text-xs text-dark-6 mt-1">Fort Jesus Hop-On Hop-Off • Daily 9:30 AM • Setting Sons</p>
-      </div>
+  const resetForm = () => {
+    setCreatedBooking(null);
+    setError(null);
+    setFormData({
+      departureDate: new Date().toISOString().split('T')[0] ?? '',
+      departureTime: '09:30',
+      pickupStopId: '',
+      totalGuests: 1,
+      specialRequests: '',
+    });
+  };
 
+  return (
+    <>
       {createdBooking ? (
         <div className="p-6">
           <div className="border border-green bg-green-light-6 px-4 py-3 text-sm text-green mb-4">
@@ -162,10 +175,7 @@ export function PartnerBookingForm({ onBookingCreated, partnerName = 'Partner' }
           </div>
           <button
             type="button"
-            onClick={() => {
-              setCreatedBooking(null);
-              setError(null);
-            }}
+            onClick={resetForm}
             className="px-4 py-2 bg-primary text-white text-sm font-medium hover:bg-primary-deep"
           >
             Create Another Booking
@@ -228,7 +238,7 @@ export function PartnerBookingForm({ onBookingCreated, partnerName = 'Partner' }
               min={1}
               max={20}
               value={formData.totalGuests}
-              onChange={(e) => setFormData({ ...formData, totalGuests: parseInt(e.target.value) || 1 })}
+              onChange={(e) => setFormData({ ...formData, totalGuests: Math.max(1, parseInt(e.target.value) || 1) })}
               className="w-full border border-stroke bg-white px-4 py-2 text-dark"
               required
             />
@@ -282,6 +292,6 @@ export function PartnerBookingForm({ onBookingCreated, partnerName = 'Partner' }
           </button>
         </form>
       )}
-    </div>
+    </>
   );
 }
