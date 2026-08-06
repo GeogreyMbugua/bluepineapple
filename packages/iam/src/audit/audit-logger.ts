@@ -44,8 +44,11 @@ export class AuditLogger {
     metadata: AdminActionMetadata,
     context: LogContext = {}
   ): Promise<void> {
+    if (!actorId || actorId === "system") {
+      return;
+    }
+
     try {
-      // Log as a custom admin log using a special marker in the metadata
       await authLogRepository.create({
         userId: actorId,
         event: "SESSION_REVOKED" as any,

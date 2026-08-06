@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { Button } from '@/components/admin/ui/button';
 import { Modal } from '@/components/admin/ui/modal';
 import { PartnerBookingForm } from '@/components/partner/partner-booking-form';
@@ -11,6 +12,7 @@ interface Props {
 
 export function BookingsPageHeader({ partnerName }: Props) {
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const router = useRouter();
 
   return (
     <>
@@ -30,7 +32,7 @@ export function BookingsPageHeader({ partnerName }: Props) {
         <PartnerBookingForm
           onBookingCreated={() => {
             setIsModalOpen(false);
-            window.location.href = '/partner/(dashboard)/bookings?refresh=1';
+            router.push('/partner/(dashboard)/bookings');
           }}
         />
       </Modal>

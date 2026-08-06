@@ -118,8 +118,8 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const pricePerGuest = Number(experience.defaultPrice ?? 0);
     const clientTotal = validated.totalAmount;
+    const pricePerGuest = Number(experience.defaultPrice ?? 0);
     const fallbackTotal = pricePerGuest * validated.totalGuests;
     const totalAmount = clientTotal && clientTotal > 0 ? clientTotal : fallbackTotal;
 
