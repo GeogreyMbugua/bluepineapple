@@ -1,56 +1,34 @@
-'use client';
+import { Suspense } from 'react';
+import { getServerSession } from '@/lib/auth';
+import { getAdminBookings } from '@/lib/services/admin-bookings.service';
+import { BookingsClient } from '@/components/admin/bookings/bookings-client';
 
-import { useState, useEffect, useCallback } from 'react';
-import { BookingsTableContent } from '@/components/admin/bookings/bookings-table-content';
-import type { BookingRow } from '@/components/admin/types';
+export const dynamic = 'force-dynamic';
 
-export default function AdminBookingsPage() {
-  const [bookings, setBookings] = useState<BookingRow[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+export default async function AdminBookingsPage() {
+  const session = await getServerSession();
+  if (!session.user) {
+    return null;
+  }
 
-  const loadBookings = useCallback(async () => {
-    try {
-      const res = await fetch('/api/admin/bookings', { cache: 'no-store' });
-      if (res.ok) {
-        const json = await res.json();
-        setBookings(json.data?.bookings || []);
-      }
-    } catch {
-      // Handle error
-    } finally {
-      setIsLoading(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    let cancelled = false;
-
-    async function init() {
-      await loadBookings();
-      if (cancelled) {
-        setIsLoading(false);
-      }
-    }
-
-    void init();
-    return () => { cancelled = true; };
-  }, [loadBookings]);
+  // Initial server-side hydration — eliminates client-side loading flash
+  const initialBookings = await getAdminBookings({ status: 'PENDING', limit: 50 });
 
   return (
     <div className="space-y-6">
       <div>
         <h1 className="text-3xl font-bold text-dark">Bookings</h1>
-        <p className="text-dark-6 mt-1">View and manage bookings</p>
+        <p className="mt-1 text-dark-6">View and manage bookings</p>
       </div>
-      {isLoading ? (
+      <Suspense fallback={
         <div className="space-y-3">
-          {[1, 2, 3].map((i) => (
-            <div key={i} className="h-16 bg-gray-100 animate-pulse" />
+          {Array.from({ length: 5 }).map((_, i) => (
+            <div key={i} className="h-16 animate-pulse bg-gray-100" />
           ))}
         </div>
-      ) : (
-        <BookingsTableContent bookings={bookings} onUpdate={loadBookings} />
-      )}
+      }>
+        <BookingsClient initialBookings={initialBookings} />
+      </Suspense>
     </div>
   );
 }
