@@ -81,7 +81,7 @@ export async function getServerSession(): Promise<Session> {
               await ensurePartnerProfile(existingUser.id, fullName);
             }
 
-            dbUser = await userRepository.findByClerkUserId(clerkUserId);
+            dbUser = userWithRoles;
           } else {
             const newUser = await userRepository.create({
               email: primaryEmail,
