@@ -1,32 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { Webhook } from 'svix';
-import { userRepository, roleRepository, partnerRepository } from '@blue-pineapple/database';
+import { userRepository } from '@blue-pineapple/database';
 import type { Prisma } from '@blue-pineapple/database';
-
-async function generatePartnerCode(): Promise<string> {
-  const prefix = 'P-';
-  for (let i = 0; i < 5; i++) {
-    const randomCode = prefix + Math.random().toString(36).substring(2, 8).toUpperCase();
-    const existing = await partnerRepository.findByPartnerCode(randomCode);
-    if (!existing) return randomCode;
-  }
-  return prefix + Date.now().toString(36).toUpperCase();
-}
-
-async function ensurePartnerProfile(userId: string, name?: string) {
-  const existing = await partnerRepository.findByUserId(userId);
-  if (!existing) {
-    const partnerCode = await generatePartnerCode();
-    const companyName = name && name.trim() ? name.trim() : `Partner ${partnerCode}`;
-    await partnerRepository.create({
-      user: { connect: { id: userId } },
-      partnerCode,
-      companyName,
-      commissionRate: 10,
-      status: 'ACTIVE',
-    });
-  }
-}
+import {
+  ensurePartnerProfile,
+  ensurePartnerRole,
+  isAdminRoleSet,
+} from '@/lib/auth/partner-provisioning';
 
 const CLERK_WEBHOOK_SECRET = process.env.CLERK_WEBHOOK_SECRET;
 
@@ -55,27 +35,34 @@ type ClerkWebhookEvent = {
 
 export async function POST(request: NextRequest) {
   if (!CLERK_WEBHOOK_SECRET) {
+    console.error('[clerk-webhook] CLERK_WEBHOOK_SECRET is not configured');
     return NextResponse.json({ error: 'Webhook secret not configured' }, { status: 500 });
   }
 
-  const payload = await request.json();
+  // Read raw body as text for signature verification
+  const rawBody = await request.text();
+
+  // Correct Svix header names (svix-id / svix-signature / svix-timestamp)
   const svixHeaders = {
-    'svix-t-id': request.headers.get('svix-t-id') ?? '',
-    'svix-t-signature': request.headers.get('svix-t-signature') ?? '',
-    'svix-t-timestamp': request.headers.get('svix-t-timestamp') ?? '',
+    'svix-id': request.headers.get('svix-id') ?? '',
+    'svix-signature': request.headers.get('svix-signature') ?? '',
+    'svix-timestamp': request.headers.get('svix-timestamp') ?? '',
   };
 
   const wh = new Webhook(CLERK_WEBHOOK_SECRET);
-
   let event: ClerkWebhookEvent;
+
   try {
-    event = wh.verify(JSON.stringify(payload), svixHeaders) as ClerkWebhookEvent;
-  } catch {
+    event = wh.verify(rawBody, svixHeaders) as ClerkWebhookEvent;
+  } catch (err) {
+    console.error('[clerk-webhook] Signature verification failed:', err);
     return NextResponse.json({ error: 'Invalid webhook signature' }, { status: 401 });
   }
 
   const eventType = event.type;
   const clerkUser = event.data;
+
+  console.log(`[clerk-webhook] Processing event: ${eventType} for clerkId=${clerkUser.id}`);
 
   try {
     switch (eventType) {
@@ -89,45 +76,84 @@ export async function POST(request: NextRequest) {
         await handleUserDeleted(clerkUser);
         break;
       default:
+        console.log(`[clerk-webhook] Ignoring unhandled event type: ${eventType}`);
         return NextResponse.json({ message: `Event ${eventType} ignored` }, { status: 200 });
     }
 
     return NextResponse.json({ message: 'Webhook processed' }, { status: 200 });
-  } catch {
+  } catch (err) {
+    console.error(`[clerk-webhook] Error processing ${eventType}:`, err);
     return NextResponse.json({ error: 'Webhook processing failed' }, { status: 500 });
   }
 }
 
-async function handleUserCreated(clerkUser: ClerkUser) {
-  const email = clerkUser.email_addresses?.find((e) => e.verification?.status === 'verified')?.email_address
-    ?? clerkUser.email_addresses?.[0]?.email_address;
-  const phone = clerkUser.phone_numbers?.find((p) => p.verification?.status === 'verified')?.phone_number
-    ?? clerkUser.phone_numbers?.[0]?.phone_number;
-  const isEmailVerified = clerkUser.email_addresses?.some((e) => e.verification?.status === 'verified');
-  const isPhoneVerified = clerkUser.phone_numbers?.some((p) => p.verification?.status === 'verified');
+// ---------------------------------------------------------------------------
+// Helpers
+// ---------------------------------------------------------------------------
 
+function extractEmailAndPhone(clerkUser: ClerkUser) {
+  const email =
+    clerkUser.email_addresses?.find((e) => e.verification?.status === 'verified')?.email_address ??
+    clerkUser.email_addresses?.[0]?.email_address;
+  const phone =
+    clerkUser.phone_numbers?.find((p) => p.verification?.status === 'verified')?.phone_number ??
+    clerkUser.phone_numbers?.[0]?.phone_number;
+  const isEmailVerified = clerkUser.email_addresses?.some(
+    (e) => e.verification?.status === 'verified',
+  );
+  const isPhoneVerified = clerkUser.phone_numbers?.some(
+    (p) => p.verification?.status === 'verified',
+  );
+  return { email, phone, isEmailVerified, isPhoneVerified };
+}
+
+// ---------------------------------------------------------------------------
+// Event Handlers
+// ---------------------------------------------------------------------------
+
+async function handleUserCreated(clerkUser: ClerkUser) {
+  const { email, phone, isEmailVerified, isPhoneVerified } = extractEmailAndPhone(clerkUser);
+
+  const firstName = clerkUser.first_name ?? 'User';
+  const lastName = clerkUser.last_name ?? '';
+  const fullName = `${firstName} ${lastName}`.trim();
+
+  // Check if a DB user already exists (e.g. pre-seeded admin or prior OTP user)
   const existingByEmail = email ? await userRepository.findByEmail(email) : null;
   const existingByPhone = phone ? await userRepository.findByPhone(phone) : null;
 
   if (existingByEmail || existingByPhone) {
-    const existing = existingByEmail ?? existingByPhone;
-    if (existing && (!existing.clerkUserId || existing.clerkUserId === clerkUser.id)) {
+    const existing = existingByEmail ?? existingByPhone!;
+
+    // Only link if not already linked to a different Clerk account
+    if (!existing.clerkUserId || existing.clerkUserId === clerkUser.id) {
       await userRepository.update(existing.id, {
         clerkUserId: clerkUser.id,
         emailVerifiedAt: isEmailVerified ? new Date() : existing.emailVerifiedAt,
         phoneVerifiedAt: isPhoneVerified ? new Date() : existing.phoneVerifiedAt,
       } as Prisma.UserUpdateInput);
 
-      const fullName = `${clerkUser.first_name ?? ''} ${clerkUser.last_name ?? ''}`.trim();
+      const existingRoleNames = (existing as any).roles?.map((r: any) => r.role.name) ?? [];
+
+      // ⛔ Never provision partner resources for admin accounts
+      if (isAdminRoleSet(existingRoleNames)) {
+        console.log(
+          `[clerk-webhook] Skipping partner provisioning for admin user ${existing.id}`,
+        );
+        return;
+      }
+
+      await ensurePartnerRole(existing.id);
       await ensurePartnerProfile(existing.id, fullName);
+    } else {
+      console.warn(
+        `[clerk-webhook] User ${existing.id} already linked to a different Clerk account. Skipping.`,
+      );
     }
     return;
   }
 
-  const firstName = clerkUser.first_name ?? 'User';
-  const lastName = clerkUser.last_name ?? '';
-  const fullName = `${firstName} ${lastName}`.trim();
-
+  // Brand-new user — create DB record and provision as PARTNER
   const newUser = await userRepository.create({
     email: email ?? undefined,
     phone: phone ?? undefined,
@@ -139,24 +165,18 @@ async function handleUserCreated(clerkUser: ClerkUser) {
     phoneVerifiedAt: isPhoneVerified ? new Date() : undefined,
   } as Prisma.UserCreateInput);
 
-  const partnerRole = await roleRepository.findByName('PARTNER');
-  if (partnerRole) {
-    await userRepository.assignRole(newUser.id, partnerRole.name);
-  }
-
+  await ensurePartnerRole(newUser.id);
   await ensurePartnerProfile(newUser.id, fullName);
+
+  console.log(`[clerk-webhook] Created new PARTNER user ${newUser.id} for clerkId=${clerkUser.id}`);
 }
 
 async function handleUserUpdated(clerkUser: ClerkUser) {
-  let dbUser = await userRepository.findByClerkUserId(clerkUser.id);
-  
-  const email = clerkUser.email_addresses?.find((e) => e.verification?.status === 'verified')?.email_address
-    ?? clerkUser.email_addresses?.[0]?.email_address;
-  const phone = clerkUser.phone_numbers?.find((p) => p.verification?.status === 'verified')?.phone_number
-    ?? clerkUser.phone_numbers?.[0]?.phone_number;
-  const isEmailVerified = clerkUser.email_addresses?.some((e) => e.verification?.status === 'verified');
-  const isPhoneVerified = clerkUser.phone_numbers?.some((p) => p.verification?.status === 'verified');
+  const { email, phone, isEmailVerified, isPhoneVerified } = extractEmailAndPhone(clerkUser);
 
+  let dbUser = await userRepository.findByClerkUserId(clerkUser.id);
+
+  // If not found by clerkUserId, try to link by email
   if (!dbUser && email) {
     const existingByEmail = await userRepository.findByEmail(email);
     if (existingByEmail) {
@@ -167,6 +187,7 @@ async function handleUserUpdated(clerkUser: ClerkUser) {
     }
   }
 
+  // Still no record — treat as a new user creation
   if (!dbUser) {
     await handleUserCreated(clerkUser);
     return;
@@ -181,8 +202,13 @@ async function handleUserUpdated(clerkUser: ClerkUser) {
     phoneVerifiedAt: isPhoneVerified ? new Date() : dbUser.phoneVerifiedAt,
   } as Prisma.UserUpdateInput);
 
-  const fullName = `${clerkUser.first_name ?? dbUser.firstName ?? ''} ${clerkUser.last_name ?? dbUser.lastName ?? ''}`.trim();
-  await ensurePartnerProfile(dbUser.id, fullName);
+  // Keep partner profile name in sync — only for non-admin users
+  const roleNames = dbUser.roles?.map((r) => r.role.name) ?? [];
+  if (!isAdminRoleSet(roleNames)) {
+    const fullName =
+      `${clerkUser.first_name ?? dbUser.firstName ?? ''} ${clerkUser.last_name ?? dbUser.lastName ?? ''}`.trim();
+    await ensurePartnerProfile(dbUser.id, fullName);
+  }
 }
 
 async function handleUserDeleted(clerkUser: ClerkUser) {
@@ -191,5 +217,6 @@ async function handleUserDeleted(clerkUser: ClerkUser) {
     await userRepository.update(dbUser.id, {
       status: 'SUSPENDED',
     } as Prisma.UserUpdateInput);
+    console.log(`[clerk-webhook] Suspended user ${dbUser.id} for clerkId=${clerkUser.id}`);
   }
 }
