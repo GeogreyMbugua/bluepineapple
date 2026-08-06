@@ -11,7 +11,7 @@ export function MarketingShell({ variant, children }: MarketingShellProps) {
   return (
     <div className="bg-muted min-h-screen">
       <LenisScroll />
-      <Navbar variant={variant} />
+      {variant !== 'parent' && <Navbar variant={variant} />}
       {children}
       <Footer />
     </div>

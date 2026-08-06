@@ -47,6 +47,7 @@ export function SessionProvider({ children }: { readonly children: ReactNode }) 
   }, []);
 
   const handleLogout = async () => {
+    const isPartnerUser = user?.roles?.includes('PARTNER');
     try {
       await logout();
     } catch {
@@ -59,7 +60,11 @@ export function SessionProvider({ children }: { readonly children: ReactNode }) 
     }
     setUser(null);
     setExpiresAt(null);
-    router.push('/login');
+    if (isPartnerUser) {
+      router.push('/partner/login');
+    } else {
+      router.push('/login');
+    }
   };
 
   const value: SessionContextValue = {
