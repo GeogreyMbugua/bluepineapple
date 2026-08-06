@@ -1,6 +1,6 @@
 import { KPICard } from '@/components/admin/kpi-card';
 import { CalendarIcon, HandshakeIcon, UserIcon, TrendingUpIcon } from '@/components/admin/icons';
-import { FortJesusCalendar } from '@/components/admin/fort-jesus-calendar';
+import { WaterTaxiSchedule } from '@/components/admin/water-taxi-schedule';
 import { getServerSession } from '@/lib/auth';
 import {
   getAdminDashboardData,
@@ -126,11 +126,11 @@ export default async function AdminDashboardPage() {
 
       <div className="border border-stroke bg-white shadow-1">
         <div className="border-b border-stroke border-l-[3px] border-l-primary px-6 py-5">
-          <h2 className="text-2xl font-bold text-dark">Fort Jesus Calendar</h2>
-          <p className="mt-1 text-sm text-dark-6">Select a date to view departures and bookings</p>
+          <h2 className="text-2xl font-bold text-dark">Water Taxi Schedule</h2>
+          <p className="mt-1 text-sm text-dark-6">Select a date to view active departures and bookings</p>
         </div>
         <div className="p-4 sm:p-6">
-          <FortJesusCalendar data={tripCalendar} />
+          <WaterTaxiSchedule data={tripCalendar} />
         </div>
       </div>
     </div>
