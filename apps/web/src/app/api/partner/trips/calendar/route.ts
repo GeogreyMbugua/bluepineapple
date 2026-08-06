@@ -11,8 +11,21 @@ export async function GET(request: NextRequest) {
     const startDate = searchParams.get('startDate') || new Date().toISOString().split('T')[0];
     const endDate = searchParams.get('endDate') || new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
 
+    const experience = await prisma.experience.findUnique({
+      where: { slug: 'fort-jesus', isActive: true },
+      select: { id: true },
+    });
+
+    if (!experience) {
+      return Response.json(
+        { error: { code: 'NOT_FOUND', message: 'Fort Jesus experience not configured' } },
+        { status: 404 }
+      );
+    }
+
     const departures = await prisma.departure.findMany({
       where: {
+        experienceId: experience.id,
         departureDateTime: {
           gte: new Date(startDate + 'T00:00:00Z'),
           lt: new Date(endDate + 'T23:59:59Z'),

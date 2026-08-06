@@ -1,6 +1,7 @@
 import { NextRequest } from 'next/server';
 import { requirePartnerAuth } from '@/lib/api/partner-helpers';
 import { bookingService, departureService, partnerService } from '@blue-pineapple/iam';
+import { prisma } from '@blue-pineapple/database';
 import { z } from 'zod';
 import type { PartnerBooking } from '@/components/admin/types';
 
@@ -90,32 +91,41 @@ export async function POST(request: NextRequest) {
     const dateStr = validated.departureDate;
     const departureDateTime = new Date(`${dateStr}T09:30:00`);
 
-    const [defaultRoute, defaultExperience, defaultVessel] = await Promise.all([
-      departureService.listActiveRoutes(),
-      departureService.listActiveExperiences(),
-      departureService.listActiveVessels(),
-    ]);
+    const experience = await prisma.experience.findUnique({
+      where: { slug: 'fort-jesus', isActive: true },
+      select: { id: true, defaultPrice: true },
+    });
 
-    const routeId = defaultRoute[0]?.id;
-    const experienceId = defaultExperience[0]?.id;
-    const vesselId = defaultVessel[0]?.id;
-
-    if (!routeId || !experienceId || !vesselId) {
+    if (!experience) {
       return Response.json(
-        { error: { code: 'NOT_FOUND', message: 'No active route, experience, or vessel configured' } },
+        { error: { code: 'NOT_FOUND', message: 'Fort Jesus experience not configured' } },
         { status: 404 }
       );
     }
 
-    const experience = defaultExperience[0];
-    const pricePerGuest = Number(experience?.defaultPrice ?? 0);
+    const [defaultRoute, defaultVessel] = await Promise.all([
+      departureService.listActiveRoutes(),
+      departureService.listActiveVessels(),
+    ]);
+
+    const routeId = defaultRoute[0]?.id;
+    const vesselId = defaultVessel[0]?.id;
+
+    if (!routeId || !vesselId) {
+      return Response.json(
+        { error: { code: 'NOT_FOUND', message: 'No active route or vessel configured' } },
+        { status: 404 }
+      );
+    }
+
+    const pricePerGuest = Number(experience.defaultPrice ?? 0);
     const clientTotal = validated.totalAmount;
     const fallbackTotal = pricePerGuest * validated.totalGuests;
     const totalAmount = clientTotal && clientTotal > 0 ? clientTotal : fallbackTotal;
 
     const departure = await departureService.upsertDepartureForDateTime({
       routeId,
-      experienceId,
+      experienceId: experience.id,
       vesselId,
       departureDateTime,
       totalCapacity: 35,
