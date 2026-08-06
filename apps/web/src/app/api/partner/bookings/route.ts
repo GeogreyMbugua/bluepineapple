@@ -109,7 +109,14 @@ export async function POST(request: NextRequest) {
     ]);
 
     const routeId = defaultRoute[0]?.id;
-    const vesselId = defaultVessel[0]?.id;
+
+    const existingDeparture = await prisma.departure.findFirst({
+      where: { experienceId: experience.id },
+      orderBy: { departureDateTime: 'desc' },
+      select: { vesselId: true },
+    });
+
+    const vesselId = existingDeparture?.vesselId ?? defaultVessel[0]?.id;
 
     if (!routeId || !vesselId) {
       return Response.json(
