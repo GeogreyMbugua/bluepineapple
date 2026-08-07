@@ -2,6 +2,7 @@ import { prisma } from "../client";
 import {
   Booking,
   BookingStatus,
+  BookingSource,
   Prisma,
 } from "@prisma/client";
 
@@ -113,7 +114,7 @@ export class BookingRepository {
       where: {
         departureId,
         status: { not: BookingStatus.CANCELLED },
-        source: { in: ["PARTNER", "ONLINE"] },
+        source: { in: [BookingSource.PARTNER] },
       },
       _sum: { totalGuests: true },
     });
