@@ -108,6 +108,18 @@ export class BookingRepository {
     }
   }
 
+  async countOnlineBooked(departureId: string): Promise<number> {
+    const result = await prisma.booking.aggregate({
+      where: {
+        departureId,
+        status: { not: BookingStatus.CANCELLED },
+        source: { in: ["PARTNER", "ONLINE"] },
+      },
+      _sum: { totalGuests: true },
+    });
+    return Number(result._sum.totalGuests ?? 0);
+  }
+
   async findConflicting(
     departureId: string,
     guestId: string

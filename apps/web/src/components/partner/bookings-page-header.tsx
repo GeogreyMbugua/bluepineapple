@@ -32,7 +32,7 @@ export function BookingsPageHeader({ partnerName }: Props) {
         <PartnerBookingForm
           onBookingCreated={() => {
             setIsModalOpen(false);
-            router.push('/partner/(dashboard)/bookings');
+            router.push('/partner/bookings');
           }}
         />
       </Modal>

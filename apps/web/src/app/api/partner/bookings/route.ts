@@ -139,10 +139,7 @@ export async function POST(request: NextRequest) {
       availableCapacity: 20,
     });
 
-    const existingBookings = await bookingService.getDepartureBookings(departure.id);
-    const onlineBooked = existingBookings
-      .filter((b: { source: string; totalGuests: number }) => b.source === 'PARTNER' || b.source === 'ONLINE')
-      .reduce((sum: number, b: { totalGuests: number }) => sum + b.totalGuests, 0);
+    const onlineBooked = await bookingService.getOnlineBookedGuestCount(departure.id);
 
     if (onlineBooked + validated.totalGuests > 20) {
       return Response.json(

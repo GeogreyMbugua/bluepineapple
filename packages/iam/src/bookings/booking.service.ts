@@ -382,6 +382,10 @@ export class BookingService {
     return bookingRepository.findByStatus(status as BookingStatus | undefined, input.limit ?? 20);
   }
 
+  async getOnlineBookedGuestCount(departureId: string): Promise<number> {
+    return bookingRepository.countOnlineBooked(departureId);
+  }
+
   async getDepartureBookings(departureId: string) {
     return bookingRepository.findByDeparture(departureId);
   }
