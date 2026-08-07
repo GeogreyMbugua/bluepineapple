@@ -77,6 +77,7 @@ export interface PricingInput {
   readonly infants: number;
   readonly returnTicket: boolean;
   readonly discountRules?: readonly DiscountRule[];
+  readonly applyDiscounts?: boolean;
 }
 
 export interface PricingBreakdown {

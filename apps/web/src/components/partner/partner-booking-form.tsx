@@ -56,6 +56,7 @@ export function PartnerBookingForm({ onBookingCreated }: PartnerBookingFormProps
         children: 0,
         infants: 0,
         returnTicket: false,
+        applyDiscounts: false,
       });
     } catch {
       return null;
@@ -255,7 +256,7 @@ export function PartnerBookingForm({ onBookingCreated }: PartnerBookingFormProps
                   </p>
                 </div>
                 <div className="text-right">
-                  <p className="text-xs text-dark-6 uppercase tracking-wider">Base fare</p>
+                  <p className="text-xs text-dark-6 uppercase tracking-wider">Fare per guest</p>
                   <p className="text-sm font-medium text-dark mt-1">KES {pricingSummary.baseFare.toLocaleString()}</p>
                 </div>
               </div>

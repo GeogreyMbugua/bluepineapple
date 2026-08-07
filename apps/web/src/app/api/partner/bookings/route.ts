@@ -37,7 +37,6 @@ export async function POST(request: NextRequest) {
 
     const departureDateTime = new Date(`${departureDate}T${departureTime}`);
 
-    // Look up the experience and route to calculate pricing server-side
     const experience = await prisma.experience.findUnique({
       where: { slug: 'fort-jesus', isActive: true },
       select: { id: true },
@@ -72,9 +71,6 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Calculate expected total server-side for validation
-    // The client sends totalAmount based on per-stop pricing
-    // We validate it against our own calculation
     const routeStops = await prisma.routeStop.findMany({
       where: { routeId },
       orderBy: { sequence: 'asc' },
@@ -96,12 +92,12 @@ export async function POST(request: NextRequest) {
       children: 0,
       infants: 0,
       returnTicket: false,
+      applyDiscounts: false,
     });
 
     const expectedTotal = expectedPricing.total;
     const clientTotal = Number(totalAmount);
 
-    // Allow small rounding differences between client and server
     if (Math.abs(clientTotal - expectedTotal) > 1) {
       return NextResponse.json(
         {

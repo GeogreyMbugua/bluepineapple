@@ -79,14 +79,13 @@ export function calculatePassengerFares(
   childSubtotal: number;
   infantSubtotal: number;
 } {
-  // Pricing is per stop (flat base fare), not multiplied by adult count.
-  // Adults are covered by the base fare.
+  // Base fare is per stop, per paying guest.
   // Children pay 50% of the base fare each.
   // Infants travel free.
   const baseFare = returnTicket ? returnFare : oneWayFare;
   const childFare = Math.round(baseFare * CHILD_DISCOUNT_RATE);
 
-  const adultSubtotal = baseFare;
+  const adultSubtotal = baseFare * adults;
   const childSubtotal = childFare * children;
   const infantSubtotal = 0;
 
@@ -134,7 +133,17 @@ export function calculatePricing(input: PricingInput): PricingBreakdown {
     throw new Error(`${error.code}: ${error.message}`);
   }
 
-  const { origin, destination, adults, children, infants, returnTicket, discountRules } = input;
+  const {
+    origin,
+    destination,
+    adults,
+    children,
+    infants,
+    returnTicket,
+    discountRules,
+    applyDiscounts = true,
+  } = input;
+
   const stopCount = calculateStopCount(origin, destination);
   const oneWayFare = getOneWayFare(stopCount);
   const returnFare = getReturnFare(stopCount);
@@ -149,7 +158,9 @@ export function calculatePricing(input: PricingInput): PricingBreakdown {
   );
 
   const subtotal = adultSubtotal + childSubtotal + infantSubtotal;
-  const discount = calculateDiscount(adults, children, infants, discountRules);
+  const discount = applyDiscounts
+    ? calculateDiscount(adults, children, infants, discountRules)
+    : { rate: 0, amount: 0, appliedDiscounts: [] as string[] };
   const discountAmount = Math.round(subtotal * discount.rate);
   const discountedTotal = subtotal - discountAmount;
   const total = discountedTotal;

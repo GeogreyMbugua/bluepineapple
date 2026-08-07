@@ -84,8 +84,115 @@ describe("validatePricingInput", () => {
   });
 });
 
-describe("calculatePricing", () => {
-  it("calculates per-stop flat rate for one-way", () => {
+describe("calculatePricing - public bookings (discounts enabled)", () => {
+  it("applies couple discount for 2 adults", () => {
+    const result = calculatePricing({
+      origin: "Mtwapa Beach",
+      destination: "Fort Jesus",
+      adults: 2,
+      children: 0,
+      infants: 0,
+      returnTicket: false,
+      applyDiscounts: true,
+    });
+
+    expect(result.subtotal).toBe(6000); // 3000 * 2
+    expect(result.discountRate).toBe(0.1);
+    expect(result.discountAmount).toBe(600);
+    expect(result.total).toBe(5400);
+  });
+
+  it("applies group discount for 4+ passengers", () => {
+    const result = calculatePricing({
+      origin: "Mtwapa Beach",
+      destination: "Fort Jesus",
+      adults: 2,
+      children: 2,
+      infants: 0,
+      returnTicket: false,
+      applyDiscounts: true,
+    });
+
+    expect(result.subtotal).toBe(9000); // 3000*2 + 1500*2
+    expect(result.discountRate).toBe(0.2);
+    expect(result.discountAmount).toBe(1800);
+    expect(result.total).toBe(7200);
+  });
+
+  it("does not double-apply couple and group discounts", () => {
+    const result = calculatePricing({
+      origin: "Mtwapa Beach",
+      destination: "Fort Jesus",
+      adults: 2,
+      children: 2,
+      infants: 0,
+      returnTicket: false,
+      applyDiscounts: true,
+    });
+
+    expect(result.appliedDiscounts).toHaveLength(1);
+    expect(result.appliedDiscounts[0]).toBe("20% off group/family bookings (4+ paying passengers)");
+  });
+});
+
+describe("calculatePricing - partner bookings (no discounts)", () => {
+  it("does not apply couple discount when applyDiscounts is false", () => {
+    const result = calculatePricing({
+      origin: "Mtwapa Beach",
+      destination: "Fort Jesus",
+      adults: 2,
+      children: 0,
+      infants: 0,
+      returnTicket: false,
+      applyDiscounts: false,
+    });
+
+    expect(result.subtotal).toBe(6000); // 3000 * 2
+    expect(result.discountRate).toBe(0);
+    expect(result.discountAmount).toBe(0);
+    expect(result.total).toBe(6000);
+    expect(result.appliedDiscounts).toHaveLength(0);
+  });
+
+  it("does not apply group discount when applyDiscounts is false", () => {
+    const result = calculatePricing({
+      origin: "Mtwapa Beach",
+      destination: "Fort Jesus",
+      adults: 2,
+      children: 2,
+      infants: 0,
+      returnTicket: false,
+      applyDiscounts: false,
+    });
+
+    expect(result.subtotal).toBe(9000); // 3000*2 + 1500*2
+    expect(result.discountRate).toBe(0);
+    expect(result.discountAmount).toBe(0);
+    expect(result.total).toBe(9000);
+    expect(result.appliedDiscounts).toHaveLength(0);
+  });
+
+  it("still applies child pricing for partner bookings", () => {
+    const result = calculatePricing({
+      origin: "Mtwapa Beach",
+      destination: "Fort Jesus",
+      adults: 1,
+      children: 2,
+      infants: 0,
+      returnTicket: false,
+      applyDiscounts: false,
+    });
+
+    expect(result.baseFare).toBe(3000);
+    expect(result.oneWayChildFare).toBe(1500);
+    expect(result.adultSubtotal).toBe(3000);
+    expect(result.childSubtotal).toBe(3000); // 1500 * 2
+    expect(result.total).toBe(6000);
+  });
+});
+
+describe("calculatePricing - base scenarios", () => {
+  it("multiplies one-way base fare by adult count", () => {
     const result = calculatePricing({
       origin: "Mtwapa Beach",
       destination: "Fort Jesus",
@@ -97,24 +204,8 @@ describe("calculatePricing", () => {
 
     expect(result.stopCount).toBe(8);
     expect(result.baseFare).toBe(3000);
-    expect(result.adultSubtotal).toBe(3000); // flat, not multiplied by adults
-    expect(result.total).toBe(3000);
-  });
-
-  it("calculates child fare as 50% of base fare", () => {
-    const result = calculatePricing({
-      origin: "Mtwapa Beach",
-      destination: "Fort Jesus",
-      adults: 1,
-      children: 2,
-      infants: 0,
-      returnTicket: false,
-    });
-
-    expect(result.baseFare).toBe(3000);
-    expect(result.oneWayChildFare).toBe(1500);
-    expect(result.childSubtotal).toBe(3000); // 1500 * 2
-    expect(result.total).toBe(6000); // 3000 + 3000
+    expect(result.adultSubtotal).toBe(9000); // 3000 * 3
+    expect(result.total).toBe(9000);
   });
 
   it("infants are free", () => {
@@ -131,11 +222,11 @@ describe("calculatePricing", () => {
     expect(result.total).toBe(3000);
   });
 
-  it("return ticket uses return fare table", () => {
+  it("return ticket uses return fare table and multiplies by guests", () => {
     const result = calculatePricing({
       origin: "Mtwapa Beach",
       destination: "Fort Jesus",
-      adults: 1,
+      adults: 2,
       children: 0,
       infants: 0,
       returnTicket: true,
@@ -144,50 +235,7 @@ describe("calculatePricing", () => {
     expect(result.stopCount).toBe(8);
     expect(result.returnAdultFare).toBe(5000);
     expect(result.baseFare).toBe(5000);
-    expect(result.total).toBe(5000);
-  });
-
-  it("applies couple discount", () => {
-    const result = calculatePricing({
-      origin: "Mtwapa Beach",
-      destination: "Fort Jesus",
-      adults: 2,
-      children: 0,
-      infants: 0,
-      returnTicket: false,
-    });
-
-    expect(result.discountRate).toBe(0.1);
-    expect(result.discountAmount).toBe(300);
-    expect(result.total).toBe(2700);
-  });
-
-  it("applies group discount for 4+ passengers", () => {
-    const result = calculatePricing({
-      origin: "Mtwapa Beach",
-      destination: "Fort Jesus",
-      adults: 2,
-      children: 2,
-      infants: 0,
-      returnTicket: false,
-    });
-
-    expect(result.discountRate).toBe(0.2);
-    expect(result.discountAmount).toBe(1200);
-    expect(result.total).toBe(4800);
-  });
-
-  it("does not double-apply couple and group discounts", () => {
-    const result = calculatePricing({
-      origin: "Mtwapa Beach",
-      destination: "Fort Jesus",
-      adults: 2,
-      children: 2,
-      infants: 0,
-      returnTicket: false,
-    });
-
-    expect(result.appliedDiscounts).toHaveLength(1);
-    expect(result.appliedDiscounts[0]).toBe("20% off group/family bookings (4+ paying passengers)");
+    expect(result.adultSubtotal).toBe(10000); // 5000 * 2
+    expect(result.total).toBe(10000);
   });
 });
