@@ -189,7 +189,7 @@ export async function GET() {
       );
     }
 
-    const bookings = await bookingService.getPartnerBookingsList(session.user.id, 50, 0);
+    const bookings = await bookingService.getPartnerBookings(session.user.id, 50, 0);
     return NextResponse.json({ data: bookings });
   } catch (error) {
     console.error('Partner bookings fetch error:', error);
