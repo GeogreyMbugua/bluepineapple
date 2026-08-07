@@ -68,7 +68,7 @@ export async function getAdminDashboardData(): Promise<DashboardData> {
           createdAt: { gte: today },
           status: 'CONFIRMED',
         },
-        select: { departureId: true },
+        select: { departureId: true, totalGuests: true },
       }),
     ]);
 
