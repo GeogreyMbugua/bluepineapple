@@ -71,36 +71,30 @@ export function calculatePassengerFares(
   returnFare: number,
   adults: number,
   children: number,
-  _infants: number,
+  infants: number,
   returnTicket: boolean
 ): {
+  baseFare: number;
   adultSubtotal: number;
   childSubtotal: number;
   infantSubtotal: number;
 } {
-  const oneWayChildFare = Math.round(oneWayFare * CHILD_DISCOUNT_RATE);
-  const returnChildFare = Math.round(returnFare * CHILD_DISCOUNT_RATE);
+  // Pricing is per stop (flat base fare), not multiplied by adult count.
+  // Adults are covered by the base fare.
+  // Children pay 50% of the base fare each.
+  // Infants travel free.
+  const baseFare = returnTicket ? returnFare : oneWayFare;
+  const childFare = Math.round(baseFare * CHILD_DISCOUNT_RATE);
 
-  const adultUnitPrice = oneWayFare;
-  const childUnitPrice = oneWayChildFare;
-
-  const baseAdultSubtotal = adultUnitPrice * adults;
-  const baseChildSubtotal = childUnitPrice * children;
-
-  if (returnTicket) {
-    const returnAdultSubtotal = returnFare * adults;
-    const returnChildSubtotal = returnChildFare * children;
-    return {
-      adultSubtotal: returnAdultSubtotal,
-      childSubtotal: returnChildSubtotal,
-      infantSubtotal: 0,
-    };
-  }
+  const adultSubtotal = baseFare;
+  const childSubtotal = childFare * children;
+  const infantSubtotal = 0;
 
   return {
-    adultSubtotal: baseAdultSubtotal,
-    childSubtotal: baseChildSubtotal,
-    infantSubtotal: 0,
+    baseFare,
+    adultSubtotal,
+    childSubtotal,
+    infantSubtotal,
   };
 }
 
@@ -145,7 +139,7 @@ export function calculatePricing(input: PricingInput): PricingBreakdown {
   const oneWayFare = getOneWayFare(stopCount);
   const returnFare = getReturnFare(stopCount);
 
-  const { adultSubtotal, childSubtotal, infantSubtotal } = calculatePassengerFares(
+  const { baseFare, adultSubtotal, childSubtotal, infantSubtotal } = calculatePassengerFares(
     oneWayFare,
     returnFare,
     adults,
@@ -170,6 +164,7 @@ export function calculatePricing(input: PricingInput): PricingBreakdown {
     returnAdultFare: returnFare,
     returnChildFare: Math.round(returnFare * CHILD_DISCOUNT_RATE),
     returnInfantFare: 0,
+    baseFare,
     adultSubtotal,
     childSubtotal,
     infantSubtotal,

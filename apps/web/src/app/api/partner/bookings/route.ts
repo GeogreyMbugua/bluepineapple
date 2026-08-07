@@ -1,103 +1,50 @@
-import { NextRequest } from 'next/server';
-import { requirePartnerAuth } from '@/lib/api/partner-helpers';
-import { bookingService, departureService, partnerService } from '@blue-pineapple/iam';
+import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@blue-pineapple/database';
-import { z } from 'zod';
-import type { PartnerBooking } from '@/components/admin/types';
+import { getServerSession } from '@/lib/auth';
+import { bookingService } from '@blue-pineapple/iam';
+import { departureService } from '@blue-pineapple/iam';
+import { calculatePricing, type Stop } from '@/lib/pricing/engine';
 
-const PartnerBookingSchema = z.object({
-  departureDate: z.string().min(1, 'Date is required'),
-  departureTime: z.string().optional(),
-  pickupStopId: z.string().uuid().optional().nullable(),
-  totalGuests: z.number().int().positive().max(20, 'Maximum 20 guests per online booking'),
-  totalAmount: z.number().nonnegative('Total amount cannot be negative').optional(),
-  guest: z
-    .object({
-      firstName: z.string().min(1).max(100),
-      lastName: z.string().min(1).max(100),
-      email: z.string().email().optional().nullable(),
-      phone: z.string().min(7).max(20).optional().nullable(),
-    })
-    .optional(),
-  specialRequests: z.string().max(2000).optional().nullable(),
-  source: z.enum(['PARTNER', 'DIRECT', 'ADMIN', 'HOTEL', 'CORPORATE']).optional(),
-  bookingGuests: z
-    .array(
-      z.object({
-        fullName: z.string().min(1).max(200),
-        idNumber: z.string().optional().nullable(),
-        phoneNumber: z.string().optional().nullable(),
-        isPrimary: z.boolean().default(false),
-      })
-    )
-    .optional(),
-});
-
-export async function GET(request: NextRequest) {
-  const result = await requirePartnerAuth(request);
-  if (result instanceof Response) return result;
-
-  try {
-    const user = result;
-    const partner = await partnerService.findByUserId(user.id);
-
-    if (!partner) {
-      return Response.json(
-        { error: { code: 'NOT_FOUND', message: 'Partner profile not found' } },
-        { status: 404 }
-      );
-    }
-
-    const bookings = await bookingService.getPartnerBookings(partner.id, 50, 0);
-
-    const mapped: PartnerBooking[] = bookings.map((booking) => ({
-      id: booking.id,
-      bookingReference: booking.bookingReference,
-      experience: booking.departure?.experience?.name ?? 'Unknown',
-      status: booking.status,
-      paymentStatus: booking.paymentStatus,
-      totalAmount: String(booking.totalAmount),
-      totalGuests: booking.totalGuests,
-      createdAt: booking.createdAt.toISOString(),
-    }));
-
-    return Response.json({ data: mapped, timestamp: new Date().toISOString() });
-  } catch {
-    return Response.json(
-      { error: { code: 'INTERNAL_ERROR', message: 'Failed to fetch bookings' } },
-      { status: 500 }
-    );
-  }
-}
+export const dynamic = 'force-dynamic';
 
 export async function POST(request: NextRequest) {
-  const result = await requirePartnerAuth(request);
-  if (result instanceof Response) return result;
-
   try {
-    const user = result;
-    const partner = await partnerService.findByUserId(user.id);
-
-    if (!partner) {
-      return Response.json(
-        { error: { code: 'NOT_FOUND', message: 'Partner profile not found' } },
-        { status: 404 }
+    const session = await getServerSession();
+    if (!session.user) {
+      return NextResponse.json(
+        { error: { code: 'UNAUTHORIZED', message: 'Authentication required' } },
+        { status: 401 }
       );
     }
 
     const body = await request.json();
-    const validated = PartnerBookingSchema.parse(body);
+    const {
+      departureDate,
+      departureTime,
+      pickupStopId,
+      totalGuests,
+      totalAmount,
+      specialRequests,
+      source = 'PARTNER',
+    } = body;
 
-    const dateStr = validated.departureDate;
-    const departureDateTime = new Date(`${dateStr}T09:30:00`);
+    if (!departureDate || !departureTime || !pickupStopId || !totalGuests) {
+      return NextResponse.json(
+        { error: { code: 'VALIDATION_ERROR', message: 'Missing required fields' } },
+        { status: 400 }
+      );
+    }
 
+    const departureDateTime = new Date(`${departureDate}T${departureTime}`);
+
+    // Look up the experience and route to calculate pricing server-side
     const experience = await prisma.experience.findUnique({
       where: { slug: 'fort-jesus', isActive: true },
-      select: { id: true, defaultPrice: true },
+      select: { id: true },
     });
 
     if (!experience) {
-      return Response.json(
+      return NextResponse.json(
         { error: { code: 'NOT_FOUND', message: 'Fort Jesus experience not configured' } },
         { status: 404 }
       );
@@ -119,16 +66,53 @@ export async function POST(request: NextRequest) {
     const vesselId = existingDeparture?.vesselId ?? defaultVessel[0]?.id;
 
     if (!routeId || !vesselId) {
-      return Response.json(
+      return NextResponse.json(
         { error: { code: 'NOT_FOUND', message: 'No active route or vessel configured' } },
         { status: 404 }
       );
     }
 
-    const clientTotal = validated.totalAmount;
-    const pricePerGuest = Number(experience.defaultPrice ?? 0);
-    const fallbackTotal = pricePerGuest * validated.totalGuests;
-    const totalAmount = clientTotal && clientTotal > 0 ? clientTotal : fallbackTotal;
+    // Calculate expected total server-side for validation
+    // The client sends totalAmount based on per-stop pricing
+    // We validate it against our own calculation
+    const routeStops = await prisma.routeStop.findMany({
+      where: { routeId },
+      orderBy: { sequence: 'asc' },
+      select: { name: true },
+    });
+
+    const pickupStop = await prisma.routeStop.findUnique({
+      where: { id: pickupStopId },
+      select: { name: true },
+    });
+
+    const origin = (pickupStop?.name ?? routeStops[0]?.name ?? 'Mtwapa Beach') as Stop;
+    const destination = 'Fort Jesus';
+
+    const expectedPricing = calculatePricing({
+      origin,
+      destination,
+      adults: totalGuests,
+      children: 0,
+      infants: 0,
+      returnTicket: false,
+    });
+
+    const expectedTotal = expectedPricing.total;
+    const clientTotal = Number(totalAmount);
+
+    // Allow small rounding differences between client and server
+    if (Math.abs(clientTotal - expectedTotal) > 1) {
+      return NextResponse.json(
+        {
+          error: {
+            code: 'PRICE_MISMATCH',
+            message: `Price mismatch. Expected KES ${expectedTotal}, got KES ${clientTotal}`,
+          },
+        },
+        { status: 400 }
+      );
+    }
 
     const departure = await departureService.upsertDepartureForDateTime({
       routeId,
@@ -141,12 +125,12 @@ export async function POST(request: NextRequest) {
 
     const onlineBooked = await bookingService.getOnlineBookedGuestCount(departure.id);
 
-    if (onlineBooked + validated.totalGuests > 20) {
-      return Response.json(
+    if (onlineBooked + totalGuests > 20) {
+      return NextResponse.json(
         {
           error: {
             code: 'CAPACITY_EXCEEDED',
-            message: `Only ${20 - onlineBooked} online seats remaining for this departure. Max 20 online bookings allowed.`,
+            message: `Only ${20 - onlineBooked} seats remaining for this departure`,
           },
         },
         { status: 409 }
@@ -155,42 +139,59 @@ export async function POST(request: NextRequest) {
 
     const booking = await bookingService.createBooking({
       departureId: departure.id,
-      partnerId: partner.id,
-      totalGuests: validated.totalGuests,
-      totalAmount,
-      guest: validated.guest,
-      specialRequests: validated.specialRequests,
-      source: validated.source ?? 'PARTNER',
-      pickupStopId: validated.pickupStopId ?? null,
-      bookingGuests: validated.bookingGuests ?? [],
+      partnerId: session.user.id,
+      totalGuests,
+      totalAmount: expectedTotal,
+      source: 'PARTNER',
+      specialRequests: specialRequests ?? null,
+      pickupStopId,
     });
 
-    return Response.json(
+    return NextResponse.json(
       {
         data: {
-          ...booking,
-          totalAmount: String(totalAmount),
+          bookingReference: booking.bookingReference,
+          totalAmount: expectedTotal,
+          departureId: departure.id,
         },
-        timestamp: new Date().toISOString(),
       },
       { status: 201 }
     );
   } catch (error) {
-    if (error instanceof z.ZodError) {
-      const message = error.issues?.[0]?.message || error.message || 'Validation failed';
-      return Response.json(
-        { error: { code: 'VALIDATION_ERROR', message } },
-        { status: 400 }
+    console.error('Partner booking creation error:', error);
+    return NextResponse.json(
+      {
+        error: {
+          code: 'INTERNAL_ERROR',
+          message: error instanceof Error ? error.message : 'Failed to create booking',
+        },
+      },
+      { status: 500 }
+    );
+  }
+}
+
+export async function GET() {
+  try {
+    const session = await getServerSession();
+    if (!session.user) {
+      return NextResponse.json(
+        { error: { code: 'UNAUTHORIZED', message: 'Authentication required' } },
+        { status: 401 }
       );
     }
-    if (error instanceof Error) {
-      return Response.json(
-        { error: { code: 'OPERATION_FAILED', message: error.message } },
-        { status: 400 }
-      );
-    }
-    return Response.json(
-      { error: { code: 'INTERNAL_ERROR', message: 'Failed to create booking' } },
+
+    const bookings = await bookingService.getPartnerBookingsList(session.user.id, 50, 0);
+    return NextResponse.json({ data: bookings });
+  } catch (error) {
+    console.error('Partner bookings fetch error:', error);
+    return NextResponse.json(
+      {
+        error: {
+          code: 'INTERNAL_ERROR',
+          message: 'Failed to fetch bookings',
+        },
+      },
       { status: 500 }
     );
   }

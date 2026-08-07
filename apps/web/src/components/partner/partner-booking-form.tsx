@@ -255,8 +255,8 @@ export function PartnerBookingForm({ onBookingCreated }: PartnerBookingFormProps
                   </p>
                 </div>
                 <div className="text-right">
-                  <p className="text-xs text-dark-6 uppercase tracking-wider">Price per guest</p>
-                  <p className="text-sm font-medium text-dark mt-1">KES {pricingSummary.oneWayAdultFare.toLocaleString()}</p>
+                  <p className="text-xs text-dark-6 uppercase tracking-wider">Base fare</p>
+                  <p className="text-sm font-medium text-dark mt-1">KES {pricingSummary.baseFare.toLocaleString()}</p>
                 </div>
               </div>
               <div className="mt-3 flex items-center justify-between border-t border-stroke pt-3">
@@ -267,7 +267,7 @@ export function PartnerBookingForm({ onBookingCreated }: PartnerBookingFormProps
                   </p>
                 </div>
                 <div className="text-right text-xs text-dark-6">
-                  {formData.totalGuests} guest{formData.totalGuests > 1 ? 's' : ''}
+                  {formData.totalGuests} guest{formData.totalGuests > 1 ? 's' : ''} · per-stop fare
                 </div>
               </div>
             </div>

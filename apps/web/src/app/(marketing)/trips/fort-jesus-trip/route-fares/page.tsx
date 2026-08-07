@@ -251,7 +251,7 @@ export default function RouteFaresPlanner() {
           <p className="text-xs font-semibold uppercase tracking-[0.12em] text-slate-500">Full fare table</p>
           <div className="mt-4 grid gap-6 sm:grid-cols-2">
             <div>
-              <h3 className="text-sm font-semibold text-slate-900 mb-3">One-way fares (per adult)</h3>
+              <h3 className="text-sm font-semibold text-slate-900 mb-3">One-way fares</h3>
               <ul className="divide-y divide-slate-100">
                 {fullOneWayFareTable.map((row) => (
                   <li key={row.count} className="flex items-center justify-between py-2.5 text-sm">
@@ -265,7 +265,7 @@ export default function RouteFaresPlanner() {
               </ul>
             </div>
             <div>
-              <h3 className="text-sm font-semibold text-slate-900 mb-3">Return fares (per adult)</h3>
+              <h3 className="text-sm font-semibold text-slate-900 mb-3">Return fares</h3>
               <ul className="divide-y divide-slate-100">
                 {fullReturnFareTable.map((row) => (
                   <li key={row.count} className="flex items-center justify-between py-2.5 text-sm">
@@ -280,7 +280,7 @@ export default function RouteFaresPlanner() {
             </div>
           </div>
           <p className="mt-4 text-xs leading-relaxed text-slate-500">
-            Fares shown are per adult. Children aged 5-15 pay half fare. Infants under 5 travel free. Discounts apply to
+            Fares shown are per stop. Children aged 5-15 pay half fare. Infants under 5 travel free. Discounts apply to
             the base fare before any return surcharge.
           </p>
         </div>

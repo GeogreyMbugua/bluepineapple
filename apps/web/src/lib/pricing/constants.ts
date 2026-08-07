@@ -89,6 +89,7 @@ export interface PricingBreakdown {
   readonly returnAdultFare: number;
   readonly returnChildFare: number;
   readonly returnInfantFare: number;
+  readonly baseFare: number;
   readonly adultSubtotal: number;
   readonly childSubtotal: number;
   readonly infantSubtotal: number;
