@@ -181,7 +181,12 @@ export class DepartureRepository {
     const id = `${data.routeId}-${data.departureDateTime.toISOString()}`;
     return prisma.departure.upsert({
       where: { id },
-      update: {},
+      update: {
+        experienceId: data.experienceId,
+        vesselId: data.vesselId,
+        totalCapacity: data.totalCapacity,
+        availableCapacity: data.availableCapacity ?? data.totalCapacity,
+      },
       create: {
         id,
         routeId: data.routeId,
