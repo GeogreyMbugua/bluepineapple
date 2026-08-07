@@ -56,7 +56,12 @@ export async function GET(request: NextRequest) {
     const calendar = departures.map((departure) => {
       const totalBooked = departure.bookings.reduce((sum, b) => sum + b.totalGuests, 0);
       const dateStr = departure.departureDateTime.toISOString().split('T')[0] ?? '';
-      const timeStr = departure.departureDateTime.toISOString().split('T')[1]?.substring(0, 5) ?? '00:00';
+      const timeStr = departure.departureDateTime.toLocaleTimeString('en-US', {
+        timeZone: 'Africa/Nairobi',
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: false,
+      });
       return {
         id: departure.id,
         date: dateStr,

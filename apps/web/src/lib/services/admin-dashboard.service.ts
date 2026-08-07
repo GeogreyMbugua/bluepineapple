@@ -295,6 +295,7 @@ export async function getAdminTripCalendar(
         departure.departureDateTime.toISOString().split('T')[0] ?? '';
       const timeStr =
         departure.departureDateTime.toLocaleTimeString('en-US', {
+          timeZone: 'Africa/Nairobi',
           hour: '2-digit',
           minute: '2-digit',
           hour12: false,

@@ -35,7 +35,9 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const departureDateTime = new Date(`${departureDate}T${departureTime}`);
+    // Fort Jesus water taxi departs at 09:30 EAT daily from Mtwapa Beach
+    // EAT is UTC+3, so 09:30 EAT = 06:30 UTC
+    const departureDateTime = new Date(`${departureDate}T06:30:00.000Z`);
 
     const experience = await prisma.experience.findUnique({
       where: { slug: 'fort-jesus', isActive: true },
