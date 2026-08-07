@@ -189,7 +189,16 @@ export async function GET() {
       );
     }
 
-    const bookings = await bookingService.getPartnerBookings(session.user.id, 50, 0);
+    const partnerProfile = await prisma.partnerProfile.findUnique({
+      where: { userId: session.user.id },
+      select: { id: true },
+    });
+
+    if (!partnerProfile) {
+      return NextResponse.json({ data: [] });
+    }
+
+    const bookings = await bookingService.getPartnerBookings(partnerProfile.id, 50, 0);
     return NextResponse.json({ data: bookings });
   } catch (error) {
     console.error('Partner bookings fetch error:', error);
