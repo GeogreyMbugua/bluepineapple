@@ -1,6 +1,7 @@
 import { NextRequest } from 'next/server';
 import { requireAdminAuth } from '@/lib/api/admin-helpers';
 import { userService } from '@blue-pineapple/iam';
+import { roleManagementService } from '@blue-pineapple/iam';
 import { CreateUserSchema } from '@blue-pineapple/iam';
 import { z } from 'zod';
 
@@ -80,7 +81,12 @@ export async function POST(request: NextRequest) {
       lastName: validated.lastName,
       email: validated.email,
       phone: validated.phone,
+      clerkUserId: validated.clerkUserId,
     });
+
+    if (validated.role) {
+      await roleManagementService.assignRole(userId, validated.role, result.adminId);
+    }
 
     return Response.json({ data: { id: userId }, timestamp: new Date().toISOString() }, { status: 201 });
   } catch (error) {

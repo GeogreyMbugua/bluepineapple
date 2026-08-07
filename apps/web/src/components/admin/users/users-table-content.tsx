@@ -6,13 +6,16 @@ import { Input } from '@/components/admin/ui/input';
 import { DataTable } from '@/components/admin/data-table';
 import type { ColumnDef } from '@/components/admin/types';
 import type { UserRow } from '@/components/admin/types';
+import { CreateUserModal } from '@/components/admin/users/create-user-modal';
 
 interface UsersTableContentProps {
   users: UserRow[];
+  onUpdate?: () => void;
 }
 
-export function UsersTableContent({ users }: UsersTableContentProps) {
+export function UsersTableContent({ users, onUpdate }: UsersTableContentProps) {
   const [searchQuery, setSearchQuery] = useState('');
+  const [showCreateModal, setShowCreateModal] = useState(false);
 
   const filteredUsers = useMemo(() => {
     if (!searchQuery.trim()) return users;
@@ -90,12 +93,21 @@ export function UsersTableContent({ users }: UsersTableContentProps) {
             className="pl-9"
           />
         </div>
-        <p className="text-sm text-dark-6">
-          Showing {filteredUsers.length} of {users.length} users
-        </p>
+        <div className="flex items-center gap-3">
+          <p className="text-sm text-dark-6">
+            Showing {filteredUsers.length} of {users.length} users
+          </p>
+          <Button onClick={() => setShowCreateModal(true)}>Create User</Button>
+        </div>
       </div>
 
       <DataTable data={filteredUsers} columns={userColumns} pageSize={10} />
+
+      <CreateUserModal
+        open={showCreateModal}
+        onClose={() => setShowCreateModal(false)}
+        onSuccess={onUpdate}
+      />
     </div>
   );
 }
