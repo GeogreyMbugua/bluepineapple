@@ -6,7 +6,8 @@ export interface DashboardKpis {
   activePartners: number;
   pendingPartners: number;
   todayBookings: number;
-  activeDepartures: number;
+  todayRevenue: number;
+  availableSeats: number;
 }
 
 export interface DashboardData {
@@ -34,29 +35,60 @@ export async function getAdminDashboardData(): Promise<DashboardData> {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
-    const [totalUsers, activePartners, pendingPartners, activeDepartures, todayBookings, recentBookings] =
-      await Promise.all([
-        prisma.user.count(),
-        prisma.partnerProfile.count({ where: { status: 'ACTIVE' } }),
-        prisma.partnerProfile.count({ where: { status: 'PENDING' } }),
-        prisma.departure.count({ where: { status: 'SCHEDULED' } }),
-        prisma.booking.count({ where: { createdAt: { gte: today } } }),
-        prisma.booking.findMany({
-          orderBy: { createdAt: 'desc' },
-          take: 10,
-          include: {
-            partner: { include: { user: true } },
-            departure: { include: { experience: true } },
-          },
-        }),
-      ]);
+    const [
+      totalUsers,
+      activePartners,
+      pendingPartners,
+      todayBookings,
+      todayRevenue,
+      recentBookings,
+      confirmedToday,
+    ] = await Promise.all([
+      prisma.user.count(),
+      prisma.partnerProfile.count({ where: { status: 'ACTIVE' } }),
+      prisma.partnerProfile.count({ where: { status: 'PENDING' } }),
+      prisma.booking.count({ where: { createdAt: { gte: today } } }),
+      prisma.booking.aggregate({
+        where: {
+          createdAt: { gte: today },
+          status: 'CONFIRMED',
+        },
+        _sum: { totalAmount: true },
+      }),
+      prisma.booking.findMany({
+        orderBy: { createdAt: 'desc' },
+        take: 10,
+        include: {
+          partner: { include: { user: true } },
+          departure: { include: { experience: true } },
+        },
+      }),
+      prisma.booking.findMany({
+        where: {
+          createdAt: { gte: today },
+          status: 'CONFIRMED',
+        },
+        select: { departureId: true },
+      }),
+    ]);
 
-    const recentActivity: DashboardActivity[] = recentBookings.map((booking) => ({
-      id: booking.id,
-      action: `New booking ${booking.bookingReference}`,
-      target: booking.partner?.user?.email ?? booking.partner?.companyName ?? 'Unknown',
-      time: formatTimeAgo(booking.createdAt),
-    }));
+    const recentActivity: DashboardActivity[] = recentBookings.map(
+      (booking) => ({
+        id: booking.id,
+        action: `New booking ${booking.bookingReference}`,
+        target:
+          booking.partner?.user?.email ??
+          booking.partner?.companyName ??
+          'Unknown',
+        time: formatTimeAgo(booking.createdAt),
+      }),
+    );
+
+    const totalGuestsConfirmedToday = confirmedToday.reduce(
+      (sum, b) => sum + (b as any).totalGuests,
+      0
+    );
+    const availableSeats = Math.max(0, 20 - totalGuestsConfirmedToday);
 
     return {
       kpis: {
@@ -64,19 +96,24 @@ export async function getAdminDashboardData(): Promise<DashboardData> {
         activePartners,
         pendingPartners,
         todayBookings,
-        activeDepartures,
+        todayRevenue: Number(todayRevenue._sum.totalAmount ?? 0),
+        availableSeats,
       },
       recentActivity,
     };
   } catch (error) {
-    console.error('[AdminDashboardService] getAdminDashboardData error:', error);
+    console.error(
+      '[AdminDashboardService] getAdminDashboardData error:',
+      error,
+    );
     return {
       kpis: {
         totalUsers: 0,
         activePartners: 0,
         pendingPartners: 0,
         todayBookings: 0,
-        activeDepartures: 0,
+        todayRevenue: 0,
+        availableSeats: 20,
       },
       recentActivity: [],
     };
@@ -111,7 +148,9 @@ export async function getAdminPartnerStats(): Promise<PartnerStatsRow[]> {
       userId: partner.userId,
       companyName: partner.companyName,
       email: partner.user?.email ?? null,
-      contactName: partner.user ? `${partner.user.firstName ?? ''} ${partner.user.lastName ?? ''}`.trim() : null,
+      contactName: partner.user
+        ? `${partner.user.firstName ?? ''} ${partner.user.lastName ?? ''}`.trim()
+        : null,
       status: partner.status as 'ACTIVE' | 'PENDING' | 'SUSPENDED' | 'REJECTED',
       joinedAt: partner.joinedAt.toISOString(),
       yearlyBookings: partner.bookings.length,
@@ -123,10 +162,18 @@ export async function getAdminPartnerStats(): Promise<PartnerStatsRow[]> {
   }
 }
 
-export async function getAdminTripCalendar(experienceSlug = 'fort-jesus', startStr?: string, endStr?: string) {
+export async function getAdminTripCalendar(
+  experienceSlug = 'fort-jesus',
+  startStr?: string,
+  endStr?: string,
+) {
   try {
     const startDate = startStr || new Date().toISOString().split('T')[0];
-    const endDate = endStr || new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+    const endDate =
+      endStr ||
+      new Date(Date.now() + 30 * 24 * 60 * 60 * 1000)
+        .toISOString()
+        .split('T')[0];
 
     const experience = await prisma.experience.findUnique({
       where: { slug: experienceSlug },
@@ -142,14 +189,44 @@ export async function getAdminTripCalendar(experienceSlug = 'fort-jesus', startS
         experienceId: experience?.id,
       },
       include: {
-        route: { select: { name: true, code: true, stops: { orderBy: { sequence: 'asc' }, select: { name: true, code: true } } } },
-        experience: { select: { name: true, category: true, durationMinutes: true, defaultPrice: true, currency: true } },
+        route: {
+          select: {
+            name: true,
+            code: true,
+            stops: {
+              orderBy: { sequence: 'asc' },
+              select: { name: true, code: true },
+            },
+          },
+        },
+        experience: {
+          select: {
+            name: true,
+            category: true,
+            durationMinutes: true,
+            defaultPrice: true,
+            currency: true,
+          },
+        },
         vessel: { select: { name: true, type: true, capacity: true } },
         bookings: {
           where: { status: { not: 'CANCELLED' } },
           include: {
-            partner: { include: { user: { select: { email: true, firstName: true, lastName: true } } } },
-            guest: { select: { firstName: true, lastName: true, email: true, phone: true } },
+            partner: {
+              include: {
+                user: {
+                  select: { email: true, firstName: true, lastName: true },
+                },
+              },
+            },
+            guest: {
+              select: {
+                firstName: true,
+                lastName: true,
+                email: true,
+                phone: true,
+              },
+            },
           },
           orderBy: { createdAt: 'asc' },
         },
@@ -164,15 +241,64 @@ export async function getAdminTripCalendar(experienceSlug = 'fort-jesus', startS
           lt: new Date(endDate + 'T23:59:59Z'),
         },
       },
-      select: { date: true, reason: true },
+      select: { date: true, reason: true, isRecurring: true },
     });
 
-    const blockedDateSet = new Set(blockedDates.map((b) => b.date.toISOString().split('T')[0] ?? ''));
+    const blockedDateSet = new Set(
+      blockedDates.map((b) => b.date.toISOString().split('T')[0] ?? ''),
+    );
+
+    const voyages = await prisma.voyage.findMany({
+      where: {
+        scheduledDeparture: {
+          gte: new Date(startDate + 'T00:00:00Z'),
+          lt: new Date(endDate + 'T23:59:59Z'),
+        },
+      },
+      select: {
+        id: true,
+        voyageNumber: true,
+        status: true,
+        vesselId: true,
+        departureId: true,
+        scheduledDeparture: true,
+      },
+      orderBy: { scheduledDeparture: 'asc' },
+    });
+
+    const vessels = await prisma.vessel.findMany({
+      where: { id: { in: voyages.map((v) => v.vesselId) } },
+      select: { id: true, name: true },
+    });
+    const vesselMap = new Map(vessels.map((v) => [v.id, v.name]));
+
+    const voyageCalendar = voyages.map((voyage) => {
+      const dateStr =
+        voyage.scheduledDeparture.toISOString().split('T')[0] ?? '';
+      return {
+        id: voyage.id,
+        voyageNumber: voyage.voyageNumber,
+        status: voyage.status,
+        vessel: vesselMap.get(voyage.vesselId) ?? 'Unknown',
+        departureId: voyage.departureId,
+        readinessPassed: true,
+        date: dateStr,
+      };
+    });
 
     const calendar = departures.map((departure) => {
-      const totalBooked = departure.bookings.reduce((sum, b) => sum + b.totalGuests, 0);
-      const dateStr = departure.departureDateTime.toISOString().split('T')[0] ?? '';
-      const timeStr = departure.departureDateTime.toISOString().split('T')[1]?.substring(0, 5) ?? '00:00';
+      const totalBooked = departure.bookings.reduce(
+        (sum, b) => sum + b.totalGuests,
+        0,
+      );
+      const dateStr =
+        departure.departureDateTime.toISOString().split('T')[0] ?? '';
+      const timeStr =
+        departure.departureDateTime.toLocaleTimeString('en-US', {
+          hour: '2-digit',
+          minute: '2-digit',
+          hour12: false,
+        });
       return {
         id: departure.id,
         date: dateStr,
@@ -186,7 +312,10 @@ export async function getAdminTripCalendar(experienceSlug = 'fort-jesus', startS
         currency: departure.experience?.currency ?? 'KES',
         route: departure.route?.name ?? 'Unknown',
         routeCode: departure.route?.code ?? null,
-        stops: (departure.route?.stops ?? []).map((s) => ({ name: s.name, code: s.code ?? '' })),
+        stops: (departure.route?.stops ?? []).map((s) => ({
+          name: s.name,
+          code: s.code ?? '',
+        })),
         vessel: departure.vessel?.name ?? 'Unknown',
         vesselType: departure.vessel?.type ?? null,
         totalCapacity: departure.totalCapacity,
@@ -205,29 +334,39 @@ export async function getAdminTripCalendar(experienceSlug = 'fort-jesus', startS
           source: b.source,
           specialRequests: b.specialRequests,
           createdAt: b.createdAt.toISOString(),
-          partner: b.partner ? {
-            companyName: b.partner.companyName ?? '',
-            contact: b.partner.user ? `${b.partner.user.firstName ?? ''} ${b.partner.user.lastName ?? ''}`.trim() : null,
-            email: b.partner.user?.email ?? null,
-          } : null,
-          guest: b.guest ? {
-            name: `${b.guest.firstName} ${b.guest.lastName}`,
-            email: b.guest.email,
-            phone: b.guest.phone,
-          } : null,
+          partner: b.partner
+            ? {
+                companyName: b.partner.companyName ?? '',
+                contact: b.partner.user
+                  ? `${b.partner.user.firstName ?? ''} ${b.partner.user.lastName ?? ''}`.trim()
+                  : null,
+                email: b.partner.user?.email ?? null,
+              }
+            : null,
+          guest: b.guest
+            ? {
+                name: `${b.guest.firstName} ${b.guest.lastName}`,
+                email: b.guest.email,
+                phone: b.guest.phone,
+              }
+            : null,
         })),
       };
     });
 
-    const dateMap = new Map<string, {
-      date: string;
-      isBlocked: boolean;
-      blockedReason?: string;
-      departures: typeof calendar;
-      totalCapacity: number;
-      totalBooked: number;
-      totalBookings: number;
-    }>();
+    const dateMap = new Map<
+      string,
+      {
+        date: string;
+        isBlocked: boolean;
+        blockedReason?: string;
+        departures: typeof calendar;
+        voyages: typeof voyageCalendar;
+        totalCapacity: number;
+        totalBooked: number;
+        totalBookings: number;
+      }
+    >();
 
     for (const dep of calendar) {
       if (!dateMap.has(dep.date)) {
@@ -235,6 +374,7 @@ export async function getAdminTripCalendar(experienceSlug = 'fort-jesus', startS
           date: dep.date,
           isBlocked: blockedDateSet.has(dep.date),
           departures: [],
+          voyages: [],
           totalCapacity: 0,
           totalBooked: 0,
           totalBookings: 0,
@@ -245,11 +385,21 @@ export async function getAdminTripCalendar(experienceSlug = 'fort-jesus', startS
       entry.totalCapacity += dep.totalCapacity;
       entry.totalBooked += dep.bookedSeats;
       entry.totalBookings += dep.bookingCount;
+      const matchingVoyages = voyageCalendar.filter((v) => v.date === dep.date);
+      for (const v of matchingVoyages) {
+        entry.voyages.push(v);
+      }
+      const voyageForDate = voyageCalendar.find((v) => v.date === dep.date);
+      if (voyageForDate) {
+        entry.voyages.push(voyageForDate);
+      }
     }
 
     const dailySummary = Array.from(dateMap.values()).map((entry) => ({
       ...entry,
       departureCount: entry.departures.length,
+      voyages: entry.voyages,
+      voyageCount: entry.voyages.length,
     }));
 
     return {
@@ -257,6 +407,7 @@ export async function getAdminTripCalendar(experienceSlug = 'fort-jesus', startS
       blockedDates: blockedDates.map((b) => ({
         date: b.date.toISOString().split('T')[0] ?? '',
         reason: b.reason ?? '',
+        isRecurring: b.isRecurring,
       })),
     };
   } catch (error) {

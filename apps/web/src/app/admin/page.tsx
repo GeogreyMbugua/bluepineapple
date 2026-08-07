@@ -1,5 +1,5 @@
 import { KPICard } from '@/components/admin/kpi-card';
-import { CalendarIcon, HandshakeIcon, UserIcon, TrendingUpIcon } from '@/components/admin/icons';
+import { CalendarIcon, HandshakeIcon, UserIcon, DollarSignIcon, SeatIcon } from '@/components/admin/icons';
 import { WaterTaxiSchedule } from '@/components/admin/water-taxi-schedule';
 import { getServerSession } from '@/lib/auth';
 import {
@@ -52,15 +52,14 @@ export default async function AdminDashboardPage() {
           href="/admin/partners"
         />
         <KPICard
-          title="Today's Bookings"
-          value={kpis.todayBookings ?? 0}
-          icon={<CalendarIcon className="size-6" />}
-          href="/admin/bookings"
+          title="Today's Revenue"
+          value={`KES ${(kpis.todayRevenue ?? 0).toLocaleString()}`}
+          icon={<DollarSignIcon className="size-6" />}
         />
         <KPICard
-          title="Active Departures"
-          value={kpis.activeDepartures ?? 0}
-          icon={<TrendingUpIcon className="size-6" />}
+          title="Available Seats"
+          value={kpis.availableSeats ?? 0}
+          icon={<SeatIcon className="size-6" />}
           href="/admin/operations"
         />
       </div>

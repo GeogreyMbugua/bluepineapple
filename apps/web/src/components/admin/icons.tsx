@@ -579,3 +579,19 @@ export function ChevronRightIcon(props: IconProps) {
     </svg>
   );
 }
+export function DollarSignIcon(props: IconProps) {
+  return (
+    <svg width={24} height={24} viewBox="0 0 24 24" fill="none" {...props}>
+      <path d="M12 2v20M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
+export function SeatIcon(props: IconProps) {
+  return (
+    <svg width={24} height={24} viewBox="0 0 24 24" fill="none" {...props}>
+      <path d="M4 18V8a2 2 0 012-2h12a2 2 0 012 2v10" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M2 18h20M6 14h.01M10 14h.01M14 14h.01" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
