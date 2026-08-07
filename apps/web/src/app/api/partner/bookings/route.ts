@@ -137,9 +137,21 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    const partnerProfile = await prisma.partnerProfile.findUnique({
+      where: { userId: session.user.id },
+      select: { id: true, status: true },
+    });
+
+    if (!partnerProfile) {
+      return NextResponse.json(
+        { error: { code: 'NOT_FOUND', message: 'Partner profile not found' } },
+        { status: 404 }
+      );
+    }
+
     const booking = await bookingService.createBooking({
       departureId: departure.id,
-      partnerId: session.user.id,
+      partnerId: partnerProfile.id,
       totalGuests,
       totalAmount: expectedTotal,
       source: 'PARTNER',
