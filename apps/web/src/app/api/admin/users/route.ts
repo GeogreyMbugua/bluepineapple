@@ -85,7 +85,7 @@ export async function POST(request: NextRequest) {
     });
 
     if (validated.role) {
-      await roleManagementService.assignRole(userId, validated.role, result.adminId);
+      await roleManagementService.assignRole(userId, validated.role, result.id);
     }
 
     return Response.json({ data: { id: userId }, timestamp: new Date().toISOString() }, { status: 201 });

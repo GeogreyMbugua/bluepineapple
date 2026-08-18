@@ -1,7 +1,8 @@
-import { UsersTableContent } from '@/components/admin/users/users-table-content';
 import { getServerSession } from '@/lib/auth';
-import { getAdminUsers } from '@/lib/services/admin-users.service';
-import { revalidatePath } from 'next/cache';
+import { UsersTableContent } from '@/components/admin/users/users-table-content';
+import { HydrationBoundary, dehydrate } from '@tanstack/react-query';
+import { getQueryClient } from '@/lib/queries/get-query-client';
+import { adminUsersOptions } from '@/lib/queries/admin/users';
 
 export const dynamic = 'force-dynamic';
 
@@ -11,18 +12,18 @@ export default async function AdminUsersPage() {
     return null;
   }
 
-  const users = await getAdminUsers({
-    includePartners: false,
-    includePendingVerification: false,
-  });
+  const queryClient = getQueryClient();
+  await queryClient.prefetchQuery(adminUsersOptions({ includePartners: false, includePendingVerification: false }));
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6">
       <div>
-        <h1 className="text-3xl font-bold text-dark">Users</h1>
-        <p className="mt-1 text-dark-6">Manage user accounts and roles</p>
+        <h1 className="text-2xl font-bold text-dark sm:text-3xl">Users</h1>
+        <p className="mt-1 text-xs text-dark-6 sm:text-sm">Manage user accounts and roles</p>
       </div>
-      <UsersTableContent users={users} onUpdate={revalidatePath('/admin/users')} />
+      <HydrationBoundary state={dehydrate(queryClient)}>
+        <UsersTableContent />
+      </HydrationBoundary>
     </div>
   );
 }

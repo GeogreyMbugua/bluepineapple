@@ -1,6 +1,7 @@
 import { NextRequest } from 'next/server';
 import { requireAdminAuth } from '@/lib/api/admin-helpers';
 import { bookingService } from '@blue-pineapple/iam';
+import { initializeIam } from '@/lib/server/iam-init';
 
 export async function POST(
   _request: NextRequest,
@@ -10,6 +11,7 @@ export async function POST(
   if (result instanceof Response) return result;
 
   try {
+    initializeIam();
     const { id } = await params;
     await bookingService.confirmBooking(id, result.id);
     return Response.json({ message: 'Booking confirmed' }, { status: 200 });

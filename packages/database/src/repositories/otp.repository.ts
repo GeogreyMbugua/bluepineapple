@@ -1,4 +1,4 @@
-import { prisma } from "../client";
+import { prisma } from "../client.ts";
 import type { OtpToken, OtpPurpose } from "@prisma/client";
 
 export class OtpRepository {

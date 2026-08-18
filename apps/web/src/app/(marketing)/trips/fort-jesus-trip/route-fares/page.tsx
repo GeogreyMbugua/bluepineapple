@@ -280,7 +280,7 @@ export default function RouteFaresPlanner() {
             </div>
           </div>
           <p className="mt-4 text-xs leading-relaxed text-slate-500">
-            Fares shown are per stop. Children aged 5-15 pay half fare. Infants under 5 travel free. Discounts apply to
+            Fares shown are per stop per guest. Children aged 5-15 pay half fare. Infants under 5 travel free. Discounts apply to
             the base fare before any return surcharge.
           </p>
         </div>

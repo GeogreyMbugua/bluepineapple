@@ -1,4 +1,4 @@
-import { prisma } from "../client";
+import { prisma } from "../client.ts";
 import type { Session, Prisma } from "@prisma/client";
 
 export class SessionRepository {

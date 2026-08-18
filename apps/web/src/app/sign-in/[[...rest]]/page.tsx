@@ -26,6 +26,10 @@ export default async function SignInPage() {
     }
   }
 
+  if (clerkUserId && !sessionUser) {
+    redirect('/');
+  }
+
   return (
     <div className="flex min-h-screen items-center justify-center bg-muted px-4">
       <ClerkLoaded>
@@ -33,7 +37,6 @@ export default async function SignInPage() {
           routing="path"
           path="/sign-in"
           signUpUrl="/sign-up"
-          fallbackRedirectUrl="/partner"
           appearance={{
             elements: {
               rootBox: 'mx-auto w-full max-w-md',

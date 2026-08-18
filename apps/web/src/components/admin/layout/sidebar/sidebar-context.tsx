@@ -43,7 +43,7 @@ export function SidebarProvider({
     <SidebarContext.Provider
       value={{
         state: effectiveOpen ? "expanded" : "collapsed",
-        isOpen: effectiveOpen,
+        isOpen,
         setIsOpen,
         isMobile,
         toggleSidebar,

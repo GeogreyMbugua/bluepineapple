@@ -1,13 +1,15 @@
 'use client';
 
-import type { ReactNode } from 'react';
+import { useState } from 'react';
+import { QueryClientProvider } from '@tanstack/react-query';
+import { getQueryClient } from '@/lib/queries/get-query-client';
 
-/**
- * Query provider placeholder.
- *
- * Will wrap React Query (or SWR) when data fetching patterns mature.
- * Currently a passthrough so the provider composition is already wired.
- */
-export function QueryProvider({ children }: { readonly children: ReactNode }) {
-  return <>{children}</>;
+export function QueryProvider({ children }: { readonly children: React.ReactNode }) {
+  const [client] = useState(() => getQueryClient());
+
+  return (
+    <QueryClientProvider client={client}>
+      {children}
+    </QueryClientProvider>
+  );
 }

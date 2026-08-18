@@ -1,7 +1,9 @@
-import type { NotificationAdapter, NotificationMessage } from "./notification.adapter";
-import { ConsoleNotificationAdapter } from "./console.adapter";
+export type { NotificationAdapter, NotificationMessage } from "./notification.adapter";
+export { ConsoleNotificationAdapter } from "./console.adapter";
+export { ResendNotificationAdapter } from "./resend.adapter";
 
-export { NotificationAdapter, NotificationMessage, ConsoleNotificationAdapter };
+import type { NotificationAdapter } from "./notification.adapter";
+import { ConsoleNotificationAdapter } from "./console.adapter";
 
 let adapter: NotificationAdapter = new ConsoleNotificationAdapter();
 

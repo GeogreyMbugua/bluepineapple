@@ -1,4 +1,4 @@
-import { prisma } from "../client";
+import { prisma } from "../client.ts";
 import type { Permission, Prisma } from "@prisma/client";
 
 export class PermissionRepository {

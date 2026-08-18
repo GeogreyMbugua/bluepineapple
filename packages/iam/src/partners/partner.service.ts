@@ -34,7 +34,7 @@ export class PartnerService {
   }
 
   async findByUserId(userId: string) {
-    return partnerRepository.findByUserId(userId);
+    return partnerRepository.findByUserIdWithUser(userId);
   }
 
   async findByPartnerCode(partnerCode: string) {

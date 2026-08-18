@@ -1,4 +1,4 @@
-import { prisma } from "../client";
+import { prisma } from "../client.ts";
 
 export class SeasonRepository {
   async findById(id: string) {

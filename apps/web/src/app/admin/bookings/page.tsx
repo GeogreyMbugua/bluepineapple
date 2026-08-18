@@ -1,9 +1,8 @@
-import { Suspense } from 'react';
 import { getServerSession } from '@/lib/auth';
-import { getAdminBookings } from '@/lib/services/admin-bookings.service';
 import { BookingsClient } from '@/components/admin/bookings/bookings-client';
-
-export const dynamic = 'force-dynamic';
+import { HydrationBoundary, dehydrate } from '@tanstack/react-query';
+import { getQueryClient } from '@/lib/queries/get-query-client';
+import { adminBookingsOptions } from '@/lib/queries/admin/bookings';
 
 export default async function AdminBookingsPage() {
   const session = await getServerSession();
@@ -11,8 +10,8 @@ export default async function AdminBookingsPage() {
     return null;
   }
 
-  // Initial server-side hydration — eliminates client-side loading flash
-  const initialBookings = await getAdminBookings({ limit: 50 });
+  const queryClient = getQueryClient();
+  await queryClient.prefetchQuery(adminBookingsOptions({ status: 'ALL', limit: 50 }));
 
   return (
     <div className="space-y-6">
@@ -20,15 +19,9 @@ export default async function AdminBookingsPage() {
         <h1 className="text-3xl font-bold text-dark">Bookings</h1>
         <p className="mt-1 text-dark-6">View and manage bookings</p>
       </div>
-      <Suspense fallback={
-        <div className="space-y-3">
-          {Array.from({ length: 5 }).map((_, i) => (
-            <div key={i} className="h-16 animate-pulse bg-gray-100" />
-          ))}
-        </div>
-      }>
-        <BookingsClient initialBookings={initialBookings} />
-      </Suspense>
+      <HydrationBoundary state={dehydrate(queryClient)}>
+        <BookingsClient />
+      </HydrationBoundary>
     </div>
   );
 }

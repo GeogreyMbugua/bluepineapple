@@ -1,14 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@blue-pineapple/database';
 import { getServerSession } from '@/lib/auth';
-import { bookingService } from '@blue-pineapple/iam';
-import { departureService } from '@blue-pineapple/iam';
+import { bookingService, departureService } from '@blue-pineapple/iam';
+import { initializeIam } from '@/lib/server/iam-init';
 import { calculatePricing, type Stop } from '@/lib/pricing/engine';
 
 export const dynamic = 'force-dynamic';
 
 export async function POST(request: NextRequest) {
   try {
+    initializeIam();
     const session = await getServerSession();
     if (!session.user) {
       return NextResponse.json(
@@ -25,7 +26,6 @@ export async function POST(request: NextRequest) {
       totalGuests,
       totalAmount,
       specialRequests,
-      source = 'PARTNER',
     } = body;
 
     if (!departureDate || !departureTime || !pickupStopId || !totalGuests) {

@@ -1,4 +1,4 @@
-import { prisma } from "../client";
+import { prisma } from "../client.ts";
 import type { PartnerProfile, PartnerPayoutAccount, PartnerStatus, Prisma } from "@prisma/client";
 
 export class PartnerRepository {
@@ -10,6 +10,13 @@ export class PartnerRepository {
     return prisma.partnerProfile.findUnique({
       where: { userId },
       include: { payoutAccounts: true },
+    });
+  }
+
+  async findByUserIdWithUser(userId: string): Promise<(PartnerProfile & { payoutAccounts: PartnerPayoutAccount[]; user: { firstName: string | null; lastName: string | null } }) | null> {
+    return prisma.partnerProfile.findUnique({
+      where: { userId },
+      include: { payoutAccounts: true, user: { select: { firstName: true, lastName: true } } },
     });
   }
 

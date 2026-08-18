@@ -12,6 +12,7 @@ import type {
   BookingCancelledEvent,
   BookingCompletedEvent,
   BookingStatusChangedEvent,
+  BookingConfirmedEvent,
 } from "./booking.events";
 import { BookingPolicy, DeparturePolicy, PartnerPolicy } from "../policies";
 import { bookingCapacityService } from "./booking-capacity.service";
@@ -228,6 +229,11 @@ export class BookingService {
     });
 
     auditService.logRoleAssigned(actorId ?? "system", id, "BOOKING_CONFIRMED");
+
+    eventBus.emit("booking.confirmed", {
+      bookingId: id,
+      bookingReference: booking.bookingReference,
+    } as BookingConfirmedEvent);
 
     eventBus.emit("booking.status.changed", {
       bookingId: id,

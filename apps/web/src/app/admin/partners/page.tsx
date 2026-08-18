@@ -1,9 +1,8 @@
-import { Suspense } from 'react';
 import { getServerSession } from '@/lib/auth';
-import { getAdminPartners } from '@/lib/services/admin-partners.service';
 import { PartnersClient } from '@/components/admin/partners/partners-client';
-
-export const dynamic = 'force-dynamic';
+import { HydrationBoundary, dehydrate } from '@tanstack/react-query';
+import { getQueryClient } from '@/lib/queries/get-query-client';
+import { adminPartnersOptions } from '@/lib/queries/admin/partners';
 
 export default async function AdminPartnersPage() {
   const session = await getServerSession();
@@ -11,20 +10,14 @@ export default async function AdminPartnersPage() {
     return null;
   }
 
-  // Server-side initial hydration — no client-side loading flash
-  const initialPartners = await getAdminPartners();
+  const queryClient = getQueryClient();
+  await queryClient.prefetchQuery(adminPartnersOptions());
 
   return (
     <div className="space-y-6">
-      <Suspense fallback={
-        <div className="space-y-3">
-          {Array.from({ length: 6 }).map((_, i) => (
-            <div key={i} className="h-16 animate-pulse bg-gray-100" />
-          ))}
-        </div>
-      }>
-        <PartnersClient initialPartners={initialPartners} />
-      </Suspense>
+      <HydrationBoundary state={dehydrate(queryClient)}>
+        <PartnersClient />
+      </HydrationBoundary>
     </div>
   );
 }

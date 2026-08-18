@@ -5,6 +5,8 @@ export const CreateUserSchema = z.object({
   lastName: z.string().min(1, "Last name is required"),
   email: z.string().email("Invalid email address").optional().nullable(),
   phone: z.string().optional().nullable(),
+  clerkUserId: z.string().optional().nullable(),
+  role: z.enum(["SUPER_ADMIN", "ADMIN", "PARTNER", "USER"]).optional().nullable(),
 });
 
 export type CreateUserInput = z.infer<typeof CreateUserSchema>;

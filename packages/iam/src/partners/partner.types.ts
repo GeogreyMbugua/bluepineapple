@@ -8,6 +8,8 @@ export interface PartnerProfileData {
   joinedAt: Date;
   createdAt: Date;
   updatedAt: Date;
+  firstName?: string | null;
+  lastName?: string | null;
 }
 
 export interface PartnerWithPayoutAccounts extends PartnerProfileData {

@@ -3,11 +3,11 @@ import { Inter, Geist_Mono } from 'next/font/google';
 import { defaultMetadata, defaultViewport } from '@/config/metadata';
 import { AppProviders } from '@/providers';
 import { ClerkProvider } from '@clerk/nextjs';
-import { rewardEngine } from '@blue-pineapple/iam';
 import { Toasts } from '@/components/admin/ui/toasts';
+import { initializeIam } from '@/lib/server/iam-init';
 import './globals.css';
 
-rewardEngine.start();
+initializeIam();
 
 const inter = Inter({
   variable: '--font-inter',

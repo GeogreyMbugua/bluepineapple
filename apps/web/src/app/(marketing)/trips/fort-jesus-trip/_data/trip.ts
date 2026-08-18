@@ -8,7 +8,7 @@ export const trip = {
   vessel: { name: "Big Boat", href: "https://bprepo.vercel.app/boats/setting-sons" },
   departureTime: "9:30 AM daily",
   priceFrom: 500,
-  priceUnit: "Per Stop",
+  priceUnit: "Per Stop (per guest)",
   inclusions: ["Return Transport", "Professional Guide", "Fort Entry Tickets", "Bottled Water"],
   whatsapp: {
     reserve: "https://wa.me/254708485978?text=Hi%20Blue%20Pineapple%2C%20I%27d%20like%20to%20book%20the%20Fort%20Jesus",

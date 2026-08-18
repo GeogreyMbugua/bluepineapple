@@ -41,6 +41,7 @@ export function Navbar({ variant = 'parent' }: NavbarProps) {
             <Link href="/trips" className={linkClass}>Experiences</Link>
             <Link href="/trips/fort-jesus-trip" className={linkClass}>Fort Jesus</Link>
             <Link href="/boats" className={linkClass}>Our Fleet</Link>
+            <Link href="/coastal-experiences#reviews" className={linkClass}>Reviews</Link>
             <Link href="/coastal-experiences#gallery" className={linkClass}>Gallery</Link>
             <Link href="/contact" className={linkClass}>Contact</Link>
         </>
@@ -65,6 +66,7 @@ export function Navbar({ variant = 'parent' }: NavbarProps) {
             <Link href="/trips" onClick={closeMobile} className={mobileLinkClass}>Experiences</Link>
             <Link href="/trips/fort-jesus-trip" onClick={closeMobile} className={mobileLinkClass}>Fort Jesus</Link>
             <Link href="/boats" onClick={closeMobile} className={mobileLinkClass}>Our Fleet</Link>
+            <Link href="/coastal-experiences#reviews" onClick={closeMobile} className={mobileLinkClass}>Reviews</Link>
             <Link href="/coastal-experiences#gallery" onClick={closeMobile} className={mobileLinkClass}>Gallery</Link>
             <Link href="/contact" onClick={closeMobile} className={mobileLinkClass}>Contact</Link>
             <div className="mt-4 flex w-full max-w-xs flex-col gap-2 border-t border-zinc-200 pt-6">

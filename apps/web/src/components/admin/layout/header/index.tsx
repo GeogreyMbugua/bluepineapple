@@ -21,7 +21,7 @@ export function Header() {
   };
 
   return (
-    <header className="border-stroke shadow-1 sticky top-0 z-30 flex items-center justify-between border-b border-l-[3px] border-l-primary bg-white px-4 py-5 md:px-5 2xl:px-10">
+    <header className="border-stroke shadow-1 sticky top-0 z-30 flex items-center justify-between border-b border-l-[3px] border-l-primary bg-white px-3 py-3 sm:px-4 sm:py-4 md:px-5 md:py-5 2xl:px-10">
       <button
         onClick={toggleSidebar}
         className="border border-stroke px-1.5 py-1 lg:hidden hover:bg-muted"

@@ -24,5 +24,8 @@
     "tsx": "^4.22.4",
     "turbo": "^2.5.0",
     "typescript": "^5.8.0"
+  },
+  "dependencies": {
+    "resend": "^6.18.1"
   }
 }

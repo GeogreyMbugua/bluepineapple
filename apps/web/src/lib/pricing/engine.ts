@@ -71,7 +71,7 @@ export function calculatePassengerFares(
   returnFare: number,
   adults: number,
   children: number,
-  infants: number,
+  _infants: number,
   returnTicket: boolean
 ): {
   baseFare: number;
@@ -194,3 +194,5 @@ export function calculatePricing(input: PricingInput): PricingBreakdown {
 export function formatKsh(value: number): string {
   return `Ksh ${value.toLocaleString("en-US")}`;
 }
+
+export { type Stop } from "./constants";

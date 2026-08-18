@@ -33,12 +33,10 @@ export default async function AdminLoginPage() {
           routing="path"
           path="/login"
           signUpUrl="/sign-up"
-          fallbackRedirectUrl="/admin"
           appearance={{
             elements: {
               rootBox: 'mx-auto w-full max-w-md',
               card: 'border border-stroke shadow-1',
-              // Admin portal: credentials only — hide all OAuth providers
               socialButtonsBlockButton: 'hidden',
               socialButtonsIconButton: 'hidden',
               dividerRow: 'hidden',

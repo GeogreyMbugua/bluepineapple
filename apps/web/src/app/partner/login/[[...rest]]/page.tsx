@@ -33,7 +33,6 @@ export default async function PartnerLoginPage() {
           routing="path"
           path="/partner/login"
           signUpUrl="/sign-up"
-          fallbackRedirectUrl="/partner"
           appearance={{
             elements: {
               rootBox: 'mx-auto w-full max-w-md',

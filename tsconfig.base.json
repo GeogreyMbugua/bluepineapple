@@ -28,6 +28,7 @@
 
     "skipLibCheck": true,
 
-    "isolatedModules": true
+    "isolatedModules": true,
+    "allowImportingTsExtensions": true
   }
 }

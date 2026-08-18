@@ -75,6 +75,7 @@ export const ADMIN_NAV: readonly NavGroup[] = [
       { label: 'Bookings', href: ROUTES.admin.bookings, icon: 'calendar' },
       { label: 'Rewards', href: ROUTES.admin.rewards, icon: 'gift' },
       { label: 'Operations', href: ROUTES.admin.operations, icon: 'activity' },
+      { label: 'Crew', href: ROUTES.admin['operations-crew'], icon: 'users' },
       { label: 'CRM', href: ROUTES.admin.crm, icon: 'contact' },
       { label: 'Commercial', href: ROUTES.admin.commercial, icon: 'briefcase' },
     ],

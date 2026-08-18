@@ -1,4 +1,4 @@
-import { prisma } from "../client";
+import { prisma } from "../client.ts";
 import type { User, Prisma } from "@prisma/client";
 
 export class UserRepository {
@@ -81,17 +81,23 @@ export class UserRepository {
   async findByClerkUserId(clerkUserId: string) {
     return prisma.user.findUnique({
       where: { clerkUserId },
-      include: {
-        partnerProfile: true,
+      select: {
+        id: true,
+        email: true,
+        phone: true,
+        firstName: true,
+        lastName: true,
+        status: true,
+        emailVerifiedAt: true,
+        phoneVerifiedAt: true,
+        partnerProfile: {
+          select: { id: true },
+        },
         roles: {
-          include: {
+          select: {
             role: {
-              include: {
-                permissions: {
-                  include: {
-                    permission: true,
-                  },
-                },
+              select: {
+                name: true,
               },
             },
           },
@@ -104,8 +110,13 @@ export class UserRepository {
    * Find a user by their unique email address.
    */
   async findByEmail(email: string): Promise<User | null> {
-    return prisma.user.findUnique({
-      where: { email },
+    return prisma.user.findFirst({
+      where: {
+        email: {
+          equals: email,
+          mode: 'insensitive',
+        },
+      },
     });
   }
 
@@ -220,6 +231,30 @@ export class UserRepository {
     );
 
     return Array.from(new Set(keys));
+  }
+
+  async findAdmins(): Promise<Pick<User, 'id' | 'email' | 'firstName' | 'lastName'>[]> {
+    const users = await prisma.user.findMany({
+      where: {
+        roles: {
+          some: {
+            role: {
+              name: {
+                in: ["ADMIN", "SUPER_ADMIN"],
+              },
+            },
+          },
+        },
+      },
+      select: {
+        id: true,
+        email: true,
+        firstName: true,
+        lastName: true,
+      },
+    });
+
+    return users;
   }
 }
 

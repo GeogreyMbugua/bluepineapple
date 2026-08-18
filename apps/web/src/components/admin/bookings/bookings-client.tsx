@@ -1,8 +1,9 @@
 'use client';
 
-import { useState, useCallback, useTransition } from 'react';
+import { useState, useCallback } from 'react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { BookingsTableContent } from '@/components/admin/bookings/bookings-table-content';
-import type { BookingRow } from '@/components/admin/types';
+import { adminBookingsOptions } from '@/lib/queries/admin/bookings';
 
 const STATUS_FILTERS = [
   { label: 'All', value: 'ALL' },
@@ -14,40 +15,22 @@ const STATUS_FILTERS = [
 
 type BookingStatus = typeof STATUS_FILTERS[number]['value'];
 
-interface BookingsClientProps {
-  initialBookings: BookingRow[];
-}
-
-export function BookingsClient({ initialBookings }: BookingsClientProps) {
-  const [bookings, setBookings] = useState<BookingRow[]>(initialBookings);
+export function BookingsClient() {
   const [activeStatus, setActiveStatus] = useState<BookingStatus>('ALL');
-  const [isPending, startTransition] = useTransition();
+  const queryClient = useQueryClient();
 
-  const loadBookings = useCallback(async (status: BookingStatus) => {
-    try {
-      const params = new URLSearchParams({ status, limit: '50' });
-      const res = await fetch(`/api/admin/bookings?${params}`, { cache: 'no-store' });
-      if (res.ok) {
-        const json = await res.json();
-        setBookings(json.data?.bookings ?? []);
-      }
-    } catch (err) {
-      console.error('[BookingsClient] Failed to reload bookings:', err);
-    }
-  }, []);
+  const { data: bookings = [], isLoading } = useQuery({
+    ...adminBookingsOptions({ status: activeStatus, limit: 50 }),
+    select: (data) => data,
+  });
 
   const handleStatusChange = (status: BookingStatus) => {
     setActiveStatus(status);
-    startTransition(() => {
-      void loadBookings(status);
-    });
   };
 
-  const handleRefresh = useCallback(() => {
-    startTransition(() => {
-      void loadBookings(activeStatus);
-    });
-  }, [activeStatus, loadBookings]);
+  const invalidateBookings = useCallback(() => {
+    queryClient.invalidateQueries({ queryKey: ['admin', 'bookings'] });
+  }, [queryClient]);
 
   return (
     <div className="space-y-4">
@@ -57,7 +40,7 @@ export function BookingsClient({ initialBookings }: BookingsClientProps) {
           <button
             key={value}
             onClick={() => handleStatusChange(value)}
-            disabled={isPending}
+            disabled={isLoading}
             className={[
               'rounded border px-4 py-2 text-sm font-medium transition-colors disabled:opacity-60',
               activeStatus === value
@@ -68,15 +51,12 @@ export function BookingsClient({ initialBookings }: BookingsClientProps) {
             {label}
           </button>
         ))}
-        {isPending && (
+        {isLoading && (
           <span className="self-center ml-2 text-sm text-dark-5">Loading…</span>
         )}
       </div>
 
-      <BookingsTableContent
-        bookings={bookings}
-        onUpdate={handleRefresh}
-      />
+      <BookingsTableContent bookings={bookings} onUpdate={invalidateBookings} />
     </div>
   );
 }

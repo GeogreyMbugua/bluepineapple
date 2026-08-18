@@ -1,7 +1,8 @@
 import { getServerSession } from '@/lib/auth';
-import { getPartnerProfile } from '@/lib/services/partner-dashboard.service';
-import { BookingsPageHeader } from '@/components/partner/bookings-page-header';
-import { PartnerBookingsTable } from '@/components/partner/partner-bookings-table';
+import { HydrationBoundary, dehydrate } from '@tanstack/react-query';
+import { getQueryClient } from '@/lib/queries/get-query-client';
+import { partnerProfileOptions, partnerBookingsOptions } from '@/lib/queries/partner';
+import { PartnerBookingsClient } from '@/components/partner/partner-bookings-client';
 
 export const dynamic = 'force-dynamic';
 
@@ -11,15 +12,15 @@ export default async function PartnerBookingsPage() {
     return null;
   }
 
-  const profile = await getPartnerProfile(session.user.id);
-  const name = (profile?.companyName ?? `${(profile?.firstName ?? '')} ${(profile?.lastName ?? '')}`.trim()) || 'Partner';
+  const queryClient = getQueryClient();
+  await Promise.all([
+    queryClient.prefetchQuery(partnerProfileOptions()),
+    queryClient.prefetchQuery(partnerBookingsOptions()),
+  ]);
 
   return (
-    <div className="space-y-6">
-      <BookingsPageHeader partnerName={name} />
-      <div className="border border-stroke bg-white shadow-1">
-        <PartnerBookingsTable userId={session.user.id} />
-      </div>
-    </div>
+    <HydrationBoundary state={dehydrate(queryClient)}>
+      <PartnerBookingsClient />
+    </HydrationBoundary>
   );
 }

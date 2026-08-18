@@ -12,6 +12,7 @@ import { EXPERIENCES } from "./seeds/experiences";
 import { ROUTES, ROUTE_STOPS } from "./seeds/routes";
 import { DEPARTURES } from "./seeds/departures";
 import { REWARD_RULES } from "./seeds/reward-rules";
+import { REVIEWS } from "./seeds/reviews";
 
 const prisma = new PrismaClient();
 
@@ -329,6 +330,19 @@ async function main() {
     });
   }
   console.log("✅ Reward rules seed complete");
+
+  //
+  // Reviews
+  //
+  console.log("🌱 Seeding reviews...");
+  for (const review of REVIEWS) {
+    await prisma.review.upsert({
+      where: { id: review.id },
+      update: {},
+      create: review,
+    });
+  }
+  console.log("✅ Reviews seed complete");
 }
 
 main()

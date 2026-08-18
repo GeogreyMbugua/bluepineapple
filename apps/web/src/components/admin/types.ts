@@ -48,6 +48,11 @@ export interface BookingRow {
   date: string;
 }
 
+export interface DashboardData {
+  kpis: DashboardKpis;
+  recentActivity: DashboardActivity[];
+}
+
 export interface DashboardKpis {
   totalUsers: number;
   activePartners: number;

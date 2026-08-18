@@ -24,8 +24,9 @@ export function getIconComponent(name: keyof typeof Icons | undefined) {
 
 export function buildNavData(user: AuthUser | null): NavSection[] {
   const hasPermission = (perm?: string) => {
-    if (!perm || !user?.permissions) return true;
-    return user.permissions.includes(perm as never);
+    if (!perm) return true;
+    if (user?.roles.some((r) => r === 'ADMIN' || r === 'SUPER_ADMIN')) return true;
+    return user?.permissions?.includes(perm as never) ?? false;
   };
 
   const hasRole = (roles?: string[]) => {

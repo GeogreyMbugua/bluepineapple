@@ -1,11 +1,12 @@
 'use client';
 
-import { useState, useCallback, useTransition, useMemo } from 'react';
+import { useState, useCallback, useMemo } from 'react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { PartnersTableContent } from '@/components/admin/partners/partners-table-content';
 import { CreatePartnerModal } from '@/components/admin/partners/create-partner-modal';
 import { ImportPartnersModal } from '@/components/admin/partners/import-partners-modal';
 import { useToast } from '@/providers/toast-provider';
-import type { PartnerRow } from '@/components/admin/types';
+import { adminPartnersOptions } from '@/lib/queries/admin/partners';
 
 const STATUS_FILTERS = ['ALL', 'ACTIVE', 'PENDING', 'SUSPENDED', 'TERMINATED'] as const;
 type StatusFilter = typeof STATUS_FILTERS[number];
@@ -15,33 +16,23 @@ interface SyncSummary {
   failed: number;
 }
 
-interface PartnersClientProps {
-  initialPartners: PartnerRow[];
-}
-
-export function PartnersClient({ initialPartners }: PartnersClientProps) {
+export function PartnersClient() {
   const { addToast } = useToast();
-  const [partners, setPartners] = useState<PartnerRow[]>(initialPartners);
+  const queryClient = useQueryClient();
   const [activeFilter, setActiveFilter] = useState<StatusFilter>('ALL');
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showImportModal, setShowImportModal] = useState(false);
   const [isSyncing, setIsSyncing] = useState(false);
   const [syncResult, setSyncResult] = useState<SyncSummary | null>(null);
-  const [isPending, startTransition] = useTransition();
+
+  const { data: partners = [], isLoading } = useQuery({
+    ...adminPartnersOptions(),
+    select: (data) => data,
+  });
 
   const refreshPartners = useCallback(() => {
-    startTransition(async () => {
-      try {
-        const res = await fetch('/api/admin/partners', { cache: 'no-store' });
-        if (res.ok) {
-          const json = await res.json();
-          setPartners(json.data?.partners ?? []);
-        }
-      } catch (err) {
-        console.error('[PartnersClient] Failed to refresh partners:', err);
-      }
-    });
-  }, []);
+    queryClient.invalidateQueries({ queryKey: ['admin', 'partners'] });
+  }, [queryClient]);
 
   const handleSyncToClerk = useCallback(async () => {
     setIsSyncing(true);
@@ -130,7 +121,7 @@ export function PartnersClient({ initialPartners }: PartnersClientProps) {
           <button
             key={status}
             onClick={() => setActiveFilter(status)}
-            disabled={isPending}
+            disabled={isLoading || isLoading}
             className={[
               'rounded border px-4 py-2 text-sm font-medium transition-colors disabled:opacity-60',
               activeFilter === status
@@ -141,7 +132,7 @@ export function PartnersClient({ initialPartners }: PartnersClientProps) {
             {status === 'ALL' ? 'All' : status}
           </button>
         ))}
-        {isPending && <span className="self-center ml-2 text-sm text-dark-5">Loading…</span>}
+        {isLoading && <span className="self-center ml-2 text-sm text-dark-5">Loading…</span>}
       </div>
 
       {/* Partners Table */}

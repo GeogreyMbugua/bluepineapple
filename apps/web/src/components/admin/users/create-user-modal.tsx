@@ -143,7 +143,7 @@ export function CreateUserModal({ open, onClose, onSuccess }: CreateUserModalPro
         <div className="flex justify-end gap-2 pt-2">
           <Button
             type="button"
-            variant="outline"
+            variant="secondary"
             onClick={() => { resetForm(); onClose(); }}
           >
             Cancel

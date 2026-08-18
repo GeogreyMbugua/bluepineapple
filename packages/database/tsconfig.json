@@ -4,6 +4,7 @@
     "outDir": "dist",
     "rootDir": "src",
     "types": ["node"],
+    "allowImportingTsExtensions": true,
     "paths": {
       "@blue-pineapple/shared": ["../shared/src/index.ts"],
       "@blue-pineapple/shared/*": ["../shared/src/*"]

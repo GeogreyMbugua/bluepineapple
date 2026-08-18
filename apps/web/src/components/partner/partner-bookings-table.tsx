@@ -1,12 +1,7 @@
 'use client';
 
-import { useEffect, useState } from 'react';
 import { DataTable } from '@/components/admin/data-table';
 import type { ColumnDef } from '@/components/admin/types';
-
-interface Props {
-  userId: string;
-}
 
 interface PartnerBooking {
   id: string;
@@ -14,31 +9,16 @@ interface PartnerBooking {
   experience: string;
   status: string;
   paymentStatus: string;
-  totalAmount: string;
+  totalAmount: number;
   totalGuests: number;
   createdAt: string;
 }
 
-export function PartnerBookingsTable({ userId }: Props) {
-  const [bookings, setBookings] = useState<PartnerBooking[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+interface Props {
+  bookings: PartnerBooking[];
+}
 
-  useEffect(() => {
-    void (async () => {
-      try {
-        const res = await fetch('/api/partner/bookings', { cache: 'no-store' });
-        if (res.ok) {
-          const json = await res.json();
-          setBookings(json.data ?? []);
-        }
-      } catch {
-        // Handle error silently
-      } finally {
-        setIsLoading(false);
-      }
-    })();
-  }, [userId]);
-
+export function PartnerBookingsTable({ bookings }: Props) {
   const columns: ColumnDef<PartnerBooking>[] = [
     { key: 'bookingReference', header: 'Reference', sortable: true },
     { key: 'experience', header: 'Experience', sortable: true },
@@ -58,16 +38,6 @@ export function PartnerBookingsTable({ userId }: Props) {
       cell: (row) => new Date(row.createdAt).toLocaleDateString(),
     },
   ];
-
-  if (isLoading) {
-    return (
-      <div className="space-y-3 p-4">
-        {Array.from({ length: 5 }).map((_, i) => (
-          <div key={i} className="h-14 w-full animate-pulse rounded border border-stroke bg-gray-100" />
-        ))}
-      </div>
-    );
-  }
 
   if (bookings.length === 0) {
     return (

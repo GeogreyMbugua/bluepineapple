@@ -2,6 +2,7 @@ import { NextRequest } from 'next/server';
 import { departureService } from '@blue-pineapple/iam';
 import { bookingService } from '@blue-pineapple/iam';
 import { CreateBookingSchema } from '@blue-pineapple/iam';
+import { initializeIam } from '@/lib/server/iam-init';
 import { z } from 'zod';
 
 export async function GET(request: NextRequest) {
@@ -28,6 +29,7 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
+    initializeIam();
     const body = await request.json();
     const validated = CreateBookingSchema.parse(body);
 

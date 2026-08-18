@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { Webhook } from 'svix';
+import { clerkClient } from '@clerk/nextjs/server';
 import { userRepository } from '@blue-pineapple/database';
 import type { Prisma } from '@blue-pineapple/database';
 import {
@@ -107,6 +108,18 @@ function extractEmailAndPhone(clerkUser: ClerkUser) {
   return { email, phone, isEmailVerified, isPhoneVerified };
 }
 
+async function syncClerkRoles(clerkUserId: string, roleNames: string[]): Promise<void> {
+  try {
+    const client = await clerkClient();
+    await client.users.updateUser(clerkUserId, {
+      publicMetadata: { roles: roleNames },
+    });
+    console.log(`[clerk-webhook] Synced roles to Clerk metadata for ${clerkUserId}: ${roleNames.join(', ')}`);
+  } catch (err) {
+    console.error(`[clerk-webhook] Failed to sync roles to Clerk for ${clerkUserId}:`, err);
+  }
+}
+
 // ---------------------------------------------------------------------------
 // Event Handlers
 // ---------------------------------------------------------------------------
@@ -143,11 +156,16 @@ async function handleUserCreated(clerkUser: ClerkUser) {
         console.log(
           `[clerk-webhook] Skipping partner provisioning for admin user ${existing.id}`,
         );
+        await syncClerkRoles(clerkUser.id, existingRoleNames);
         return;
       }
 
       await ensurePartnerRole(existing.id);
       await ensurePartnerProfile(existing.id, fullName);
+
+      const finalRoles = await userRepository.findByClerkUserId(clerkUser.id);
+      const finalRoleNames = finalRoles?.roles.map((ur) => ur.role.name) ?? [];
+      await syncClerkRoles(clerkUser.id, finalRoleNames);
     } else {
       console.warn(
         `[clerk-webhook] User ${existing.id} already linked to a different Clerk account. Skipping.`,
@@ -170,6 +188,8 @@ async function handleUserCreated(clerkUser: ClerkUser) {
 
   await ensurePartnerRole(newUser.id);
   await ensurePartnerProfile(newUser.id, fullName);
+
+  await syncClerkRoles(clerkUser.id, ['PARTNER']);
 
   console.log(`[clerk-webhook] Created new PARTNER user ${newUser.id} for clerkId=${clerkUser.id}`);
 }
@@ -212,6 +232,10 @@ async function handleUserUpdated(clerkUser: ClerkUser) {
       `${clerkUser.first_name ?? dbUser.firstName ?? ''} ${clerkUser.last_name ?? dbUser.lastName ?? ''}`.trim();
     await ensurePartnerProfile(dbUser.id, fullName);
   }
+
+  const updatedRoles = await userRepository.findByClerkUserId(clerkUser.id);
+  const updatedRoleNames = updatedRoles?.roles.map((ur) => ur.role.name) ?? [];
+  await syncClerkRoles(clerkUser.id, updatedRoleNames);
 }
 
 async function handleUserDeleted(clerkUser: ClerkUser) {

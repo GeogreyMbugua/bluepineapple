@@ -1,4 +1,4 @@
-import { prisma } from "../client";
+import { prisma } from "../client.ts";
 import {
   Booking,
   BookingStatus,
@@ -15,8 +15,8 @@ export class BookingRepository {
         guests: true,
         statusHistory: { orderBy: { changedAt: "desc" } },
         rewards: true,
-        departure: true,
-        partner: true,
+        departure: { include: { experience: true, route: true, vessel: true } },
+        partner: { include: { user: true } },
         pickupStop: true,
       },
     });

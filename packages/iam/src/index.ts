@@ -95,6 +95,7 @@ export type {
 
 export {
   ConsoleNotificationAdapter,
+  ResendNotificationAdapter,
   notificationService,
 } from "./adapters";
 
@@ -102,6 +103,8 @@ export type {
   NotificationAdapter,
   NotificationMessage,
 } from "./adapters";
+
+export { bookingNotificationEngine } from "./notifications/booking-notification-engine";
 
 // ── Audit ─────────────────────────────────────────────────────────────────
 
@@ -577,3 +580,20 @@ export type {
   CustomerMergedEvent,
   CustomerIntelligenceUpdatedEvent,
 } from "./events/domain-events";
+
+// ── Reviews ──────────────────────────────────────────────────────
+
+export {
+  ReviewService,
+  reviewService,
+} from "./reviews";
+
+export {
+  CreateReviewSchema,
+  ReviewQuerySchema,
+} from "./reviews/review.validators";
+
+export type {
+  CreateReviewInput,
+  ReviewQueryInput,
+} from "./reviews/review.validators";

@@ -50,7 +50,9 @@ export function DataTable<T>({ data, columns, pageSize = 10 }: DataTableProps<T>
   const [sorting, setSorting] = useState<SortingState>({ key: '', direction: null });
   const [pagination, setPagination] = useState<PaginationState>({ pageIndex: 0, pageSize });
 
-  const sortedData = [...data].sort((a, b) => {
+  const items = Array.isArray(data) ? data : [];
+
+  const sortedData = [...items].sort((a, b) => {
     if (!sorting.key || !sorting.direction) return 0;
     const aVal = a[sorting.key as keyof T];
     const bVal = b[sorting.key as keyof T];
@@ -76,41 +78,66 @@ export function DataTable<T>({ data, columns, pageSize = 10 }: DataTableProps<T>
 
   return (
     <div className="border border-stroke bg-white shadow-1">
-      <Table>
-        <TableHeader>
-          <TableRow className="border-b border-stroke bg-muted">
-            {columns.map((col) => (
-              <SortableHeader
-                key={String(col.key)}
-                column={col}
-                sorting={sorting}
-                onSort={handleSort}
-              />
-            ))}
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {paginatedData.length === 0 ? (
-            <TableRow>
-              <TableCell colSpan={columns.length} className="py-8 text-center text-gray-500">
-                No data found
-              </TableCell>
-            </TableRow>
-          ) : (
-            paginatedData.map((row, idx) => (
-              <TableRow key={idx} className="border-b border-gray-100">
+      <div className="md:hidden">
+        {paginatedData.length === 0 ? (
+          <div className="p-6 text-center text-sm text-gray-500">No data found</div>
+        ) : (
+          <div className="divide-y divide-stroke">
+            {paginatedData.map((row, idx) => (
+              <div key={idx} className="p-4 space-y-3">
                 {columns.map((col) => (
-                  <TableCell key={String(col.key)}>
-                    {col.cell
-                      ? col.cell(row)
-                      : row[col.key as keyof T] as React.ReactNode}
-                  </TableCell>
+                  <div key={String(col.key)} className="flex items-start justify-between gap-3">
+                    <span className="text-xs font-medium text-dark-5 uppercase tracking-wider">
+                      {col.header}
+                    </span>
+                    <span className="text-sm text-dark text-right">
+                      {col.cell ? col.cell(row) : row[col.key as keyof T] as React.ReactNode}
+                    </span>
+                  </div>
                 ))}
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      <div className="hidden md:block">
+        <Table>
+          <TableHeader>
+            <TableRow className="border-b border-stroke bg-muted">
+              {columns.map((col) => (
+                <SortableHeader
+                  key={String(col.key)}
+                  column={col}
+                  sorting={sorting}
+                  onSort={handleSort}
+                />
+              ))}
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {paginatedData.length === 0 ? (
+              <TableRow>
+                <TableCell colSpan={columns.length} className="py-8 text-center text-gray-500">
+                  No data found
+                </TableCell>
               </TableRow>
-            ))
-          )}
-        </TableBody>
-      </Table>
+            ) : (
+              paginatedData.map((row, idx) => (
+                <TableRow key={idx} className="border-b border-gray-100">
+                  {columns.map((col) => (
+                    <TableCell key={String(col.key)}>
+                      {col.cell
+                        ? col.cell(row)
+                        : row[col.key as keyof T] as React.ReactNode}
+                    </TableCell>
+                  ))}
+                </TableRow>
+              ))
+            )}
+          </TableBody>
+        </Table>
+      </div>
 
       {pageCount > 1 && (
         <div className="flex items-center justify-between border-t border-stroke px-4 py-3">

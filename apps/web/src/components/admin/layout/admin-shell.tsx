@@ -13,7 +13,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
         <Sidebar />
         <div className="w-full bg-surface-secondary">
           <Header />
-          <main className="isolate mx-auto w-full max-w-(--breakpoint-2xl) overflow-hidden p-4 md:p-6 2xl:p-10">
+          <main className="isolate mx-auto w-full max-w-(--breakpoint-2xl) overflow-hidden p-3 sm:p-4 md:p-6 2xl:p-10">
             {children}
           </main>
         </div>

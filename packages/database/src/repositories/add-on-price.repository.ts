@@ -1,4 +1,4 @@
-import { prisma } from "../client";
+import { prisma } from "../client.ts";
 
 export class AddOnPriceRepository {
   async findById(id: string) {

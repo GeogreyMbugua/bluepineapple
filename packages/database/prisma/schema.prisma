@@ -80,6 +80,7 @@ model Experience {
 
   routes              ExperienceRoute[]
   departures          Departure[]
+  reviews             Review[]
 
   @@index([slug])
   @@index([category])
@@ -365,6 +366,7 @@ model Booking {
   guests           BookingGuest[]
   statusHistory    BookingStatusHistory[]
   rewards          RewardTransaction[]
+  reviews          Review[]
 
   @@index([departureId])
   @@index([partnerId])
@@ -499,6 +501,7 @@ model User {
   partnerStatusChanges PartnerStatusHistory[] @relation("PartnerStatusChangedBy")
 
   bookingStatusChanges BookingStatusHistory[] @relation("BookingAuditUser")
+  reviews             Review[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -3130,4 +3133,37 @@ model FinanceAuditLog {
   @@index([entityType])
   @@index([createdAt])
   @@map("finance_audit_logs")
+}
+
+//
+// REVIEWS
+//
+
+model Review {
+  id            String    @id @default(uuid())
+  experienceId  String?
+  bookingId     String?
+  userId        String?
+  guestName     String
+  guestEmail    String?
+  rating        Int
+  title         String?
+  comment       String    @db.Text
+  isApproved    Boolean   @default(true)
+  isFeatured    Boolean   @default(false)
+  helpfulCount  Int       @default(0)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  user      User?       @relation(fields: [userId], references: [id], onDelete: SetNull)
+  booking   Booking?    @relation(fields: [bookingId], references: [id], onDelete: SetNull)
+  experience Experience? @relation(fields: [experienceId], references: [id], onDelete: SetNull)
+
+  @@index([experienceId])
+  @@index([bookingId])
+  @@index([userId])
+  @@index([rating])
+  @@index([isApproved])
+  @@index([createdAt])
+  @@map("reviews")
 }
