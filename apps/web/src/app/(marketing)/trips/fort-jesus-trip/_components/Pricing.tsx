@@ -42,7 +42,7 @@ export function Pricing() {
               Transparent fares
             </h2>
             <p className="mt-4 text-base leading-relaxed text-slate-600">
-              Fares scale with distance. Pay on board. Children aged 5–15 pay half fare. Infants under 5 travel free.
+              Fares scale with distance. Pay on board. Children aged 5–15 pay half fare.
             </p>
 
             <div className="mt-8 flex items-center gap-3">

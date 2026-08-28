@@ -165,7 +165,7 @@ export function calculateBooking(
   destination: Stop,
   adults: number,
   children: number,
-  infants: number,
+  infants: number = 0,
   returnTicket: boolean,
 ) {
   const result = calculatePricing({

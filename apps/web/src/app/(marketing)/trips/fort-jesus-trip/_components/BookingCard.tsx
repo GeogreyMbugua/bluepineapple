@@ -11,7 +11,6 @@ export function BookingCard() {
   const [date, setDate] = useState(getTodayDate());
   const [adults, setAdults] = useState(1);
   const [children, setChildren] = useState(0);
-  const [infants, setInfants] = useState(0);
   const [returnTicket, setReturnTicket] = useState(false);
 
   const handleOriginChange = (value: Stop) => {
@@ -22,8 +21,8 @@ export function BookingCard() {
   };
 
   const summary = useMemo(
-    () => calculateBooking(origin, destination, adults, children, infants, returnTicket),
-    [origin, destination, adults, children, infants, returnTicket]
+    () => calculateBooking(origin, destination, adults, children, 0, returnTicket),
+    [origin, destination, adults, children, returnTicket]
   );
 
   const destinationOptions = useMemo(() => {
@@ -38,11 +37,10 @@ export function BookingCard() {
       date,
       adults: String(adults),
       children: String(children),
-      infants: String(infants),
       returnTicket: returnTicket ? "1" : "0",
     });
     return `/trips/fort-jesus-trip/book?${params.toString()}`;
-  }, [origin, destination, date, adults, children, infants, returnTicket]);
+  }, [origin, destination, date, adults, children, returnTicket]);
 
   return (
     <div className="rounded-2xl bg-white p-5 shadow-2xl sm:p-6 lg:w-full lg:max-w-sm">
@@ -110,7 +108,7 @@ export function BookingCard() {
           <label className="mb-1 block text-[10px] font-medium uppercase tracking-wider text-slate-400">
             Passengers
           </label>
-          <div className="grid grid-cols-3 gap-2">
+          <div className="grid grid-cols-2 gap-2">
             <div>
               <span className="text-[10px] text-slate-400">Adults</span>
               <input
@@ -130,17 +128,6 @@ export function BookingCard() {
                 max={10}
                 value={children}
                 onChange={(e) => setChildren(Math.max(0, Number(e.target.value)))}
-                className="mt-1 w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-900 outline-none transition focus:border-[#0d3b66] focus:bg-white"
-              />
-            </div>
-            <div>
-              <span className="text-[10px] text-slate-400">Infants</span>
-              <input
-                type="number"
-                min={0}
-                max={10}
-                value={infants}
-                onChange={(e) => setInfants(Math.max(0, Number(e.target.value)))}
                 className="mt-1 w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-900 outline-none transition focus:border-[#0d3b66] focus:bg-white"
               />
             </div>

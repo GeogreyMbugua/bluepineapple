@@ -84,8 +84,8 @@ export function ReviewsSection({ experienceId }: { experienceId?: string }) {
   }, [experienceId]);
 
   useEffect(() => {
-    void loadReviews();
     // eslint-disable-next-line react-hooks/set-state-in-effect
+    void loadReviews();
   }, [loadReviews]);
 
   const handleSubmit = async (e: React.FormEvent) => {

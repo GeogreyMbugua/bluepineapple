@@ -36,6 +36,7 @@ export function PartnerSidebar({ isOpen = false, onClose }: PartnerSidebarProps)
   };
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setIsNavigating(false);
   }, [pathname]);
 

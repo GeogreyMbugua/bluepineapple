@@ -16,7 +16,6 @@ export function BookingModule() {
   const [date, setDate] = useState(getTodayDate());
   const [adults, setAdults] = useState(1);
   const [children, setChildren] = useState(0);
-  const [infants, setInfants] = useState(0);
   const [returnTicket, setReturnTicket] = useState(false);
 
   const handleOriginChange = (value: Stop) => {
@@ -27,8 +26,8 @@ export function BookingModule() {
   };
 
   const summary = useMemo(
-    () => calculateBooking(origin, destination, adults, children, infants, returnTicket),
-    [origin, destination, adults, children, infants, returnTicket]
+    () => calculateBooking(origin, destination, adults, children, 0, returnTicket),
+    [origin, destination, adults, children, returnTicket]
   );
 
   const destinationOptions = useMemo(() => {
@@ -43,11 +42,10 @@ export function BookingModule() {
       date,
       adults: String(adults),
       children: String(children),
-      infants: String(infants),
       returnTicket: returnTicket ? "1" : "0",
     });
     return `/trips/fort-jesus-trip/book?${params.toString()}`;
-  }, [origin, destination, date, adults, children, infants, returnTicket]);
+  }, [origin, destination, date, adults, children, returnTicket]);
 
   return (
     <div className="rounded-lg bg-white p-5 shadow-sm sm:p-6">
@@ -91,7 +89,7 @@ export function BookingModule() {
         </label>
       </div>
 
-      <div className="mt-4 grid gap-4 sm:grid-cols-4">
+      <div className="mt-4 grid gap-4 sm:grid-cols-3">
         <label className="block text-sm font-medium text-slate-900">
           Date
           <input
@@ -123,18 +121,6 @@ export function BookingModule() {
             max={10}
             value={children}
             onChange={(event) => setChildren(Math.max(0, Number(event.target.value)))}
-            className="mt-2 block w-full rounded-md border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-900 outline-none focus:border-slate-900"
-          />
-        </label>
-
-        <label className="block text-sm font-medium text-slate-900">
-          Infants
-          <input
-            type="number"
-            min={0}
-            max={10}
-            value={infants}
-            onChange={(event) => setInfants(Math.max(0, Number(event.target.value)))}
             className="mt-2 block w-full rounded-md border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-900 outline-none focus:border-slate-900"
           />
         </label>

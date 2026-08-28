@@ -26,7 +26,6 @@ export default function BookFortJesusPage() {
   const [date, setDate] = useState(getTodayDate());
   const [adults, setAdults] = useState(1);
   const [children, setChildren] = useState(0);
-  const [infants, setInfants] = useState(0);
   const [returnTicket, setReturnTicket] = useState(false);
   const [origin, setOrigin] = useState<Stop>(stops[0]!);
   const [destination, setDestination] = useState<Stop>(stops[stops.length - 1]!);
@@ -57,8 +56,8 @@ export default function BookFortJesusPage() {
   }, [departures, selectedDeparture]);
 
   const summary = useMemo(
-    () => calculateBooking(origin, destination, adults, children, infants, returnTicket),
-    [origin, destination, adults, children, infants, returnTicket]
+    () => calculateBooking(origin, destination, adults, children, 0, returnTicket),
+    [origin, destination, adults, children, returnTicket]
   );
 
   const destinationOptions = useMemo(() => {
@@ -115,7 +114,7 @@ export default function BookFortJesusPage() {
             email: primaryGuest.email || null,
             phone: primaryGuest.phoneNumber || null,
           },
-          totalGuests: adults + children + infants,
+          totalGuests: adults + children,
           totalAmount: summary.total,
            pickupStopId: selectedDepartureData?.route?.stops?.find((s) => s.name === origin)?.id || null,
           specialRequests: "",
@@ -289,7 +288,7 @@ export default function BookFortJesusPage() {
               </label>
             </div>
 
-            <div className="mt-5 grid gap-5 sm:grid-cols-4">
+            <div className="mt-5 grid gap-5 sm:grid-cols-3">
               <label className="block text-sm font-medium text-slate-900">
                 Adults
                 <input
@@ -310,18 +309,6 @@ export default function BookFortJesusPage() {
                   max={10}
                   value={children}
                   onChange={(event) => setChildren(Math.max(0, Number(event.target.value)))}
-                  className="mt-2 block w-full rounded-md border border-slate-300 bg-white px-3 py-3 text-sm text-slate-900 outline-none focus:border-slate-900"
-                />
-              </label>
-
-              <label className="block text-sm font-medium text-slate-900">
-                Infants (under 5)
-                <input
-                  type="number"
-                  min={0}
-                  max={10}
-                  value={infants}
-                  onChange={(event) => setInfants(Math.max(0, Number(event.target.value)))}
                   className="mt-2 block w-full rounded-md border border-slate-300 bg-white px-3 py-3 text-sm text-slate-900 outline-none focus:border-slate-900"
                 />
               </label>
@@ -408,11 +395,6 @@ export default function BookFortJesusPage() {
                 <p>
                   {children} child{children !== 1 ? "ren" : ""}
                 </p>
-                {infants > 0 && (
-                  <p>
-                    {infants} infant{infants !== 1 ? "s" : ""} (free)
-                  </p>
-                )}
               </div>
             </div>
 

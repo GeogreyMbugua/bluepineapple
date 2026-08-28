@@ -44,7 +44,6 @@ export default function RouteFaresPlanner() {
   const [date, setDate] = useState(getTodayDate());
   const [adults, setAdults] = useState(1);
   const [children, setChildren] = useState(0);
-  const [infants, setInfants] = useState(0);
   const [returnTicket, setReturnTicket] = useState(true);
 
   const handleOriginChange = (value: Stop) => {
@@ -63,8 +62,8 @@ export default function RouteFaresPlanner() {
   };
 
   const summary = useMemo(
-    () => calculateBooking(origin, destination, adults, children, infants, returnTicket),
-    [origin, destination, adults, children, infants, returnTicket]
+    () => calculateBooking(origin, destination, adults, children, 0, returnTicket),
+    [origin, destination, adults, children, returnTicket]
   );
 
   const destinationOptions = useMemo(() => {
@@ -140,7 +139,7 @@ export default function RouteFaresPlanner() {
             </label>
           </div>
 
-          <div className="mt-5 grid gap-5 sm:grid-cols-4">
+          <div className="mt-5 grid gap-5 sm:grid-cols-3">
             <label className="block text-sm font-medium text-slate-900">
               Travel date
               <input
@@ -172,18 +171,6 @@ export default function RouteFaresPlanner() {
                 max={10}
                 value={children}
                 onChange={(event) => setChildren(Math.max(0, Number(event.target.value)))}
-                className="mt-2 block w-full rounded-md border border-slate-300 bg-white px-3 py-3 text-sm text-slate-900 outline-none focus:border-slate-900"
-              />
-            </label>
-
-            <label className="block text-sm font-medium text-slate-900">
-              Infants (under 5)
-              <input
-                type="number"
-                min={0}
-                max={10}
-                value={infants}
-                onChange={(event) => setInfants(Math.max(0, Number(event.target.value)))}
                 className="mt-2 block w-full rounded-md border border-slate-300 bg-white px-3 py-3 text-sm text-slate-900 outline-none focus:border-slate-900"
               />
             </label>
@@ -219,11 +206,6 @@ export default function RouteFaresPlanner() {
               <p>
                 {children} child{children !== 1 ? "ren" : ""}
               </p>
-              {infants > 0 && (
-                <p>
-                  {infants} infant{infants !== 1 ? "s" : ""} (free)
-                </p>
-              )}
             </div>
           </div>
 
@@ -280,7 +262,7 @@ export default function RouteFaresPlanner() {
             </div>
           </div>
           <p className="mt-4 text-xs leading-relaxed text-slate-500">
-            Fares shown are per stop per guest. Children aged 5-15 pay half fare. Infants under 5 travel free. Discounts apply to
+            Fares shown are per stop per guest. Children aged 5-15 pay half fare. Discounts apply to
             the base fare before any return surcharge.
           </p>
         </div>
