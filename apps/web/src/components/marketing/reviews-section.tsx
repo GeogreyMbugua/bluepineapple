@@ -51,12 +51,12 @@ export function ReviewsSection({ experienceId }: { experienceId?: string }) {
   const [submitting, setSubmitting] = useState(false);
   const [success, setSuccess] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [experiences, setExperiences] = useState<ExperienceOption[]>([]);
+  const [experiences] = useState<ExperienceOption[]>(EXPERIENCES);
 
   const [form, setForm] = useState({
     guestName: '',
     guestEmail: '',
-    experienceId: '',
+    experienceId: EXPERIENCES[0]?.id ?? '',
     rating: 5,
     comment: '',
   });
@@ -84,15 +84,8 @@ export function ReviewsSection({ experienceId }: { experienceId?: string }) {
   }, [experienceId]);
 
   useEffect(() => {
-    setExperiences(EXPERIENCES);
-    if (!experienceId && EXPERIENCES.length > 0) {
-      const defaultExperienceId = EXPERIENCES[0].id;
-      setForm((f) => ({ ...f, experienceId: defaultExperienceId }));
-    }
-  }, [experienceId]);
-
-  useEffect(() => {
     void loadReviews();
+    // eslint-disable-next-line react-hooks/set-state-in-effect
   }, [loadReviews]);
 
   const handleSubmit = async (e: React.FormEvent) => {

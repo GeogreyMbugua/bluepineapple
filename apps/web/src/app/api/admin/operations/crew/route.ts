@@ -14,7 +14,7 @@ export async function GET(request: NextRequest) {
     const crew = await crewService.listActiveByRole(role ?? 'CAPTAIN', 100);
 
     return Response.json({ data: crew, timestamp: new Date().toISOString() });
-  } catch (error) {
+  } catch {
     return Response.json(
       { error: { code: 'INTERNAL_ERROR', message: 'Failed to fetch crew members' } },
       { status: 500 }

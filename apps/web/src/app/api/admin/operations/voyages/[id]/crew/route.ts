@@ -30,7 +30,7 @@ export async function GET(
     });
 
     return Response.json({ data: assignments, timestamp: new Date().toISOString() });
-  } catch (error) {
+  } catch {
     return Response.json(
       { error: { code: 'INTERNAL_ERROR', message: 'Failed to fetch crew assignments' } },
       { status: 500 }

@@ -24,7 +24,7 @@ export function UsersTableContent() {
     queryClient.invalidateQueries({ queryKey: ['admin', 'users'] });
   }, [queryClient]);
 
-  const safeUsers = Array.isArray(users) ? users : [];
+  const safeUsers = useMemo(() => (Array.isArray(users) ? users : []), [users]);
 
   const filteredUsers = useMemo(() => {
     if (!searchQuery.trim()) return safeUsers;

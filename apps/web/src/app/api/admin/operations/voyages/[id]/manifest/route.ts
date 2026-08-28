@@ -42,7 +42,7 @@ export async function GET(
       data: manifest,
       timestamp: new Date().toISOString(),
     });
-  } catch (error) {
+  } catch {
     return Response.json(
       {
         error: { code: 'INTERNAL_ERROR', message: 'Failed to fetch manifest' },

@@ -1,37 +1,55 @@
-import Link from "next/link";
+import Image from "next/image";
+import { trip } from "../_data/trip";
+import { publicPath } from "@/lib/paths";
 
 export function FinalCta() {
   return (
-    <section className="bg-[#f5efe4] py-14 sm:py-20">
-      <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
-        <div className="grid gap-8 lg:grid-cols-[1.3fr_0.9fr] lg:items-center">
-          <div>
-            <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[#b58845] sm:text-xs sm:tracking-[0.28em]">
-              Ready to board?
-            </p>
-            <h2 className="mt-3 text-3xl font-semibold leading-tight tracking-tight text-slate-950 sm:text-4xl lg:text-5xl">
-              Reserve a coastal passage that feels effortless.
-            </h2>
-            <p className="mt-4 max-w-xl text-[15px] leading-relaxed text-slate-600 sm:text-base sm:leading-7">
-              Select your route, date, and passengers online. Instant fare calculation and confirmation.
-            </p>
-          </div>
-          <div className="rounded-lg bg-white p-6 shadow-sm sm:p-8">
-            <Link
+    <section className="relative overflow-hidden bg-slate-900 py-20 sm:py-32">
+      <div className="absolute inset-0">
+        <Image
+          src={publicPath("/assets/experiences/fortjesus/fort3.webp")}
+          alt="Fort Jesus"
+          fill
+          className="object-cover opacity-30"
+        />
+        <div className="absolute inset-0 bg-gradient-to-r from-slate-900/90 via-slate-900/70 to-transparent" />
+      </div>
+
+      <div className="relative z-10 mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        <div className="max-w-2xl">
+          <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[#b58845] sm:text-xs sm:tracking-[0.28em]">
+            Ready to board?
+          </p>
+          <h2 className="mt-4 text-3xl font-semibold leading-tight tracking-tight text-white sm:text-4xl lg:text-5xl">
+            Reserve your coastal passage today.
+          </h2>
+          <p className="mt-4 max-w-lg text-base leading-relaxed text-slate-300">
+            Select your route, date, and passengers online. Instant fare calculation and confirmation.
+          </p>
+
+          <div className="mt-8 flex flex-col gap-4 sm:flex-row">
+            <a
               href="/trips/fort-jesus-trip/book"
-              className="inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-md bg-[#0d3b66] px-6 py-3.5 text-sm font-semibold text-white transition hover:bg-[#0b335a]"
+              className="inline-flex items-center justify-center gap-2 rounded-lg bg-[#0d3b66] px-6 py-3.5 text-sm font-semibold text-white transition hover:bg-[#0b335a]"
             >
               Reserve your journey
-            </Link>
-            <div className="mt-6 space-y-4 text-sm text-slate-600">
-              <div>
-                <p className="font-semibold text-slate-950">WhatsApp</p>
-                <p>+254 708 485 978</p>
-              </div>
-              <div>
-                <p className="font-semibold text-slate-950">Email</p>
-                <p className="break-all">bluepineappleholdings@gmail.com</p>
-              </div>
+            </a>
+            <a
+              href={trip.whatsapp.question}
+              className="inline-flex items-center justify-center gap-2 rounded-lg border border-white/20 bg-white/5 px-6 py-3.5 text-sm font-semibold text-white backdrop-blur-sm transition hover:bg-white/10"
+            >
+              Ask a question
+            </a>
+          </div>
+
+          <div className="mt-10 flex flex-wrap gap-8 text-sm text-slate-400">
+            <div>
+              <p className="text-xs uppercase tracking-wider text-slate-500">WhatsApp</p>
+              <p className="mt-1 text-white">+254 708 485 978</p>
+            </div>
+            <div>
+              <p className="text-xs uppercase tracking-wider text-slate-500">Email</p>
+              <p className="mt-1 text-white">bluepineappleholdings@gmail.com</p>
             </div>
           </div>
         </div>

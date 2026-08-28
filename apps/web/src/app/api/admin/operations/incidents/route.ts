@@ -27,7 +27,7 @@ export async function GET(request: NextRequest) {
     }
 
     return Response.json({ data: incidents, timestamp: new Date().toISOString() });
-  } catch (error) {
+  } catch {
     return Response.json(
       { error: { code: 'INTERNAL_ERROR', message: 'Failed to fetch incidents' } },
       { status: 500 }

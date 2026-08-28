@@ -16,15 +16,15 @@ describe("calculateStopCount", () => {
     expect(calculateStopCount("Mtwapa Beach", "Fort Jesus")).toBe(8);
   });
 
-  it("returns 3 for mid-route", () => {
-    expect(calculateStopCount("Mtwapa Beach", "Pirates")).toBe(5);
+  it("returns 4 for mid-route", () => {
+    expect(calculateStopCount("Mtwapa Beach", "Pirates")).toBe(4);
   });
 });
 
 describe("getOneWayFare", () => {
   it("returns correct fare for each stop count", () => {
     expect(getOneWayFare(1)).toBe(500);
-    expect(getOneWayFare(2)).toBe(750);
+    expect(getOneWayFare(2)).toBe(700);
     expect(getOneWayFare(3)).toBe(1000);
     expect(getOneWayFare(4)).toBe(1400);
     expect(getOneWayFare(5)).toBe(1800);
@@ -36,13 +36,13 @@ describe("getOneWayFare", () => {
 
 describe("getReturnFare", () => {
   it("returns correct fare for each stop count", () => {
-    expect(getReturnFare(1)).toBe(900);
-    expect(getReturnFare(2)).toBe(1300);
-    expect(getReturnFare(3)).toBe(1700);
-    expect(getReturnFare(4)).toBe(2300);
-    expect(getReturnFare(5)).toBe(2900);
-    expect(getReturnFare(6)).toBe(3500);
-    expect(getReturnFare(7)).toBe(4100);
+    expect(getReturnFare(1)).toBe(800);
+    expect(getReturnFare(2)).toBe(1200);
+    expect(getReturnFare(3)).toBe(1500);
+    expect(getReturnFare(4)).toBe(1900);
+    expect(getReturnFare(5)).toBe(2300);
+    expect(getReturnFare(6)).toBe(2700);
+    expect(getReturnFare(7)).toBe(3100);
     expect(getReturnFare(8)).toBe(5000);
   });
 });
@@ -236,6 +236,8 @@ describe("calculatePricing - base scenarios", () => {
     expect(result.returnAdultFare).toBe(5000);
     expect(result.baseFare).toBe(5000);
     expect(result.adultSubtotal).toBe(10000); // 5000 * 2
-    expect(result.total).toBe(10000);
+    expect(result.discountRate).toBe(0.1);
+    expect(result.discountAmount).toBe(1000);
+    expect(result.total).toBe(9000);
   });
 });

@@ -1,28 +1,10 @@
 import { calculatePricing, formatKsh } from "../../../../../lib/pricing/engine";
 
-export const trip = {
-  name: "Fort Jesus Historical Boat Tour",
-  tagline: "A premium coastal cruise to Fort Jesus with iconic views and time to explore Old Town.",
-  location: "Mombasa, Kenya",
-  duration: "8 hours",
-  vessel: { name: "Big Boat", href: "https://bprepo.vercel.app/boats/setting-sons" },
-  departureTime: "9:30 AM daily",
-  priceFrom: 500,
-  priceUnit: "Per Stop (per guest)",
-  inclusions: ["Return Transport", "Professional Guide", "Fort Entry Tickets", "Bottled Water"],
-  whatsapp: {
-    reserve: "https://wa.me/254708485978?text=Hi%20Blue%20Pineapple%2C%20I%27d%20like%20to%20book%20the%20Fort%20Jesus",
-    question: "https://wa.me/254708485978?text=Hi%20Blue%20Pineapple%2C%20I%20have%20a%20question%20about%20Fort%20Jesus",
-    returnTrip:
-      "https://wa.me/254708485978?text=Hi%20Blue%20Pineapple%2C%20I%27d%20like%20to%20book%20the%20Fort%20Jesus%20%E2%80%94%20Return%20Trip",
-  },
-} as const;
-
 export const stops = [
   "Mtwapa Beach",
   "Serena",
-  "Bamburi",
   "Whitesands",
+  "Bamburi",
   "Pirates",
   "Mombasa Beach",
   "Nyali",
@@ -32,17 +14,29 @@ export const stops = [
 
 export type Stop = (typeof stops)[number];
 
+export const trip = {
+  name: "Fort Jesus Water Taxi",
+  tagline: "Hop on along the coast. Arrive at Fort Jesus.",
+  location: "Mombasa, Kenya",
+  duration: "~2 hours",
+  vessel: { name: "Big Boat", href: "https://bprepo.vercel.app/boats/setting-sons" },
+  departureTime: "9:30 AM daily",
+  priceFrom: 500,
+  priceUnit: "Per stop, per guest",
+  inclusions: ["Return Transport", "Professional Guide", "Fort Entry Tickets", "Bottled Water"],
+  whatsapp: {
+    reserve: "https://wa.me/254708485978?text=Hi%20Blue%20Pineapple%2C%20I%27d%20like%20to%20book%20the%20Fort%20Jesus",
+    question: "https://wa.me/254708485978?text=Hi%20Blue%20Pineapple%2C%20I%20have%20a%20question%20about%20Fort%20Jesus",
+    returnTrip:
+      "https://wa.me/254708485978?text=Hi%20Blue%20Pineapple%2C%20I%27d%20like%20to%20book%20the%20Fort%20Jesus%20%E2%80%94%20Return%20Trip",
+  },
+} as const;
+
 export const quickFares = [
   { label: "1 stop", price: 500 },
-  { label: "2 stops", price: 750 },
+  { label: "2 stops", price: 700 },
   { label: "3 stops", price: 1000 },
   { label: "Full route (8 stops)", price: 3000 },
-];
-
-export const timetablePreview = [
-  { point: "Depart Mtwapa Beach", time: "9:30 AM daily" },
-  { point: "Arrive Mombasa Beach", time: "10:30 AM" },
-  { point: "Arrive Fort Jesus", time: "11:30 AM" },
 ];
 
 export const experience = [
@@ -69,52 +63,74 @@ export const experience = [
 export const itinerary = [
   {
     step: 1,
-    title: "Depart from Mombasa Beach",
+    title: "Depart from Mtwapa Beach",
     tag: "Departure point",
-    meta: "Access via Maasai Bar",
     description:
-      "Step aboard at Mombasa Beach — your captain and crew will brief you on safety before casting off. Life jackets are distributed and the GPS system is confirmed active.",
+      "Step aboard at Mtwapa Beach at 9:30 AM — your captain and crew will brief you on safety before casting off toward Serena Hotel.",
     image: "/assets/experiences/fortjesus/fortstock.webp",
   },
   {
     step: 2,
-    title: "Cruise past Nyali Beach",
-    tag: "Scenic",
+    title: "Serena Hotel",
+    tag: "Stop 1",
     description:
-      "The boat hugs the coastline past Nyali's white-sand shores. A great moment to settle in, take photos, and feel the ocean breeze. Bamburi Beach is a possible stop on request.",
+      "First stop along the coast. A great moment to settle in and feel the ocean breeze as we continue north.",
     image: "/assets/experiences/fortjesus/fort2.webp",
   },
   {
     step: 3,
-    title: "Pass Mombasa Marine Park",
-    tag: "Protected waters",
+    title: "Whitesands Hotel",
+    tag: "Stop 2",
     description:
-      "Glide over the crystal-clear waters of Mombasa Marine Park. Keep an eye out for marine life — turtles and reef fish are commonly spotted here.",
-    image: "/assets/experiences/snorkeling/snorkeling.webp",
+      "Pass the white-sand shores of Whitesands. Keep an eye out for marine life in the pristine waters here.",
+    image: "/assets/experiences/fortjesus/fort2.webp",
   },
   {
     step: 4,
-    title: "View Likoni & Shelly Beach",
-    tag: "Landmarks",
+    title: "Bamburi Beach",
+    tag: "Stop 3",
     description:
-      "From the water you'll spot the Likoni ferry crossing, Ras Serani Lighthouse, State House, and Mombasa Hospital — a rare perspective of the city most visitors never see.",
-    image: "/assets/experiences/fortjesus/fort3.webp",
+      "Glide past Bamburi Beach. Possible stop on request for those who want to stretch their legs.",
+    image: "/assets/experiences/fortjesus/fort2.webp",
   },
   {
     step: 5,
-    title: "Arrive at Fort Jesus Harbour",
-    tag: "UNESCO World Heritage Site",
+    title: "Pirates Beach",
+    tag: "Stop 4",
     description:
-      "Dock at the historic harbour beneath the imposing walls of Fort Jesus. Built by the Portuguese in 1593, the fort commands panoramic views of the old harbour and Mombasa's ancient skyline.",
-    image: "/assets/experiences/fortjesus/fortstock.webp",
+      "Continue past Pirates Beach. The coastline here offers a rare perspective of the city most visitors never see.",
+    image: "/assets/experiences/fortjesus/fort3.webp",
   },
   {
     step: 6,
-    title: "Explore Old Town",
-    tag: "~1 hr ashore",
-    meta: "Optional",
+    title: "Arrive at Mombasa Beach",
+    tag: "Stop 5 · 10:30 AM",
     description:
-      "Step into Old Town's winding streets lined with carved Swahili doorways, antique shops, and the smell of Kenyan coastal spices. A living piece of history that feels entirely apart from modern Mombasa.",
+      "Arrive at Mombasa Beach. From the water you will spot the Likoni ferry crossing, Ras Serani Lighthouse, State House, and Mombasa Hospital.",
+    image: "/assets/experiences/fortjesus/fortstock.webp",
+  },
+  {
+    step: 7,
+    title: "Nyali & English Point",
+    tag: "Stops 6 & 7",
+    description:
+      "Cruise past Nyali Beach and English Point. The final stretch toward Fort Jesus offers panoramic views of the old harbour.",
+    image: "/assets/experiences/fortjesus/fort3.webp",
+  },
+  {
+    step: 8,
+    title: "Arrive at Fort Jesus",
+    tag: "Stop 8 · 11:30 AM",
+    description:
+      "Dock at the historic harbour beneath the imposing walls of Fort Jesus. Built by the Portuguese in 1593, the fort commands panoramic views of Mombasa&apos;s ancient skyline.",
+    image: "/assets/experiences/fortjesus/fortstock.webp",
+  },
+  {
+    step: 9,
+    title: "Explore Old Town",
+    tag: "~1 hr ashore · Optional",
+    description:
+      "Step into Old Town&apos;s winding streets lined with carved Swahili doorways, antique shops, and the smell of Kenyan coastal spices.",
     image: "/assets/experiences/fortjesus/fort2.webp",
   },
 ];
@@ -136,9 +152,9 @@ export const offers = [
 ];
 
 export const tripDetails = [
-  { label: "Departure Point", value: "Hop on at any stop along the route" },
-  { label: "Departure Times", value: "9:30 AM daily" },
-  { label: "Stops", value: "Mtwapa Beach → Fort Jesus (9 stops)" },
+  { label: "Departure Point", value: "Mtwapa Beach — 9:30 AM daily" },
+  { label: "Arrival", value: "Fort Jesus — 11:30 AM (advertised)" },
+  { label: "Stops", value: "Mtwapa Beach → Fort Jesus (8 travel segments)" },
   { label: "Vessel", value: "Big Boat" },
 ];
 

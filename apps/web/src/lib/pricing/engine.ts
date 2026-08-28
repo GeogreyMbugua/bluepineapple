@@ -1,5 +1,5 @@
 import {
-  ROUTE_STOPS,
+  STOP_POSITIONS,
   ONE_WAY_FARES,
   RETURN_FARES,
   CHILD_DISCOUNT_RATE,
@@ -23,21 +23,21 @@ export function validatePricingInput(input: PricingInput): PricingError | null {
     return { code: "NO_PASSENGERS", message: "At least one passenger is required" };
   }
 
-  const originIndex = ROUTE_STOPS.indexOf(origin);
-  const destinationIndex = ROUTE_STOPS.indexOf(destination);
+  const originPosition = STOP_POSITIONS[origin];
+  const destinationPosition = STOP_POSITIONS[destination];
 
-  if (originIndex === -1) {
+  if (originPosition === undefined) {
     return { code: "INVALID_STOP", message: `Invalid origin stop: ${origin}` };
   }
-  if (destinationIndex === -1) {
+  if (destinationPosition === undefined) {
     return { code: "INVALID_STOP", message: `Invalid destination stop: ${destination}` };
   }
 
-  if (originIndex === destinationIndex) {
+  if (originPosition === destinationPosition) {
     return { code: "SAME_ORIGIN_DESTINATION", message: "Origin and destination cannot be the same" };
   }
 
-  if (destinationIndex < originIndex) {
+  if (destinationPosition < originPosition) {
     return { code: "DESTINATION_BEFORE_ORIGIN", message: "Destination must come after origin" };
   }
 
@@ -45,9 +45,9 @@ export function validatePricingInput(input: PricingInput): PricingError | null {
 }
 
 export function calculateStopCount(origin: Stop, destination: Stop): number {
-  const originIndex = ROUTE_STOPS.indexOf(origin);
-  const destinationIndex = ROUTE_STOPS.indexOf(destination);
-  return Math.max(1, destinationIndex - originIndex);
+  const originPosition = STOP_POSITIONS[origin];
+  const destinationPosition = STOP_POSITIONS[destination];
+  return Math.max(1, destinationPosition - originPosition);
 }
 
 export function getOneWayFare(stopCount: number): number {
@@ -195,4 +195,4 @@ export function formatKsh(value: number): string {
   return `Ksh ${value.toLocaleString("en-US")}`;
 }
 
-export { type Stop } from "./constants";
+export { type Stop, STOP_POSITIONS } from "./constants";

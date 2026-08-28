@@ -149,7 +149,7 @@ export default function AdminOperationsPage() {
               <p className="text-xs text-dark-5">Online booking limit: 20</p>
             </div>
             <div className="rounded-lg border border-stroke p-3 sm:p-4">
-              <p className="text-xs text-dark-6 sm:text-sm">Today's Revenue</p>
+              <p className="text-xs text-dark-6 sm:text-sm">Today&apos;s Revenue</p>
               <p className="text-xl font-bold text-dark sm:text-2xl">
                 KES {todayRevenue.toLocaleString()}
               </p>

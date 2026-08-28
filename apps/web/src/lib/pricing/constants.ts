@@ -1,8 +1,8 @@
 export const ROUTE_STOPS = [
   "Mtwapa Beach",
   "Serena",
-  "Bamburi",
   "Whitesands",
+  "Bamburi",
   "Pirates",
   "Mombasa Beach",
   "Nyali",
@@ -12,9 +12,21 @@ export const ROUTE_STOPS = [
 
 export type Stop = (typeof ROUTE_STOPS)[number];
 
+export const STOP_POSITIONS: Record<Stop, number> = {
+  "Mtwapa Beach": 0,
+  Serena: 1,
+  Whitesands: 2,
+  Bamburi: 3,
+  Pirates: 4,
+  "Mombasa Beach": 5,
+  Nyali: 6,
+  "English Point": 7,
+  "Fort Jesus": 8,
+};
+
 export const ONE_WAY_FARES: Record<number, number> = {
   1: 500,
-  2: 750,
+  2: 700,
   3: 1000,
   4: 1400,
   5: 1800,
@@ -24,13 +36,13 @@ export const ONE_WAY_FARES: Record<number, number> = {
 };
 
 export const RETURN_FARES: Record<number, number> = {
-  1: 900,
-  2: 1300,
-  3: 1700,
-  4: 2300,
-  5: 2900,
-  6: 3500,
-  7: 4100,
+  1: 800,
+  2: 1200,
+  3: 1500,
+  4: 1900,
+  5: 2300,
+  6: 2700,
+  7: 3100,
   8: 5000,
 };
 

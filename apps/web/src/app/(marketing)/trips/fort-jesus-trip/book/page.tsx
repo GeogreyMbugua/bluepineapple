@@ -28,8 +28,8 @@ export default function BookFortJesusPage() {
   const [children, setChildren] = useState(0);
   const [infants, setInfants] = useState(0);
   const [returnTicket, setReturnTicket] = useState(false);
-  const [origin, setOrigin] = useState<Stop>(stops[0]);
-  const [destination, setDestination] = useState<Stop>(stops[stops.length - 1] as Stop);
+  const [origin, setOrigin] = useState<Stop>(stops[0]!);
+  const [destination, setDestination] = useState<Stop>(stops[stops.length - 1]!);
   const [status, setStatus] = useState<BookingStatus>("idle");
   const [error, setError] = useState<string | null>(null);
   const [bookingReference, setBookingReference] = useState<string | null>(null);

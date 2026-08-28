@@ -39,8 +39,8 @@ function JourneyPath({ origin, destination }: { readonly origin: Stop; readonly 
 }
 
 export default function RouteFaresPlanner() {
-  const [origin, setOrigin] = useState<Stop>(stops[0]);
-  const [destination, setDestination] = useState<Stop>(stops[1]);
+  const [origin, setOrigin] = useState<Stop>(stops[0]!);
+  const [destination, setDestination] = useState<Stop>(stops[1]!);
   const [date, setDate] = useState(getTodayDate());
   const [adults, setAdults] = useState(1);
   const [children, setChildren] = useState(0);
@@ -73,13 +73,13 @@ export default function RouteFaresPlanner() {
   }, [origin]);
 
   const fullOneWayFareTable = useMemo(() => {
-    return Object.entries({ 1: 500, 2: 750, 3: 1000, 4: 1400, 5: 1800, 6: 2200, 7: 2600, 8: 3000 })
+    return Object.entries({ 1: 500, 2: 700, 3: 1000, 4: 1400, 5: 1800, 6: 2200, 7: 2600, 8: 3000 })
       .map(([count, price]) => ({ count: Number(count), price }))
       .filter((row) => row.count > 0);
   }, []);
 
   const fullReturnFareTable = useMemo(() => {
-    return Object.entries({ 1: 900, 2: 1300, 3: 1700, 4: 2300, 5: 2900, 6: 3500, 7: 4100, 8: 5000 })
+    return Object.entries({ 1: 800, 2: 1200, 3: 1500, 4: 1900, 5: 2300, 6: 2700, 7: 3100, 8: 5000 })
       .map(([count, price]) => ({ count: Number(count), price }))
       .filter((row) => row.count > 0);
   }, []);

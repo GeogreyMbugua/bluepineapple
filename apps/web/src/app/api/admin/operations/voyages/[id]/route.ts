@@ -24,7 +24,7 @@ export async function GET(
     }
 
     return Response.json({ data: voyage, timestamp: new Date().toISOString() });
-  } catch (error) {
+  } catch {
     return Response.json(
       { error: { code: 'INTERNAL_ERROR', message: 'Failed to fetch voyage' } },
       { status: 500 }
