@@ -14,15 +14,17 @@ function setupMocks() {
       },
       bookingStatusHistory: { create: vi.fn() },
       bookingGuest: { createMany: vi.fn() },
+      notificationOutbox: { create: vi.fn() },
       $transaction: vi.fn(async (fn: any) => fn({
         booking: { create: vi.fn().mockResolvedValue({ id: "b1", bookingReference: "BP-TEST", status: "PENDING" }) },
         bookingStatusHistory: { create: vi.fn() },
         bookingGuest: { createMany: vi.fn() },
+        notificationOutbox: { create: vi.fn() },
       })),
     },
     bookingRepository: {
       findById: vi.fn(), findByDeparture: vi.fn(), findByPartner: vi.fn(), findByStatus: vi.fn(),
-      create: vi.fn(), update: vi.fn(), findConflicting: vi.fn(),
+      create: vi.fn(), update: vi.fn(), findConflicting: vi.fn(), countOnlineBooked: vi.fn(),
     },
     departureRepository: {
       findById: vi.fn().mockResolvedValue({ id: "dep-1", status: "SCHEDULED", vessel: { status: "ACTIVE" }, experience: { isActive: true } }),
@@ -39,12 +41,13 @@ function setupMocks() {
     PartnerPolicy: { assertCanBook: vi.fn() },
   }));
   vi.doMock("../src/guests/guest.service", () => ({ guestService: { resolveGuest: vi.fn() } }));
-  vi.doMock("../src/bookings/booking-capacity.service", () => ({ bookingCapacityService: { atomicReserve: vi.fn(), atomicRelease: vi.fn() } }));
+  vi.doMock("../src/bookings/booking-capacity.service", () => ({ bookingCapacityService: { atomicReserve: vi.fn(), atomicReserveOnline: vi.fn(), atomicRelease: vi.fn() } }));
 }
 
 describe("partner booking workflow", () => {
   beforeEach(() => {
-    vi.resetAllMocks();
+    vi.resetModules();
+    vi.clearAllMocks();
     setupMocks();
   });
 
@@ -58,7 +61,7 @@ describe("partner booking workflow", () => {
 
   it("prevents duplicate bookings for same guest on same departure", async () => {
     const { bookingService } = await import("../src/bookings/booking.service");
-    const db = require("@blue-pineapple/database") as any;
+    const db = await import("@blue-pineapple/database") as any;
     db.bookingRepository.findConflicting.mockResolvedValue({ id: "existing" });
     await expect(
       bookingService.createBooking({ departureId: "dep-1", partnerId: "partner-1", totalGuests: 2, totalAmount: 2000, guestId: "g1", source: "PARTNER" })
@@ -67,8 +70,8 @@ describe("partner booking workflow", () => {
 
   it("prevents booking on non-SCHEDULED departure", async () => {
     const { bookingService } = await import("../src/bookings/booking.service");
-    const db = require("@blue-pineapple/database") as any;
-    db.prisma.departure.findUnique.mockResolvedValue({ id: "dep-1", status: "DEPARTED", vessel: { status: "ACTIVE" }, experience: { isActive: true } });
+    const policies = await import("../src/policies") as any;
+    policies.BookingPolicy.isBookable.mockReturnValue(false);
     await expect(
       bookingService.createBooking({ departureId: "dep-1", partnerId: "partner-1", totalGuests: 2, totalAmount: 2000, source: "PARTNER" })
     ).rejects.toThrow("Departure is not open for bookings");
@@ -76,13 +79,10 @@ describe("partner booking workflow", () => {
 
   it("counts online booked guests correctly via aggregate query", async () => {
     const { bookingService } = await import("../src/bookings/booking.service");
-    const db = require("@blue-pineapple/database") as any;
-    db.prisma.booking.aggregate.mockResolvedValue({ _sum: { totalGuests: 7 } });
+    const db = await import("@blue-pineapple/database") as any;
+    db.bookingRepository.countOnlineBooked.mockResolvedValue(7);
     const count = await (bookingService as any).getOnlineBookedGuestCount("dep-1");
-    expect(db.prisma.booking.aggregate).toHaveBeenCalledWith({
-      where: { departureId: "dep-1", status: { not: "CANCELLED" }, source: { in: ["PARTNER"] } },
-      _sum: { totalGuests: true },
-    });
+    expect(db.bookingRepository.countOnlineBooked).toHaveBeenCalledWith("dep-1");
     expect(count).toBe(7);
   });
 });

@@ -40,6 +40,9 @@ export function DepartureCard({ departure }: DepartureCardProps) {
         </div>
 
         <CapacityBar booked={departure.bookedSeats} total={departure.totalCapacity} />
+        <p className="mt-2 text-xs font-semibold text-amber-700">
+          Online: {departure.onlineAvailableCapacity}/{departure.onlineCapacity} remaining · Vessel: {departure.availableCapacity}/{departure.totalCapacity} remaining
+        </p>
 
         <div className="flex items-center justify-between mt-3 pt-3 border-t border-stroke">
           <span className="text-xs text-dark-5">

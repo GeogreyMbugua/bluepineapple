@@ -1,27 +1,17 @@
-export const ROUTE_STOPS = [
-  "Mtwapa Beach",
-  "Serena",
-  "Whitesands",
-  "Bamburi",
-  "Pirates",
-  "Mombasa Beach",
-  "Nyali",
-  "English Point",
-  "Fort Jesus",
-] as const;
+export const ROUTE_STOPS = ["Mtwapa Beach", "Serena", "Bamburi", "Whitesands", "Pirates", "Mombasa Beach", "Nyali", "English Point", "Fort Jesus"] as const;
 
 export type Stop = (typeof ROUTE_STOPS)[number];
 
 export const STOP_POSITIONS: Record<Stop, number> = {
   "Mtwapa Beach": 0,
   Serena: 1,
-  Whitesands: 2,
-  Bamburi: 3,
+  Bamburi: 2,
+  Whitesands: 3,
   Pirates: 4,
   "Mombasa Beach": 5,
   Nyali: 6,
   "English Point": 7,
-  "Fort Jesus": 8,
+  "Fort Jesus": 8
 };
 
 export const ONE_WAY_FARES: Record<number, number> = {
@@ -32,7 +22,7 @@ export const ONE_WAY_FARES: Record<number, number> = {
   5: 1800,
   6: 2200,
   7: 2600,
-  8: 3000,
+  8: 3000
 };
 
 export const RETURN_FARES: Record<number, number> = {
@@ -43,10 +33,11 @@ export const RETURN_FARES: Record<number, number> = {
   5: 2300,
   6: 2700,
   7: 3100,
-  8: 5000,
+  8: 5000
 };
 
-export const CHILD_DISCOUNT_RATE = 0.5;
+export const CHILD_DISCOUNT_RATE = 0.05;
+export const CHILD_FARE_RATE = 1 - CHILD_DISCOUNT_RATE;
 export const INFANT_AGE_MAX = 4;
 export const CHILD_AGE_MIN = 5;
 export const CHILD_AGE_MAX = 15;
@@ -69,14 +60,14 @@ export const COUPLE_DISCOUNT: DiscountRule = {
   name: "couple",
   description: "10% off couple bookings",
   rate: 0.1,
-  applies: (ctx) => ctx.adults === 2 && ctx.children === 0 && ctx.infants === 0,
+  applies: ctx => ctx.adults === 2 && ctx.children === 0 && ctx.infants === 0
 };
 
 export const GROUP_DISCOUNT: DiscountRule = {
   name: "group",
-  description: "20% off group/family bookings (4+ paying passengers)",
+  description: "20% off group/family bookings (4+ adults)",
   rate: 0.2,
-  applies: (ctx) => ctx.totalPassengers >= 4,
+  applies: ctx => ctx.adults >= 4
 };
 
 export const DEFAULT_DISCOUNT_RULES: readonly DiscountRule[] = [COUPLE_DISCOUNT, GROUP_DISCOUNT];

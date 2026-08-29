@@ -15,6 +15,7 @@ export class BookingNotificationEngine {
     this.isRunning = true;
     this.unsubscribeConfirmed = eventBus.on('booking.confirmed', this.handleBookingConfirmed);
     this.unsubscribeCreated = eventBus.on('booking.created', this.handleBookingCreated);
+    void this.processPendingAdminNotifications();
   }
 
   stop() {
@@ -83,11 +84,62 @@ export class BookingNotificationEngine {
 
   private handleBookingCreated = async (event: BookingCreatedEvent) => {
     try {
-      const admins = await userRepository.findAdmins();
-      if (admins.length === 0) return;
+      await prisma.notificationOutbox.upsert({
+        where: {
+          bookingId_purpose: {
+            bookingId: event.bookingId,
+            purpose: 'ADMIN_BOOKING_CREATED',
+          },
+        },
+        create: {
+          bookingId: event.bookingId,
+          purpose: 'ADMIN_BOOKING_CREATED',
+        },
+        update: {},
+      });
+      await this.deliverAdminNotification(event.bookingId);
+    } catch (error) {
+      console.error('[BookingNotificationEngine] Failed to enqueue admin booking notification:', error);
+    }
+  };
 
-      const booking = await bookingRepository.findById(event.bookingId);
-      if (!booking) return;
+  private processPendingAdminNotifications = async () => {
+    try {
+      const pending = await prisma.notificationOutbox.findMany({
+        where: { status: 'PENDING' },
+        orderBy: { createdAt: 'asc' },
+        take: 25,
+      });
+      for (const notification of pending) {
+        await this.deliverAdminNotification(notification.bookingId);
+      }
+    } catch (error) {
+      console.error('[BookingNotificationEngine] Failed to process notification outbox:', error);
+    }
+  };
+
+  private deliverAdminNotification = async (bookingId: string) => {
+    const claimed = await prisma.notificationOutbox.updateMany({
+      where: {
+        bookingId,
+        purpose: 'ADMIN_BOOKING_CREATED',
+        status: 'PENDING',
+      },
+      data: {
+        status: 'PROCESSING',
+        attempts: { increment: 1 },
+      },
+    });
+    if (claimed.count === 0) return;
+
+    try {
+      const admins = await userRepository.findAdmins();
+      if (admins.length === 0) {
+        throw new Error('No active admin recipients configured');
+      }
+
+      const booking = await bookingRepository.findById(bookingId);
+      if (!booking) throw new Error('Booking not found');
 
       const html = renderAdminBookingCreatedEmail({
         bookingReference: booking.bookingReference,
@@ -100,11 +152,20 @@ export class BookingNotificationEngine {
             }
           : null,
         partnerId: booking.partnerId,
+        source: booking.source,
+        pricingMode: booking.pricingMode,
+        adults: booking.adults,
+        children: booking.children,
+        infants: booking.infants,
+        discountRate: Number(booking.discountRate),
+        discountAmount: Number(booking.discountAmount),
+        origin: booking.originStop?.name,
+        destination: booking.destinationStop?.name,
         departure: booking.departure
           ? {
               departureDateTime: booking.departure.departureDateTime,
               experience: booking.departure.experience,
-              vessel: null,
+              vessel: booking.departure.vessel,
               route: booking.departure.route,
             }
           : null,
@@ -123,8 +184,19 @@ export class BookingNotificationEngine {
         });
       }
 
-      console.log(`[BookingNotificationEngine] Admin notification sent for new booking ${event.bookingReference} to ${recipientEmails.length} admin(s)`);
+      await prisma.notificationOutbox.updateMany({
+        where: { bookingId, purpose: 'ADMIN_BOOKING_CREATED', status: 'PROCESSING' },
+        data: { status: 'SENT', sentAt: new Date(), lastError: null },
+      });
+      console.log(`[BookingNotificationEngine] Admin notification sent for new booking ${booking.bookingReference} to ${recipientEmails.length} admin(s)`);
     } catch (error) {
+      await prisma.notificationOutbox.updateMany({
+        where: { bookingId, purpose: 'ADMIN_BOOKING_CREATED', status: 'PROCESSING' },
+        data: {
+          status: 'PENDING',
+          lastError: error instanceof Error ? error.message : 'Unknown notification error',
+        },
+      });
       console.error('[BookingNotificationEngine] Failed to send admin booking created notification:', error);
     }
   };

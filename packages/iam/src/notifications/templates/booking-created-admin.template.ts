@@ -2,6 +2,15 @@ export function renderAdminBookingCreatedEmail(booking: {
   bookingReference: string;
   totalGuests: number;
   totalAmount: string;
+  source?: string;
+  pricingMode?: string;
+  adults?: number;
+  children?: number;
+  infants?: number;
+  discountRate?: number;
+  discountAmount?: number;
+  origin?: string;
+  destination?: string;
   guest?: { firstName?: string; lastName?: string } | null;
   partnerId?: string;
   departure?: {
@@ -9,6 +18,10 @@ export function renderAdminBookingCreatedEmail(booking: {
     experience?: { name?: string } | null;
     vessel?: { name?: string } | null;
     route?: { name?: string } | null;
+    totalCapacity?: number;
+    availableCapacity?: number;
+    onlineCapacity?: number;
+    onlineBookedSeats?: number;
   } | null;
 }): string {
   const guestName = `${booking.guest?.firstName ?? ''} ${booking.guest?.lastName ?? ''}`.trim() || 'N/A';
@@ -16,7 +29,7 @@ export function renderAdminBookingCreatedEmail(booking: {
   const departureDate = booking.departure?.departureDateTime
     ? new Date(booking.departure.departureDateTime).toLocaleDateString('en-KE', {
         weekday: 'long', year: 'numeric', month: 'long', day: 'numeric',
-        hour: '2-digit', minute: '2-digit'
+        hour: '2-digit', minute: '2-digit', timeZone: 'Africa/Nairobi'
       })
     : 'TBD';
 
@@ -57,6 +70,18 @@ export function renderAdminBookingCreatedEmail(booking: {
                 </tr>
                 <tr>
                   <td style="padding:16px 24px;border-bottom:1px solid #e2e8f0;">
+                    <p style="margin:0 0 4px;font-size:12px;text-transform:uppercase;letter-spacing:0.5px;color:#64748b;">Journey</p>
+                    <p style="margin:0;font-size:15px;color:#334155;">${booking.origin ?? 'N/A'} → ${booking.destination ?? 'N/A'}</p>
+                  </td>
+                </tr>
+                <tr>
+                  <td style="padding:16px 24px;border-bottom:1px solid #e2e8f0;">
+                    <p style="margin:0 0 4px;font-size:12px;text-transform:uppercase;letter-spacing:0.5px;color:#64748b;">Source / Fare mode</p>
+                    <p style="margin:0;font-size:15px;color:#334155;">${booking.source ?? 'N/A'} / ${booking.pricingMode ?? 'N/A'}</p>
+                  </td>
+                </tr>
+                <tr>
+                  <td style="padding:16px 24px;border-bottom:1px solid #e2e8f0;">
                     <p style="margin:0 0 4px;font-size:12px;text-transform:uppercase;letter-spacing:0.5px;color:#64748b;">Partner ID</p>
                     <p style="margin:0;font-size:15px;color:#334155;">${booking.partnerId ?? 'N/A'}</p>
                   </td>
@@ -82,8 +107,26 @@ export function renderAdminBookingCreatedEmail(booking: {
                 </tr>` : ''}
                 <tr>
                   <td style="padding:16px 24px;border-bottom:1px solid #e2e8f0;">
+                    <p style="margin:0 0 4px;font-size:12px;text-transform:uppercase;letter-spacing:0.5px;color:#64748b;">Capacity</p>
+                    <p style="margin:0;font-size:15px;font-weight:600;color:#b45309;">Online: ${Math.max(0, (booking.departure?.onlineCapacity ?? 0) - (booking.departure?.onlineBookedSeats ?? 0))}/${booking.departure?.onlineCapacity ?? 'N/A'} remaining; vessel: ${booking.departure?.availableCapacity ?? 'N/A'}/${booking.departure?.totalCapacity ?? 'N/A'} remaining.</p>
+                  </td>
+                </tr>
+                <tr>
+                  <td style="padding:16px 24px;border-bottom:1px solid #e2e8f0;">
                     <p style="margin:0 0 4px;font-size:12px;text-transform:uppercase;letter-spacing:0.5px;color:#64748b;">Guests</p>
                     <p style="margin:0;font-size:15px;color:#334155;">${booking.totalGuests}</p>
+                  </td>
+                </tr>
+                <tr>
+                  <td style="padding:16px 24px;border-bottom:1px solid #e2e8f0;">
+                    <p style="margin:0 0 4px;font-size:12px;text-transform:uppercase;letter-spacing:0.5px;color:#64748b;">Passenger composition</p>
+                    <p style="margin:0;font-size:15px;color:#334155;">${booking.adults ?? 'N/A'} adult(s), ${booking.children ?? 0} child(ren), ${booking.infants ?? 0} under 5</p>
+                  </td>
+                </tr>
+                <tr>
+                  <td style="padding:16px 24px;border-bottom:1px solid #e2e8f0;">
+                    <p style="margin:0 0 4px;font-size:12px;text-transform:uppercase;letter-spacing:0.5px;color:#64748b;">Discount</p>
+                    <p style="margin:0;font-size:15px;color:#334155;">${booking.discountRate ? `${Math.round(booking.discountRate * 100)}% (KES ${Number(booking.discountAmount ?? 0).toLocaleString()})` : 'None'}</p>
                   </td>
                 </tr>
                 <tr>

@@ -2,7 +2,7 @@ import {
   STOP_POSITIONS,
   ONE_WAY_FARES,
   RETURN_FARES,
-  CHILD_DISCOUNT_RATE,
+  CHILD_FARE_RATE,
   DEFAULT_DISCOUNT_RULES,
   type Stop,
   type DiscountRule,
@@ -47,7 +47,7 @@ export function validatePricingInput(input: PricingInput): PricingError | null {
 export function calculateStopCount(origin: Stop, destination: Stop): number {
   const originPosition = STOP_POSITIONS[origin];
   const destinationPosition = STOP_POSITIONS[destination];
-  return Math.max(1, destinationPosition - originPosition);
+  return destinationPosition - originPosition;
 }
 
 export function getOneWayFare(stopCount: number): number {
@@ -80,10 +80,10 @@ export function calculatePassengerFares(
   infantSubtotal: number;
 } {
   // Base fare is per stop, per paying guest.
-  // Children pay 50% of the base fare each.
+  // Children receive 5% off the base fare each.
   // Infants travel free.
   const baseFare = returnTicket ? returnFare : oneWayFare;
-  const childFare = Math.round(baseFare * CHILD_DISCOUNT_RATE);
+  const childFare = Math.round(baseFare * CHILD_FARE_RATE);
 
   const adultSubtotal = baseFare * adults;
   const childSubtotal = childFare * children;
@@ -107,16 +107,22 @@ export function calculateDiscount(
     adults,
     children,
     infants,
-    totalPassengers: adults + children + infants,
+    // Infants travel free and are excluded from paying-passenger totals.
+    totalPassengers: adults + children,
   };
 
   let totalRate = 0;
   const applied: string[] = [];
+  let bookingSizeDiscountApplied = false;
 
   for (const rule of rules) {
+    const isBookingSizeDiscount = rule.name === "couple" || rule.name === "group";
+    if (isBookingSizeDiscount && bookingSizeDiscountApplied) continue;
+
     if (rule.applies(context)) {
       totalRate += rule.rate;
       applied.push(rule.description);
+      if (isBookingSizeDiscount) bookingSizeDiscountApplied = true;
     }
   }
 
@@ -161,7 +167,9 @@ export function calculatePricing(input: PricingInput): PricingBreakdown {
   const discount = applyDiscounts
     ? calculateDiscount(adults, children, infants, discountRules)
     : { rate: 0, amount: 0, appliedDiscounts: [] as string[] };
-  const discountAmount = Math.round(subtotal * discount.rate);
+  // Booking-size discounts apply to adult fares only. Child pricing already
+  // includes the child fare discount, and infants are free.
+  const discountAmount = Math.round(adultSubtotal * discount.rate);
   const discountedTotal = subtotal - discountAmount;
   const total = discountedTotal;
 
@@ -170,10 +178,10 @@ export function calculatePricing(input: PricingInput): PricingBreakdown {
     destination,
     stopCount,
     oneWayAdultFare: oneWayFare,
-    oneWayChildFare: Math.round(oneWayFare * CHILD_DISCOUNT_RATE),
+    oneWayChildFare: Math.round(oneWayFare * CHILD_FARE_RATE),
     oneWayInfantFare: 0,
     returnAdultFare: returnFare,
-    returnChildFare: Math.round(returnFare * CHILD_DISCOUNT_RATE),
+    returnChildFare: Math.round(returnFare * CHILD_FARE_RATE),
     returnInfantFare: 0,
     baseFare,
     adultSubtotal,

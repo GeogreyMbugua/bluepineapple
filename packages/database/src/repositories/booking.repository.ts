@@ -18,6 +18,8 @@ export class BookingRepository {
         departure: { include: { experience: true, route: true, vessel: true } },
         partner: { include: { user: true } },
         pickupStop: true,
+        originStop: true,
+        destinationStop: true,
       },
     });
   }
@@ -113,8 +115,8 @@ export class BookingRepository {
     const result = await prisma.booking.aggregate({
       where: {
         departureId,
-        status: { not: BookingStatus.CANCELLED },
-        source: { in: [BookingSource.PARTNER] },
+        status: { in: [BookingStatus.PENDING, BookingStatus.CONFIRMED] },
+        source: { in: [BookingSource.PARTNER, BookingSource.DIRECT] },
       },
       _sum: { totalGuests: true },
     });

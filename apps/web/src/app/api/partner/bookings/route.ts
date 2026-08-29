@@ -23,12 +23,18 @@ export async function POST(request: NextRequest) {
       departureDate,
       departureTime,
       pickupStopId,
+      originStopId,
+      destinationStopId,
       totalGuests,
+      adults = totalGuests,
+      children = 0,
+      infants = 0,
+      returnTicket = false,
       totalAmount,
       specialRequests,
     } = body;
 
-    if (!departureDate || !departureTime || !pickupStopId || !totalGuests) {
+    if (!departureDate || !departureTime || (!pickupStopId && !originStopId) || !totalGuests) {
       return NextResponse.json(
         { error: { code: 'VALIDATION_ERROR', message: 'Missing required fields' } },
         { status: 400 }
@@ -51,19 +57,24 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    const existingDeparture = await prisma.departure.findFirst({
+      where: {
+        experienceId: experience.id,
+        departureDateTime: {
+          gte: new Date(`${departureDate}T00:00:00.000Z`),
+          lt: new Date(`${departureDate}T23:59:59.999Z`),
+        },
+      },
+      orderBy: { departureDateTime: 'desc' },
+      select: { vesselId: true, routeId: true },
+    });
+
     const [defaultRoute, defaultVessel] = await Promise.all([
       departureService.listActiveRoutes(),
       departureService.listActiveVessels(),
     ]);
 
-    const routeId = defaultRoute[0]?.id;
-
-    const existingDeparture = await prisma.departure.findFirst({
-      where: { experienceId: experience.id },
-      orderBy: { departureDateTime: 'desc' },
-      select: { vesselId: true },
-    });
-
+    const routeId = existingDeparture?.routeId ?? defaultRoute[0]?.id;
     const vesselId = existingDeparture?.vesselId ?? defaultVessel[0]?.id;
 
     if (!routeId || !vesselId) {
@@ -76,24 +87,33 @@ export async function POST(request: NextRequest) {
     const routeStops = await prisma.routeStop.findMany({
       where: { routeId },
       orderBy: { sequence: 'asc' },
-      select: { name: true },
+      select: { id: true, name: true },
     });
 
-    const pickupStop = await prisma.routeStop.findUnique({
-      where: { id: pickupStopId },
-      select: { name: true },
-    });
-
-    const origin = (pickupStop?.name ?? routeStops[0]?.name ?? 'Mtwapa Beach') as Stop;
-    const destination = 'Fort Jesus';
+    const originStop = routeStops.find((stop) => stop.id === (originStopId ?? pickupStopId));
+    const destinationStop = routeStops.find((stop) => stop.id === destinationStopId) ?? routeStops.at(-1);
+    if (!originStop || !destinationStop) {
+      return NextResponse.json(
+        { error: { code: 'INVALID_ROUTE', message: 'Origin and destination must belong to the route' } },
+        { status: 400 }
+      );
+    }
+    const origin = originStop.name as Stop;
+    const destination = destinationStop.name as Stop;
+    if (adults + children + infants !== totalGuests) {
+      return NextResponse.json(
+        { error: { code: 'VALIDATION_ERROR', message: 'Passenger composition must equal total guests' } },
+        { status: 400 }
+      );
+    }
 
     const expectedPricing = calculatePricing({
       origin,
       destination,
-      adults: totalGuests,
-      children: 0,
-      infants: 0,
-      returnTicket: false,
+      adults,
+      children,
+      infants,
+      returnTicket,
       applyDiscounts: false,
     });
 
@@ -118,22 +138,9 @@ export async function POST(request: NextRequest) {
       vesselId,
       departureDateTime,
       totalCapacity: 35,
-      availableCapacity: 20,
+      onlineCapacity: 20,
+      availableCapacity: 35,
     });
-
-    const onlineBooked = await bookingService.getOnlineBookedGuestCount(departure.id);
-
-    if (onlineBooked + totalGuests > 20) {
-      return NextResponse.json(
-        {
-          error: {
-            code: 'CAPACITY_EXCEEDED',
-            message: `Only ${20 - onlineBooked} seats remaining for this departure`,
-          },
-        },
-        { status: 409 }
-      );
-    }
 
     const partnerProfile = await prisma.partnerProfile.findUnique({
       where: { userId: session.user.id },
@@ -152,9 +159,18 @@ export async function POST(request: NextRequest) {
       partnerId: partnerProfile.id,
       totalGuests,
       totalAmount: expectedTotal,
+      adults,
+      children,
+      infants,
+      returnTicket,
       source: 'PARTNER',
       specialRequests: specialRequests ?? null,
-      pickupStopId,
+      pickupStopId: originStop.id,
+      originStopId: originStop.id,
+      destinationStopId: destinationStop.id,
+      segments: expectedPricing.stopCount,
+      discountRate: expectedPricing.discountRate,
+      discountAmount: expectedPricing.discountAmount,
     });
 
     return NextResponse.json(
@@ -169,6 +185,12 @@ export async function POST(request: NextRequest) {
     );
   } catch (error) {
     console.error('Partner booking creation error:', error);
+    if (error instanceof Error && error.message.toLowerCase().includes('capacity')) {
+      return NextResponse.json(
+        { error: { code: 'CAPACITY_EXCEEDED', message: error.message } },
+        { status: 409 }
+      );
+    }
     return NextResponse.json(
       {
         error: {

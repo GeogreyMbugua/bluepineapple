@@ -1,23 +1,23 @@
 import dotenv from 'dotenv';
-import { PrismaClient } from "@prisma/client";
+import { PrismaClient } from '@prisma/client';
 
 dotenv.config();
 
-import { ROLES } from "./seeds/roles";
-import { PERMISSIONS } from "./seeds/permissions";
-import { ROLE_PERMISSIONS } from "./seeds/role-permissions";
-import { USERS } from "./seeds/users";
-import { VESSELS } from "./seeds/vessels";
-import { EXPERIENCES } from "./seeds/experiences";
-import { ROUTES, ROUTE_STOPS } from "./seeds/routes";
-import { DEPARTURES } from "./seeds/departures";
-import { REWARD_RULES } from "./seeds/reward-rules";
-import { REVIEWS } from "./seeds/reviews";
+import { ROLES } from './seeds/roles';
+import { PERMISSIONS } from './seeds/permissions';
+import { ROLE_PERMISSIONS } from './seeds/role-permissions';
+import { USERS } from './seeds/users';
+import { VESSELS } from './seeds/vessels';
+import { EXPERIENCES } from './seeds/experiences';
+import { ROUTES, ROUTE_STOPS } from './seeds/routes';
+import { DEPARTURES } from './seeds/departures';
+import { REWARD_RULES } from './seeds/reward-rules';
+import { REVIEWS } from './seeds/reviews';
 
 const prisma = new PrismaClient();
 
 async function main() {
-  console.log("🌱 Seeding RBAC...");
+  console.log('🌱 Seeding RBAC...');
 
   //
   // Permissions
@@ -48,9 +48,7 @@ async function main() {
   //
   // Role Permissions
   //
-  for (const [roleName, permissions] of Object.entries(
-    ROLE_PERMISSIONS,
-  )) {
+  for (const [roleName, permissions] of Object.entries(ROLE_PERMISSIONS)) {
     const role = await prisma.role.findUnique({
       where: {
         name: roleName,
@@ -59,9 +57,8 @@ async function main() {
 
     if (!role) continue;
 
-    if ((permissions as readonly string[]).includes("*")) {
-      const allPermissions =
-        await prisma.permission.findMany();
+    if ((permissions as readonly string[]).includes('*')) {
+      const allPermissions = await prisma.permission.findMany();
 
       for (const permission of allPermissions) {
         await prisma.rolePermission.upsert({
@@ -83,12 +80,11 @@ async function main() {
     }
 
     for (const permissionKey of permissions) {
-      const permission =
-        await prisma.permission.findUnique({
-          where: {
-            key: permissionKey,
-          },
-        });
+      const permission = await prisma.permission.findUnique({
+        where: {
+          key: permissionKey,
+        },
+      });
 
       if (!permission) continue;
 
@@ -108,12 +104,12 @@ async function main() {
     }
   }
 
-  console.log("✅ RBAC seed complete");
+  console.log('✅ RBAC seed complete');
 
   //
   // Users
   //
-  console.log("🌱 Seeding users...");
+  console.log('🌱 Seeding users...');
   for (const user of USERS) {
     const created = await prisma.user.upsert({
       where: { email: user.email },
@@ -147,12 +143,12 @@ async function main() {
       });
     }
   }
-  console.log("✅ Users seed complete");
+  console.log('✅ Users seed complete');
 
   //
   // Vessels
   //
-  console.log("🌱 Seeding vessels...");
+  console.log('🌱 Seeding vessels...');
   for (const vessel of VESSELS) {
     await prisma.vessel.upsert({
       where: { slug: vessel.slug },
@@ -176,12 +172,12 @@ async function main() {
       },
     });
   }
-  console.log("✅ Vessels seed complete");
+  console.log('✅ Vessels seed complete');
 
   //
   // Experiences
   //
-  console.log("🌱 Seeding experiences...");
+  console.log('🌱 Seeding experiences...');
   for (const experience of EXPERIENCES) {
     await prisma.experience.upsert({
       where: { slug: experience.slug },
@@ -207,12 +203,12 @@ async function main() {
       },
     });
   }
-  console.log("✅ Experiences seed complete");
+  console.log('✅ Experiences seed complete');
 
   //
   // Routes
   //
-  console.log("🌱 Seeding routes...");
+  console.log('🌱 Seeding routes...');
   for (const route of ROUTES) {
     await prisma.route.upsert({
       where: { code: route.code },
@@ -226,23 +222,29 @@ async function main() {
       },
     });
   }
-  console.log("✅ Routes seed complete");
+  console.log('✅ Routes seed complete');
 
   //
   // Route Stops
   //
-  console.log("🌱 Seeding route stops...");
-  const createdRoute = await prisma.route.findUnique({ where: { code: "FJ-HOHO" } });
+  console.log('🌱 Seeding route stops...');
+  const createdRoute = await prisma.route.findUnique({
+    where: { code: 'FJ-HOHO' },
+  });
   if (createdRoute) {
     for (const stop of ROUTE_STOPS) {
       await prisma.routeStop.upsert({
         where: { routeId_code: { routeId: createdRoute.id, code: stop.code } },
-        update: {},
+        update: {
+          estimatedArrivalMinutes: stop.estimatedArrivalMinutes,
+          sequence: stop.sequence,
+        },
         create: {
           routeId: createdRoute.id,
           name: stop.name,
           code: stop.code,
           sequence: stop.sequence,
+          estimatedArrivalMinutes: stop.estimatedArrivalMinutes,
           isPickupPoint: stop.isPickupPoint,
           isDropoffPoint: stop.isDropoffPoint,
           notes: stop.notes,
@@ -250,14 +252,18 @@ async function main() {
       });
     }
   }
-  console.log("✅ Route stops seed complete");
+  console.log('✅ Route stops seed complete');
 
   //
   // Departures
   //
-  console.log("🌱 Seeding departures...");
-  const fortJesusExperience = await prisma.experience.findUnique({ where: { slug: "fort-jesus" } });
-  const settingSonsVessel = await prisma.vessel.findUnique({ where: { slug: "setting-sons" } });
+  console.log('🌱 Seeding departures...');
+  const fortJesusExperience = await prisma.experience.findUnique({
+    where: { slug: 'fort-jesus' },
+  });
+  const settingSonsVessel = await prisma.vessel.findUnique({
+    where: { slug: 'setting-sons' },
+  });
   if (createdRoute && fortJesusExperience && settingSonsVessel) {
     for (const departure of DEPARTURES) {
       await prisma.departure.upsert({
@@ -269,26 +275,28 @@ async function main() {
           experienceId: fortJesusExperience.id,
           departureDateTime: new Date(departure.departureDateTime),
           totalCapacity: departure.totalCapacity,
+          onlineCapacity: departure.onlineCapacity,
+          onlineBookedSeats: 0,
           availableCapacity: departure.availableCapacity,
-          status: "SCHEDULED",
+          status: 'SCHEDULED',
         },
       });
     }
   }
-  console.log("✅ Departures seed complete");
+  console.log('✅ Departures seed complete');
 
   //
   // Default Partner for Direct Bookings
   //
-  console.log("🌱 Seeding default partner...");
+  console.log('🌱 Seeding default partner...');
   const directUser = await prisma.user.upsert({
-    where: { email: "direct@bluepineapple.com" },
+    where: { email: 'direct@bluepineapple.com' },
     update: {},
     create: {
-      email: "direct@bluepineapple.com",
-      firstName: "Direct",
-      lastName: "Booking",
-      status: "ACTIVE",
+      email: 'direct@bluepineapple.com',
+      firstName: 'Direct',
+      lastName: 'Booking',
+      status: 'ACTIVE',
     },
   });
 
@@ -297,18 +305,18 @@ async function main() {
     update: {},
     create: {
       userId: directUser.id,
-      partnerCode: "DIRECT",
-      companyName: "Blue Pineapple Direct",
+      partnerCode: 'DIRECT',
+      companyName: 'Blue Pineapple Direct',
       commissionRate: 0,
-      status: "ACTIVE",
+      status: 'ACTIVE',
     },
   });
-  console.log("✅ Default partner seed complete");
+  console.log('✅ Default partner seed complete');
 
   //
   // Reward Rules
   //
-  console.log("🌱 Seeding reward rules...");
+  console.log('🌱 Seeding reward rules...');
   for (const rule of REWARD_RULES) {
     await prisma.rewardRule.upsert({
       where: { name: rule.name },
@@ -329,25 +337,45 @@ async function main() {
       },
     });
   }
-  console.log("✅ Reward rules seed complete");
+  console.log('✅ Reward rules seed complete');
 
   //
   // Reviews
   //
-  console.log("🌱 Seeding reviews...");
+  console.log('🌱 Seeding reviews...');
+  const reviewExperienceSlugs: Record<string, string> = {
+    'review-fort-jesus-1': 'fort-jesus',
+    'review-fort-jesus-2': 'fort-jesus',
+    'review-sunset-1': 'sunset-sailing',
+    'review-sunset-2': 'sunset-sailing',
+    'review-creek-1': 'creek-safaris-mangrove',
+    'review-snorkelling-1': 'snorkelling-reef',
+  };
   for (const review of REVIEWS) {
+    const experience = await prisma.experience.findUnique({
+      where: { slug: reviewExperienceSlugs[review.id] },
+      select: { id: true },
+    });
+    if (!experience) {
+      console.warn(`⚠️ Skipping review ${review.id}: experience is not seeded`);
+      continue;
+    }
+
     await prisma.review.upsert({
       where: { id: review.id },
       update: {},
-      create: review,
+      create: {
+        ...review,
+        experienceId: experience.id,
+      },
     });
   }
-  console.log("✅ Reviews seed complete");
+  console.log('✅ Reviews seed complete');
 }
 
 main()
   .catch((error) => {
-    console.error("❌ Seed failed");
+    console.error('❌ Seed failed');
     console.error(error);
     throw error;
   })

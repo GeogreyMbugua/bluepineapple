@@ -4,6 +4,7 @@ export function generateDepartures(startDate: Date = new Date(), days: number = 
   experienceId: string;
   departureDateTime: string;
   totalCapacity: number;
+  onlineCapacity: number;
   availableCapacity: number;
 }> {
   const departures = [];
@@ -15,12 +16,13 @@ export function generateDepartures(startDate: Date = new Date(), days: number = 
       vesselId: "eb965b12-670e-47e0-9d37-f83d90c7e99d",
       routeId: "FJ-HOHO",
       experienceId: "cd5f3db7-4b89-44c4-9ceb-56d28bf5109f",
-      departureDateTime: `${dateStr}T09:30:00`,
+      departureDateTime: `${dateStr}T06:30:00.000Z`,
       totalCapacity: 35,
+      onlineCapacity: 20,
       availableCapacity: 35,
     });
   }
   return departures;
 }
 
-export const DEPARTURES = generateDepartures();
+export const DEPARTURES = generateDepartures(new Date(), 90);

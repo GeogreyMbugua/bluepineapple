@@ -19,6 +19,10 @@ import { bookingCapacityService } from "./booking-capacity.service";
 import { guestService } from "./guest.service";
 import type { BookingStatus } from "@prisma/client";
 
+type BookingCreationInput = Omit<CreateBookingInput, "partnerId"> & {
+  partnerId: string;
+};
+
 export class BookingService {
   private generateBookingReference(): string {
     const timestamp = Date.now().toString(36).toUpperCase();
@@ -26,7 +30,7 @@ export class BookingService {
     return `BP-${timestamp}-${random}`;
   }
 
-  async createBooking(data: CreateBookingInput, actorId?: string): Promise<{ id: string; bookingReference: string }> {
+  async createBooking(data: BookingCreationInput, actorId?: string): Promise<{ id: string; bookingReference: string }> {
     const departure = await departureRepository.findById(data.departureId);
     if (!departure) {
       throw new Error("Departure not found");
@@ -51,6 +55,28 @@ export class BookingService {
     if (departure.experience) {
       BookingPolicy.assertExperienceBookable(departure.experience.isActive);
     }
+
+    const source = data.source ?? "PARTNER";
+    const originStopId = data.originStopId ?? data.pickupStopId;
+    const destinationStopId = data.destinationStopId;
+    if (source === "DIRECT" && (!originStopId || !destinationStopId)) {
+      throw new Error("Origin and destination are required for direct bookings");
+    }
+    if (originStopId || destinationStopId) {
+      const routeStops = departure.route?.stops ?? [];
+      const originStop = routeStops.find((stop) => stop.id === originStopId);
+      const destinationStop = routeStops.find((stop) => stop.id === destinationStopId);
+      if (!originStop || !destinationStop || destinationStop.sequence <= originStop.sequence) {
+        throw new Error("Origin and destination must belong to the departure route");
+      }
+    }
+    const adults = data.adults ?? data.totalGuests;
+    const children = data.children ?? 0;
+    const infants = data.infants ?? 0;
+    if (adults + children + infants !== data.totalGuests) {
+      throw new Error("Passenger composition must equal total guests");
+    }
+    const onlineSource = source === "DIRECT" || source === "PARTNER";
 
     let guestId = data.guestId;
 
@@ -81,7 +107,11 @@ export class BookingService {
     // For now, the unique bookingReference serves as a basic duplicate guard.
 
     const result = await prisma.$transaction(async (tx) => {
-      await bookingCapacityService.atomicReserve(tx, data.departureId, data.totalGuests);
+      if (onlineSource) {
+        await bookingCapacityService.atomicReserveOnline(tx, data.departureId, data.totalGuests);
+      } else {
+        await bookingCapacityService.atomicReserve(tx, data.departureId, data.totalGuests);
+      }
 
       const created = await tx.booking.create({
         data: {
@@ -92,13 +122,23 @@ export class BookingService {
           totalGuests: data.totalGuests,
           totalAmount: data.totalAmount,
           currency: "KES",
+          originStopId: data.originStopId ?? data.pickupStopId ?? null,
+          destinationStopId: data.destinationStopId ?? null,
+          adults,
+          children,
+          infants,
+          returnTicket: data.returnTicket ?? false,
+          segments: data.segments ?? null,
+          pricingMode: source === "DIRECT" ? "PUBLIC" : "PARTNER_REWARD",
+          discountRate: data.discountRate ?? 0,
+          discountAmount: data.discountAmount ?? 0,
           status: "PENDING",
           paymentStatus: "PENDING",
-          source: data.source ?? "PARTNER",
+          source,
           pickupStopId: data.pickupStopId ?? null,
           specialRequests: data.specialRequests ?? null,
           notes: data.notes ?? null,
-          rewardEligible: true,
+          rewardEligible: source !== "DIRECT",
         } as any,
       });
 
@@ -108,6 +148,13 @@ export class BookingService {
           oldStatus: null,
           newStatus: "PENDING",
           changedByUserId: actorId ?? null,
+        },
+      });
+
+      await tx.notificationOutbox.create({
+        data: {
+          bookingId: created.id,
+          purpose: "ADMIN_BOOKING_CREATED",
         },
       });
 
@@ -177,7 +224,12 @@ export class BookingService {
         },
       });
 
-      await bookingCapacityService.atomicRelease(tx, booking.departureId, booking.totalGuests);
+      await bookingCapacityService.atomicRelease(
+        tx,
+        booking.departureId,
+        booking.totalGuests,
+        booking.source === "DIRECT" || booking.source === "PARTNER",
+      );
     });
 
     auditService.logRoleAssigned(actorId ?? "system", id, "BOOKING_CANCELLED");
@@ -321,7 +373,12 @@ export class BookingService {
         },
       });
 
-      await bookingCapacityService.atomicRelease(tx, booking.departureId, booking.totalGuests);
+      await bookingCapacityService.atomicRelease(
+        tx,
+        booking.departureId,
+        booking.totalGuests,
+        booking.source === "DIRECT" || booking.source === "PARTNER",
+      );
     });
 
     auditService.logRoleAssigned(actorId ?? "system", id, "BOOKING_NO_SHOW");
@@ -377,6 +434,15 @@ export class BookingService {
             changedByUserId: actorId ?? null,
           },
         });
+
+        if (newStatus === "CANCELLED" || newStatus === "NO_SHOW") {
+          await bookingCapacityService.atomicRelease(
+            tx,
+            booking.departureId,
+            booking.totalGuests,
+            booking.source === "DIRECT" || booking.source === "PARTNER",
+          );
+        }
       });
     }
 

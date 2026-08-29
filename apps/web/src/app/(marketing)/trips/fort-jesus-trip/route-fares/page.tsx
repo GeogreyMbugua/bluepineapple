@@ -10,6 +10,7 @@ import {
   stops,
   type Stop,
 } from "../_data/trip";
+import { ONE_WAY_FARES, RETURN_FARES } from "../../../../../lib/pricing/constants";
 
 function JourneyPath({ origin, destination }: { readonly origin: Stop; readonly destination: Stop }) {
   const originIndex = stops.indexOf(origin);
@@ -28,7 +29,7 @@ function JourneyPath({ origin, destination }: { readonly origin: Stop; readonly 
             <div>
               <p className={`text-sm font-semibold ${active ? "text-slate-950" : "text-slate-500"}`}>{stop}</p>
               <p className="text-[11px] uppercase tracking-[0.18em] text-slate-400">
-                {isTerminal ? (index === originIndex ? "Boarding" : "Arrival") : "Stop"}
+                {isTerminal ? (index === originIndex ? "Boarding" : "Arrival") : "Route point"}
               </p>
             </div>
           </div>
@@ -72,13 +73,13 @@ export default function RouteFaresPlanner() {
   }, [origin]);
 
   const fullOneWayFareTable = useMemo(() => {
-    return Object.entries({ 1: 500, 2: 700, 3: 1000, 4: 1400, 5: 1800, 6: 2200, 7: 2600, 8: 3000 })
+    return Object.entries(ONE_WAY_FARES)
       .map(([count, price]) => ({ count: Number(count), price }))
       .filter((row) => row.count > 0);
   }, []);
 
   const fullReturnFareTable = useMemo(() => {
-    return Object.entries({ 1: 800, 2: 1200, 3: 1500, 4: 1900, 5: 2300, 6: 2700, 7: 3100, 8: 5000 })
+    return Object.entries(RETURN_FARES)
       .map(([count, price]) => ({ count: Number(count), price }))
       .filter((row) => row.count > 0);
   }, []);
@@ -191,7 +192,7 @@ export default function RouteFaresPlanner() {
         <div className="mt-5 rounded-lg bg-white p-5 shadow-sm sm:p-8">
           <p className="text-xs font-semibold uppercase tracking-[0.12em] text-slate-500">Selected journey</p>
           <p className="mt-2 text-sm text-slate-600">
-            {origin} → {destination} · {summary.stopCount} stop{summary.stopCount > 1 ? "s" : ""}
+            {origin} → {destination} · {summary.stopCount} segment{summary.stopCount > 1 ? "s" : ""}
           </p>
 
           <div className="mt-6 flex items-end justify-between gap-6">
@@ -222,7 +223,7 @@ export default function RouteFaresPlanner() {
 
         {/* Route visualization */}
         <div className="mt-5 rounded-lg bg-white p-5 shadow-sm sm:p-8">
-          <p className="text-xs font-semibold uppercase tracking-[0.12em] text-slate-500">Full stop list</p>
+          <p className="text-xs font-semibold uppercase tracking-[0.12em] text-slate-500">Route points</p>
           <div className="mt-6">
             <JourneyPath origin={origin} destination={destination} />
           </div>
@@ -238,7 +239,7 @@ export default function RouteFaresPlanner() {
                 {fullOneWayFareTable.map((row) => (
                   <li key={row.count} className="flex items-center justify-between py-2.5 text-sm">
                     <span className="text-slate-700">
-                      {row.count} stop{row.count > 1 ? "s" : ""}
+                      {row.count} segment{row.count > 1 ? "s" : ""}
                       {row.count === stops.length - 1 ? " (full route)" : ""}
                     </span>
                     <span className="font-semibold text-slate-950">KES {row.price.toLocaleString("en-US")}</span>
@@ -252,7 +253,7 @@ export default function RouteFaresPlanner() {
                 {fullReturnFareTable.map((row) => (
                   <li key={row.count} className="flex items-center justify-between py-2.5 text-sm">
                     <span className="text-slate-700">
-                      {row.count} stop{row.count > 1 ? "s" : ""}
+                      {row.count} segment{row.count > 1 ? "s" : ""}
                       {row.count === stops.length - 1 ? " (full route)" : ""}
                     </span>
                     <span className="font-semibold text-slate-950">KES {row.price.toLocaleString("en-US")}</span>
@@ -262,8 +263,8 @@ export default function RouteFaresPlanner() {
             </div>
           </div>
           <p className="mt-4 text-xs leading-relaxed text-slate-500">
-            Fares shown are per stop per guest. Children aged 5-15 pay half fare. Discounts apply to
-            the base fare before any return surcharge.
+            Fares shown are per travel segment per guest. Children aged 5-15 receive 5% off and
+            under-5s travel free. Public booking-size discounts apply to adult fares.
           </p>
         </div>
 

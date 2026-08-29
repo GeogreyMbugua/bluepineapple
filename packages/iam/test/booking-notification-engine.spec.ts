@@ -5,6 +5,11 @@ vi.mock("@blue-pineapple/database", () => ({
     partnerProfile: {
       findFirst: vi.fn(),
     },
+    notificationOutbox: {
+      findMany: vi.fn().mockResolvedValue([]),
+      upsert: vi.fn().mockResolvedValue({}),
+      updateMany: vi.fn().mockResolvedValue({ count: 1 }),
+    },
   },
   bookingRepository: {
     findById: vi.fn(),
@@ -35,7 +40,7 @@ import { BookingNotificationEngine } from "../src/notifications/booking-notifica
 
 describe("BookingNotificationEngine partner email fallback", () => {
   beforeEach(() => {
-    vi.resetAllMocks();
+    vi.clearAllMocks();
   });
 
   it("sends confirmation to guest email when guest exists", async () => {

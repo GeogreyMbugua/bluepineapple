@@ -1,4 +1,4 @@
-import { departureRepository, experienceRepository, routeRepository, vesselRepository } from "@blue-pineapple/database";
+import { departureRepository, experienceRepository, routeRepository, vesselRepository, prisma } from "@blue-pineapple/database";
 import { auditService } from "../audit/audit.service";
 import { eventBus } from "../events";
 import { DeparturePolicy } from "../policies/departure.policy";
@@ -289,7 +289,40 @@ export class DepartureService {
     date?: string;
     limit?: number;
   }) {
-    return departureRepository.findAvailable(filters);
+    const departures = await departureRepository.findAvailable(filters);
+    return departures
+      .filter((departure) => departure.onlineCapacity - departure.onlineBookedSeats > 0)
+      .map((departure) => ({
+        ...departure,
+        departureTimeEAT: departure.departureDateTime.toLocaleTimeString("en-KE", {
+          timeZone: "Africa/Nairobi",
+          hour: "2-digit",
+          minute: "2-digit",
+          hour12: false,
+        }),
+        timezone: "Africa/Nairobi",
+        onlineAvailableCapacity: Math.max(0, departure.onlineCapacity - departure.onlineBookedSeats),
+      }));
+  }
+
+  async ensureFortJesusDeparture(date: string) {
+    const [experience, route, vessel] = await Promise.all([
+      experienceRepository.findBySlug("fort-jesus"),
+      prisma.route.findUnique({ where: { code: "FJ-HOHO" } }),
+      prisma.vessel.findUnique({ where: { slug: "setting-sons" } }),
+    ]);
+    if (!experience || !route || !vessel) {
+      throw new Error("Fort Jesus schedule is not configured");
+    }
+    return departureRepository.upsertForDateTime({
+      routeId: route.id,
+      experienceId: experience.id,
+      vesselId: vessel.id,
+      departureDateTime: new Date(`${date}T06:30:00.000Z`),
+      totalCapacity: vessel.capacity,
+      onlineCapacity: 20,
+      availableCapacity: vessel.capacity,
+    });
   }
 
   async getCapacityInfo(departureId: string) {
@@ -314,6 +347,7 @@ export class DepartureService {
     vesselId: string;
     departureDateTime: Date;
     totalCapacity: number;
+    onlineCapacity?: number;
     availableCapacity?: number;
   }) {
     return departureRepository.upsertForDateTime(params);

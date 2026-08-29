@@ -150,6 +150,8 @@ model RouteStop {
   route Route @relation(fields: [routeId], references: [id], onDelete: Cascade)
 
   pickupBookings Booking[] @relation("PickupStopBookings")
+  originBookings Booking[] @relation("OriginStopBookings")
+  destinationBookings Booking[] @relation("DestinationStopBookings")
 
   @@unique([routeId, sequence])
   @@unique([routeId, code])
@@ -241,7 +243,9 @@ model Departure {
   departureDateTime     DateTime
   arrivalDateTime       DateTime?
   totalCapacity         Int
+  onlineCapacity        Int              @default(20)
   bookedSeats           Int              @default(0)
+  onlineBookedSeats     Int              @default(0)
   availableCapacity     Int
   status                DepartureStatus  @default(SCHEDULED)
   specialInstructions   String?
@@ -345,6 +349,16 @@ model Booking {
   totalGuests         Int
   totalAmount         Decimal          @db.Decimal(10, 2)
   currency            String           @default("KES")
+  originStopId        String?
+  destinationStopId   String?
+  adults              Int              @default(0)
+  children            Int              @default(0)
+  infants             Int              @default(0)
+  returnTicket        Boolean          @default(false)
+  segments            Int?
+  pricingMode         String           @default("PUBLIC")
+  discountRate        Decimal          @default(0) @db.Decimal(5, 4)
+  discountAmount      Decimal          @default(0) @db.Decimal(10, 2)
   status              BookingStatus    @default(PENDING)
   paymentStatus       PaymentStatus    @default(PENDING)
   source              BookingSource    @default(PARTNER)
@@ -363,10 +377,13 @@ model Booking {
   partner          PartnerProfile     @relation(fields: [partnerId], references: [id], onDelete: Restrict)
   guest            Guest?             @relation(fields: [guestId], references: [id])
   pickupStop       RouteStop?         @relation("PickupStopBookings", fields: [pickupStopId], references: [id])
+  originStop       RouteStop?         @relation("OriginStopBookings", fields: [originStopId], references: [id])
+  destinationStop  RouteStop?         @relation("DestinationStopBookings", fields: [destinationStopId], references: [id])
   guests           BookingGuest[]
   statusHistory    BookingStatusHistory[]
   rewards          RewardTransaction[]
   reviews          Review[]
+  notificationOutbox NotificationOutbox[]
 
   @@index([departureId])
   @@index([partnerId])
@@ -374,6 +391,24 @@ model Booking {
   @@index([status])
   @@index([createdAt])
   @@map("bookings")
+}
+
+model NotificationOutbox {
+  id           String   @id @default(uuid())
+  bookingId    String
+  purpose      String
+  status       String   @default("PENDING")
+  attempts     Int      @default(0)
+  lastError    String?
+  sentAt       DateTime?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  booking Booking @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+
+  @@unique([bookingId, purpose])
+  @@index([status, createdAt])
+  @@map("notification_outbox")
 }
 
 model BookingGuest {

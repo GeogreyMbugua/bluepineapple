@@ -15,7 +15,7 @@ async function seedDepartures() {
     const date = new Date(today);
     date.setDate(today.getDate() + i);
     const dateStr = date.toISOString().split("T")[0];
-    const departureDateTime = new Date(`${dateStr}T09:30:00`);
+    const departureDateTime = new Date(`${dateStr}T06:30:00.000Z`);
     const id = `${route.id}-${departureDateTime.toISOString()}`;
 
     const departure = await prisma.departure.upsert({
@@ -28,6 +28,8 @@ async function seedDepartures() {
         vesselId: vessel.id,
         departureDateTime,
         totalCapacity: 35,
+        onlineCapacity: 20,
+        onlineBookedSeats: 0,
         availableCapacity: 35,
         bookedSeats: 0,
         status: "SCHEDULED",

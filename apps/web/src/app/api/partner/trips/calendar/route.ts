@@ -1,6 +1,7 @@
 import { NextRequest } from 'next/server';
 import { requirePartnerAuth } from '@/lib/api/partner-helpers';
 import { prisma } from '@blue-pineapple/database';
+import { departureService } from '@blue-pineapple/iam';
 
 export async function GET(request: NextRequest) {
   const result = await requirePartnerAuth(request);
@@ -8,8 +9,9 @@ export async function GET(request: NextRequest) {
 
   try {
     const { searchParams } = new URL(request.url);
-    const startDate = searchParams.get('startDate') || new Date().toISOString().split('T')[0];
-    const endDate = searchParams.get('endDate') || new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+    const startDate = searchParams.get('startDate') || new Date().toISOString().split('T')[0]!;
+    const endDate = searchParams.get('endDate') || new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]!;
+    await departureService.ensureFortJesusDeparture(startDate);
 
     const experience = await prisma.experience.findUnique({
       where: { slug: 'fort-jesus', isActive: true },
@@ -42,7 +44,12 @@ export async function GET(request: NextRequest) {
     const calendar = departures.map((departure) => ({
       id: departure.id,
       date: departure.departureDateTime.toISOString().split('T')[0] ?? '',
-      time: departure.departureDateTime.toISOString().split('T')[1]?.substring(0, 5) ?? '00:00',
+      time: departure.departureDateTime.toLocaleTimeString('en-KE', {
+        timeZone: 'Africa/Nairobi',
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: false,
+      }),
       experience: departure.experience?.name ?? 'Unknown',
       experienceCategory: departure.experience?.category ?? null,
       durationMinutes: departure.experience?.durationMinutes ?? null,
@@ -55,6 +62,9 @@ export async function GET(request: NextRequest) {
       vesselType: departure.vessel?.type ?? null,
       totalCapacity: departure.totalCapacity,
       availableCapacity: departure.availableCapacity,
+      onlineCapacity: departure.onlineCapacity,
+      onlineBookedSeats: departure.onlineBookedSeats,
+      onlineAvailableCapacity: Math.max(0, departure.onlineCapacity - departure.onlineBookedSeats),
       status: departure.status,
     }));
 

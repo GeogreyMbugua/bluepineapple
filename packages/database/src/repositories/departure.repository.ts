@@ -27,7 +27,9 @@ export class DepartureRepository {
       select: {
         id: true,
         totalCapacity: true,
+        onlineCapacity: true,
         bookedSeats: true,
+        onlineBookedSeats: true,
         availableCapacity: true,
         status: true,
         departureDateTime: true,
@@ -176,6 +178,7 @@ export class DepartureRepository {
     vesselId: string;
     departureDateTime: Date;
     totalCapacity: number;
+    onlineCapacity?: number;
     availableCapacity?: number;
   }) {
     const id = `${data.routeId}-${data.departureDateTime.toISOString()}`;
@@ -185,7 +188,7 @@ export class DepartureRepository {
         experienceId: data.experienceId,
         vesselId: data.vesselId,
         totalCapacity: data.totalCapacity,
-        availableCapacity: data.availableCapacity ?? data.totalCapacity,
+        onlineCapacity: data.onlineCapacity ?? 20,
       },
       create: {
         id,
@@ -194,7 +197,9 @@ export class DepartureRepository {
         vesselId: data.vesselId,
         departureDateTime: data.departureDateTime,
         totalCapacity: data.totalCapacity,
+        onlineCapacity: data.onlineCapacity ?? 20,
         bookedSeats: 0,
+        onlineBookedSeats: 0,
         availableCapacity: data.availableCapacity ?? data.totalCapacity,
         status: DepartureStatus.SCHEDULED,
       },

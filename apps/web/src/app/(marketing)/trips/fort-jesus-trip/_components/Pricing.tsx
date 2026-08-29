@@ -3,32 +3,13 @@
 import { useState } from "react";
 import Link from "next/link";
 import { offers, trip } from "../_data/trip";
-
-const oneWayFares = [
-  { stops: 1, price: 500 },
-  { stops: 2, price: 700 },
-  { stops: 3, price: 1000 },
-  { stops: 4, price: 1400 },
-  { stops: 5, price: 1800 },
-  { stops: 6, price: 2200 },
-  { stops: 7, price: 2600 },
-  { stops: 8, price: 3000 },
-];
-
-const returnFares = [
-  { stops: 1, price: 800 },
-  { stops: 2, price: 1200 },
-  { stops: 3, price: 1500 },
-  { stops: 4, price: 1900 },
-  { stops: 5, price: 2300 },
-  { stops: 6, price: 2700 },
-  { stops: 7, price: 3100 },
-  { stops: 8, price: 5000 },
-];
+import { ONE_WAY_FARES, RETURN_FARES } from "../../../../../lib/pricing/constants";
 
 export function Pricing() {
   const [tab, setTab] = useState<"one-way" | "return">("one-way");
-  const fares = tab === "one-way" ? oneWayFares : returnFares;
+  const fares = Object.entries(tab === "one-way" ? ONE_WAY_FARES : RETURN_FARES).map(
+    ([segments, price]) => ({ segments: Number(segments), price }),
+  );
 
   return (
     <section className="bg-[#f7f3eb] py-16 sm:py-24">
@@ -42,7 +23,7 @@ export function Pricing() {
               Transparent fares
             </h2>
             <p className="mt-4 text-base leading-relaxed text-slate-600">
-              Fares scale with distance. Pay on board. Children aged 5–15 pay half fare.
+              Fares scale with travel segments. Children aged 5–15 receive 5% off; under-5s travel free.
             </p>
 
             <div className="mt-8 flex items-center gap-3">
@@ -88,7 +69,7 @@ export function Pricing() {
             <div className="rounded-2xl border border-slate-200 bg-white overflow-hidden">
               <div className="grid grid-cols-2 border-b border-slate-200">
                 <div className="px-6 py-3">
-                  <span className="text-xs font-medium text-slate-500">Stops</span>
+                  <span className="text-xs font-medium text-slate-500">Segments</span>
                 </div>
                 <div className="px-6 py-3 text-right">
                   <span className="text-xs font-medium text-slate-500">Per guest</span>
@@ -96,19 +77,19 @@ export function Pricing() {
               </div>
               {fares.map((row) => (
                 <div
-                  key={row.stops}
+                  key={row.segments}
                   className={`grid grid-cols-2 ${
-                    row.stops === 8 ? "bg-[#0d3b66]/5" : ""
+                    row.segments === 8 ? "bg-[#0d3b66]/5" : ""
                   }`}
                 >
                   <div className="px-6 py-3">
                     <span className="text-sm text-slate-700">
-                      {row.stops} stop{row.stops > 1 ? "s" : ""}
-                      {row.stops === 8 && " (full route)"}
+                      {row.segments} segment{row.segments > 1 ? "s" : ""}
+                      {row.segments === 8 && " (full route)"}
                     </span>
                   </div>
                   <div className="px-6 py-3 text-right">
-                    <span className={`text-sm font-semibold ${row.stops === 8 ? "text-[#0d3b66]" : "text-slate-950"}`}>
+                    <span className={`text-sm font-semibold ${row.segments === 8 ? "text-[#0d3b66]" : "text-slate-950"}`}>
                       KES {row.price.toLocaleString()}
                     </span>
                   </div>

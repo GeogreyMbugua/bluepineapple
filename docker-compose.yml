@@ -1,16 +1,35 @@
 services:
   postgres:
     image: postgres:17
-    restart: always
+    restart: unless-stopped
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
       POSTGRES_DB: blue_pineapple
     ports:
       - "5434:5432"
+    volumes:
+      - blue_pineapple_postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d blue_pineapple"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
 
   redis:
     image: redis:7
-    restart: always
+    restart: unless-stopped
     ports:
       - "6380:6379"
+    volumes:
+      - blue_pineapple_redis_data:/data
+    command: redis-server --appendonly yes
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+volumes:
+  blue_pineapple_postgres_data:
+  blue_pineapple_redis_data:

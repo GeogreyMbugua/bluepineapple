@@ -15,6 +15,8 @@ type DepartureData = {
   id: string;
   departureDateTime: string;
   availableCapacity: number;
+  onlineAvailableCapacity?: number;
+  onlineCapacity?: number;
   route?: { stops: RouteStop[] };
 };
 
@@ -26,6 +28,7 @@ export default function BookFortJesusPage() {
   const [date, setDate] = useState(getTodayDate());
   const [adults, setAdults] = useState(1);
   const [children, setChildren] = useState(0);
+  const [infants, setInfants] = useState(0);
   const [returnTicket, setReturnTicket] = useState(false);
   const [origin, setOrigin] = useState<Stop>(stops[0]!);
   const [destination, setDestination] = useState<Stop>(stops[stops.length - 1]!);
@@ -37,23 +40,20 @@ export default function BookFortJesusPage() {
     fullName: "",
     phoneNumber: "",
     email: "",
-    idNumber: "",
   });
 
-  const [additionalGuests, _setAdditionalGuests] = useState<{ fullName: string; phoneNumber: string }[]>([
-    { fullName: "", phoneNumber: "" },
-  ]);
 
   const availableDepartures = useMemo(() => {
     return departures.filter((d) => {
       const depDate = new Date(d.departureDateTime).toISOString().split("T")[0];
-      return depDate === date && d.availableCapacity > 0;
+      return depDate === date && (d.onlineAvailableCapacity ?? d.availableCapacity) > 0;
     });
   }, [departures, date]);
 
   const selectedDepartureData = useMemo(() => {
     return departures.find((d) => d.id === selectedDeparture);
   }, [departures, selectedDeparture]);
+  const passengerCount = adults + children + infants;
 
   const summary = useMemo(
     () => calculateBooking(origin, destination, adults, children, 0, returnTicket),
@@ -68,7 +68,7 @@ export default function BookFortJesusPage() {
   useEffect(() => {
     void (async () => {
       try {
-        const res = await fetch(`/api/bookings?experienceId=cd5f3db7-4b89-44c4-9ceb-56d28bf5109f&date=${date}`);
+        const res = await fetch(`/api/bookings?experienceSlug=fort-jesus&date=${date}`);
         if (res.ok) {
           const json = await res.json();
           setDepartures(json.data || []);
@@ -96,6 +96,11 @@ export default function BookFortJesusPage() {
       setStatus("error");
       return;
     }
+    if (passengerCount > (selectedDepartureData?.onlineAvailableCapacity ?? selectedDepartureData?.availableCapacity ?? 0)) {
+      setError("There are not enough online seats for this passenger group.");
+      setStatus("error");
+      return;
+    }
 
     try {
       const nameParts = primaryGuest.fullName.trim().split(" ");
@@ -107,31 +112,28 @@ export default function BookFortJesusPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           departureId: selectedDeparture,
-          partnerId: "550a0b12-3525-465a-bad4-f74967714c53",
           guest: {
             firstName,
             lastName,
             email: primaryGuest.email || null,
             phone: primaryGuest.phoneNumber || null,
           },
-          totalGuests: adults + children,
+          totalGuests: adults + children + infants,
           totalAmount: summary.total,
-           pickupStopId: selectedDepartureData?.route?.stops?.find((s) => s.name === origin)?.id || null,
+          pickupStopId: selectedDepartureData?.route?.stops?.find((s) => s.name === origin)?.id || null,
+          originStopId: selectedDepartureData?.route?.stops?.find((s) => s.name === origin)?.id || null,
+          destinationStopId: selectedDepartureData?.route?.stops?.find((s) => s.name === destination)?.id || null,
+          adults,
+          children,
+          infants,
+          returnTicket,
           specialRequests: "",
           bookingGuests: [
             {
               fullName: primaryGuest.fullName,
               phoneNumber: primaryGuest.phoneNumber || null,
-              idNumber: primaryGuest.idNumber || null,
               isPrimary: true,
             },
-            ...additionalGuests
-              .filter((g) => g.fullName.trim())
-              .map((g) => ({
-                fullName: g.fullName,
-                phoneNumber: g.phoneNumber || null,
-                isPrimary: false,
-              })),
           ],
           source: "DIRECT",
         }),
@@ -159,7 +161,7 @@ export default function BookFortJesusPage() {
             <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-green-100">
               <Check className="h-6 w-6 text-green-600" />
             </div>
-            <h1 className="text-2xl font-semibold text-slate-950">Booking Confirmed!</h1>
+            <h1 className="text-2xl font-semibold text-slate-950">Booking request received</h1>
             <p className="mt-2 text-sm text-slate-600">
               Your booking reference is <span className="font-semibold">{bookingReference}</span>
             </p>
@@ -235,7 +237,7 @@ export default function BookFortJesusPage() {
                     availableDepartures.map((dep) => (
                       <option key={dep.id} value={dep.id}>
                         {new Date(dep.departureDateTime).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })} —{" "}
-                        {dep.availableCapacity} seats left
+                        {dep.onlineAvailableCapacity ?? dep.availableCapacity} online seats left
                       </option>
                     ))
                   )}
@@ -294,7 +296,7 @@ export default function BookFortJesusPage() {
                 <input
                   type="number"
                   min={1}
-                  max={10}
+                  max={20}
                   value={adults}
                   onChange={(event) => setAdults(Math.max(1, Number(event.target.value)))}
                   className="mt-2 block w-full rounded-md border border-slate-300 bg-white px-3 py-3 text-sm text-slate-900 outline-none focus:border-slate-900"
@@ -306,11 +308,24 @@ export default function BookFortJesusPage() {
                 <input
                   type="number"
                   min={0}
-                  max={10}
+                  max={20}
                   value={children}
                   onChange={(event) => setChildren(Math.max(0, Number(event.target.value)))}
                   className="mt-2 block w-full rounded-md border border-slate-300 bg-white px-3 py-3 text-sm text-slate-900 outline-none focus:border-slate-900"
                 />
+              </label>
+
+              <label className="block text-sm font-medium text-slate-900">
+                Under 5
+                <input
+                  type="number"
+                  min={0}
+                  max={20}
+                  value={infants}
+                  onChange={(event) => setInfants(Math.max(0, Number(event.target.value)))}
+                  className="mt-2 block w-full rounded-md border border-slate-300 bg-white px-3 py-3 text-sm text-slate-900 outline-none focus:border-slate-900"
+                />
+                <span className="text-xs font-normal text-slate-500">Free, but counts toward capacity</span>
               </label>
 
               <div className="flex items-end">
@@ -363,15 +378,6 @@ export default function BookFortJesusPage() {
                 />
               </label>
 
-              <label className="block text-sm font-medium text-slate-900 sm:col-span-2">
-                ID / Passport number
-                <input
-                  type="text"
-                  value={primaryGuest.idNumber}
-                  onChange={(event) => setPrimaryGuest({ ...primaryGuest, idNumber: event.target.value })}
-                  className="mt-2 block w-full rounded-md border border-slate-300 bg-white px-3 py-3 text-sm text-slate-900 outline-none focus:border-slate-900"
-                />
-              </label>
             </div>
           </div>
 
@@ -404,7 +410,7 @@ export default function BookFortJesusPage() {
 
             <button
               type="submit"
-              disabled={status === "loading" || !selectedDeparture}
+              disabled={status === "loading" || !selectedDeparture || passengerCount > (selectedDepartureData?.onlineAvailableCapacity ?? selectedDepartureData?.availableCapacity ?? 0)}
               className="mt-6 inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-md bg-[#0d3b66] px-6 py-3 text-sm font-semibold text-white transition hover:bg-[#0b335a] disabled:opacity-50"
             >
               {status === "loading" ? "Processing..." : "Confirm booking"}

@@ -11,6 +11,9 @@ type BookingFormData = {
   departureTime: string;
   pickupStopId: string;
   totalGuests: number;
+  adults: number;
+  children: number;
+  infants: number;
   specialRequests: string;
 };
 
@@ -38,6 +41,9 @@ export function PartnerBookingForm({ onBookingCreated }: PartnerBookingFormProps
     departureTime: '09:30',
     pickupStopId: '',
     totalGuests: 1,
+    adults: 1,
+    children: 0,
+    infants: 0,
     specialRequests: '',
   });
 
@@ -52,16 +58,16 @@ export function PartnerBookingForm({ onBookingCreated }: PartnerBookingFormProps
       return calculatePricing({
         origin,
         destination,
-        adults: formData.totalGuests,
-        children: 0,
-        infants: 0,
+        adults: formData.adults,
+        children: formData.children,
+        infants: formData.infants,
         returnTicket: false,
         applyDiscounts: false,
       });
     } catch {
       return null;
     }
-  }, [selectedStopName, stops, formData.totalGuests]);
+  }, [selectedStopName, stops, formData.adults, formData.children, formData.infants]);
 
   useEffect(() => {
     void (async () => {
@@ -105,7 +111,10 @@ export function PartnerBookingForm({ onBookingCreated }: PartnerBookingFormProps
           departureDate: formData.departureDate,
           departureTime: formData.departureTime,
           pickupStopId: formData.pickupStopId || null,
-          totalGuests: formData.totalGuests,
+          totalGuests: formData.adults + formData.children + formData.infants,
+          adults: formData.adults,
+          children: formData.children,
+          infants: formData.infants,
           totalAmount,
           specialRequests: formData.specialRequests || null,
           source: 'PARTNER',
@@ -122,7 +131,7 @@ export function PartnerBookingForm({ onBookingCreated }: PartnerBookingFormProps
       setCreatedBooking({
         reference: json.data?.bookingReference ?? '',
         date: formData.departureDate,
-        guests: formData.totalGuests,
+        guests: formData.adults + formData.children + formData.infants,
         totalAmount: bookingTotal,
       });
 
@@ -143,6 +152,9 @@ export function PartnerBookingForm({ onBookingCreated }: PartnerBookingFormProps
       departureTime: '09:30',
       pickupStopId: '',
       totalGuests: 1,
+      adults: 1,
+      children: 0,
+      infants: 0,
       specialRequests: '',
     });
   };
@@ -233,17 +245,39 @@ export function PartnerBookingForm({ onBookingCreated }: PartnerBookingFormProps
           </div>
 
           <div>
-            <label className="mb-2 block text-sm font-medium text-dark">Total Guests</label>
-            <input
-              type="number"
-              min={1}
-              max={20}
-              value={formData.totalGuests}
-              onChange={(e) => setFormData({ ...formData, totalGuests: Math.max(1, parseInt(e.target.value) || 1) })}
-              className="w-full border border-stroke bg-white px-4 py-2 text-dark"
-              required
-            />
-            <p className="text-xs text-dark-5 mt-1">Max 20 guests per online booking (15 seats reserved for walk-ins)</p>
+              <label className="mb-2 block text-sm font-medium text-dark">Adults</label>
+              <input
+                type="number"
+                min={1}
+                max={20}
+                value={formData.adults}
+                onChange={(e) => setFormData({ ...formData, adults: Math.max(1, parseInt(e.target.value) || 1), totalGuests: Math.max(1, parseInt(e.target.value) || 1) })}
+                className="w-full border border-stroke bg-white px-4 py-2 text-dark"
+                required
+              />
+            </div>
+            <div>
+              <label className="mb-2 block text-sm font-medium text-dark">Children (5–15)</label>
+              <input
+                type="number"
+                min={0}
+                max={20}
+                value={formData.children}
+                onChange={(e) => setFormData({ ...formData, children: Math.max(0, parseInt(e.target.value) || 0) })}
+                className="w-full border border-stroke bg-white px-4 py-2 text-dark"
+              />
+            </div>
+            <div>
+              <label className="mb-2 block text-sm font-medium text-dark">Under 5</label>
+              <input
+                type="number"
+                min={0}
+                max={20}
+                value={formData.infants}
+                onChange={(e) => setFormData({ ...formData, infants: Math.max(0, parseInt(e.target.value) || 0) })}
+                className="w-full border border-stroke bg-white px-4 py-2 text-dark"
+              />
+              <p className="text-xs text-dark-5 mt-1">Free, but counts toward the vessel capacity.</p>
           </div>
 
           {pricingSummary && (
@@ -268,7 +302,7 @@ export function PartnerBookingForm({ onBookingCreated }: PartnerBookingFormProps
                   </p>
                 </div>
                 <div className="text-right text-xs text-dark-6">
-                  {formData.totalGuests} guest{formData.totalGuests > 1 ? 's' : ''} · per-stop fare
+                  {formData.adults + formData.children + formData.infants} guest{formData.adults + formData.children + formData.infants > 1 ? 's' : ''} · partner reward pricing
                 </div>
               </div>
             </div>

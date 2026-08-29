@@ -23,6 +23,9 @@ export type Departure = {
   totalCapacity: number;
   bookedSeats: number;
   availableCapacity: number;
+  onlineCapacity: number;
+  onlineBookedSeats: number;
+  onlineAvailableCapacity: number;
   status: string;
   bookingCount: number;
   bookings: Booking[];

@@ -2,7 +2,7 @@ import { z } from "zod";
 
 export const CreateBookingSchema = z.object({
   departureId: z.string().uuid("Valid departure ID is required"),
-  partnerId: z.string().uuid("Valid partner ID is required"),
+  partnerId: z.string().uuid().optional(),
   guestId: z.string().uuid().optional().nullable(),
   guest: z
     .object({
@@ -12,6 +12,15 @@ export const CreateBookingSchema = z.object({
       phone: z.string().min(7).max(20).optional().nullable(),
     })
     .optional(),
+  originStopId: z.string().uuid().optional().nullable(),
+  destinationStopId: z.string().uuid().optional().nullable(),
+  adults: z.number().int().nonnegative().optional(),
+  children: z.number().int().nonnegative().optional(),
+  infants: z.number().int().nonnegative().optional(),
+  returnTicket: z.boolean().optional(),
+  segments: z.number().int().positive().optional(),
+  discountRate: z.number().nonnegative().max(1).optional(),
+  discountAmount: z.number().nonnegative().optional(),
   totalGuests: z.number().int().positive("Total guests must be at least 1"),
   totalAmount: z.number().nonnegative("Total amount cannot be negative"),
   pickupStopId: z.string().uuid().optional().nullable(),

@@ -1,6 +1,7 @@
 import { NextRequest } from 'next/server';
 import { requireAdminAuth } from '@/lib/api/admin-helpers';
 import { prisma } from '@blue-pineapple/database';
+import { departureService } from '@blue-pineapple/iam';
 
 export async function GET(request: NextRequest) {
   const result = await requireAdminAuth(request);
@@ -8,9 +9,12 @@ export async function GET(request: NextRequest) {
 
   try {
     const { searchParams } = new URL(request.url);
-    const startDate = searchParams.get('startDate') || new Date().toISOString().split('T')[0];
-    const endDate = searchParams.get('endDate') || new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+    const startDate = searchParams.get('startDate') || new Date().toISOString().split('T')[0]!;
+    const endDate = searchParams.get('endDate') || new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]!;
     const experienceSlug = searchParams.get('experienceSlug') || 'fort-jesus';
+    if (experienceSlug === 'fort-jesus') {
+      await departureService.ensureFortJesusDeparture(startDate);
+    }
 
     const experience = await prisma.experience.findUnique({
       where: { slug: experienceSlug },
@@ -30,7 +34,7 @@ export async function GET(request: NextRequest) {
         experience: { select: { name: true, category: true, durationMinutes: true, defaultPrice: true, currency: true } },
         vessel: { select: { name: true, type: true, capacity: true } },
         bookings: {
-          where: { status: { not: 'CANCELLED' } },
+          where: { status: { in: ['PENDING', 'CONFIRMED'] } },
           include: {
             partner: { include: { user: { select: { email: true, firstName: true, lastName: true } } } },
             guest: { select: { firstName: true, lastName: true, email: true, phone: true } },
@@ -54,7 +58,7 @@ export async function GET(request: NextRequest) {
     const blockedDateSet = new Set(blockedDates.map((b) => b.date.toISOString().split('T')[0] ?? ''));
 
     const calendar = departures.map((departure) => {
-      const totalBooked = departure.bookings.reduce((sum, b) => sum + b.totalGuests, 0);
+      const totalBooked = departure.bookedSeats;
       const dateStr = departure.departureDateTime.toISOString().split('T')[0] ?? '';
       const timeStr = departure.departureDateTime.toLocaleTimeString('en-US', {
         timeZone: 'Africa/Nairobi',
@@ -79,6 +83,9 @@ export async function GET(request: NextRequest) {
         totalCapacity: departure.totalCapacity,
         bookedSeats: totalBooked,
         availableCapacity: departure.availableCapacity,
+        onlineCapacity: departure.onlineCapacity,
+        onlineBookedSeats: departure.onlineBookedSeats,
+        onlineAvailableCapacity: Math.max(0, departure.onlineCapacity - departure.onlineBookedSeats),
         status: departure.status,
         bookingCount: departure.bookings.length,
         bookings: departure.bookings.map((b) => ({
@@ -90,6 +97,10 @@ export async function GET(request: NextRequest) {
           totalAmount: b.totalAmount,
           currency: b.currency,
           source: b.source,
+          pricingMode: b.pricingMode,
+          adults: b.adults,
+          children: b.children,
+          infants: b.infants,
           specialRequests: b.specialRequests,
           createdAt: b.createdAt,
           partner: b.partner ? {
