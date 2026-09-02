@@ -76,8 +76,8 @@ export function Navbar({ variant = 'parent' }: NavbarProps) {
             <Link href="/contact" onClick={closeMobile} className={mobileLinkClass}>Contact</Link>
             <div className="mt-4 flex w-full max-w-xs flex-col gap-2 border-t border-zinc-200 pt-6">
                 <span className="mb-1 text-xs font-medium tracking-[0.2em] text-zinc-400 uppercase">Portals</span>
-                <Link href="/partner/login" onClick={closeMobile} className="text-lg font-semibold text-cyan-900 hover:text-cyan-950">Partner Portal</Link>
-                <Link href="/login" onClick={closeMobile} className={mobileLinkClass}>Admin Portal</Link>
+                <Link href="/sign-in?portal=partner" onClick={closeMobile} className="text-lg font-semibold text-cyan-900 hover:text-cyan-950">Partner Portal</Link>
+                <Link href="/sign-in?portal=admin" onClick={closeMobile} className={mobileLinkClass}>Admin Portal</Link>
             </div>
         </>
     ) : variant === 'real-estate' ? (
@@ -87,8 +87,8 @@ export function Navbar({ variant = 'parent' }: NavbarProps) {
             <a href="#contact" onClick={closeMobile} className={mobileLinkClass}>Contact</a>
             <div className="mt-4 flex w-full max-w-xs flex-col gap-2 border-t border-zinc-200 pt-6">
                 <span className="mb-1 text-xs font-medium tracking-[0.2em] text-zinc-400 uppercase">Portals</span>
-                <Link href="/partner/login" onClick={closeMobile} className="text-lg font-semibold text-cyan-900 hover:text-cyan-950">Partner Portal</Link>
-                <Link href="/login" onClick={closeMobile} className={mobileLinkClass}>Admin Portal</Link>
+                <Link href="/sign-in?portal=partner" onClick={closeMobile} className="text-lg font-semibold text-cyan-900 hover:text-cyan-950">Partner Portal</Link>
+                <Link href="/sign-in?portal=admin" onClick={closeMobile} className={mobileLinkClass}>Admin Portal</Link>
             </div>
         </>
     ) : (
@@ -100,8 +100,8 @@ export function Navbar({ variant = 'parent' }: NavbarProps) {
             <Link href="/contact" onClick={closeMobile} className={mobileLinkClass}>Contact</Link>
             <div className="mt-4 flex w-full max-w-xs flex-col gap-2 border-t border-zinc-200 pt-6">
                 <span className="mb-1 text-xs font-medium tracking-[0.2em] text-zinc-400 uppercase">Portals</span>
-                <Link href="/partner/login" onClick={closeMobile} className="text-lg font-semibold text-cyan-900 hover:text-cyan-950">Partner Portal</Link>
-                <Link href="/login" onClick={closeMobile} className={mobileLinkClass}>Admin Portal</Link>
+                <Link href="/sign-in?portal=partner" onClick={closeMobile} className="text-lg font-semibold text-cyan-900 hover:text-cyan-950">Partner Portal</Link>
+                <Link href="/sign-in?portal=admin" onClick={closeMobile} className={mobileLinkClass}>Admin Portal</Link>
             </div>
         </>
     );
@@ -123,14 +123,14 @@ export function Navbar({ variant = 'parent' }: NavbarProps) {
 
                 <div className="hidden md:flex items-center gap-2 sm:gap-3">
                     <Link
-                        href="/partner/login"
+                        href="/sign-in?portal=partner"
                         className="inline-flex cursor-pointer items-center justify-center rounded-full border border-cyan-900/20 bg-cyan-900/10 px-4 py-2 text-xs font-semibold text-cyan-950 transition hover:bg-cyan-900 hover:text-white"
                     >
                         Partner Portal
                     </Link>
 
                     <Link
-                        href="/login"
+                        href="/sign-in?portal=admin"
                         className="inline-flex cursor-pointer items-center justify-center rounded-full border border-zinc-200 bg-zinc-100/80 px-4 py-2 text-xs font-semibold text-zinc-700 transition hover:bg-zinc-200 hover:text-zinc-900"
                     >
                         Admin

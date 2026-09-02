@@ -1,5 +1,4 @@
-import { redirect } from 'next/navigation';
-import { getServerSession } from '@/lib/auth';
+import { requirePortalSession } from '@/lib/auth/portal-access';
 import { PartnerLayout } from '@/components/partner/partner-layout';
 
 export default async function PartnerDashboardLayout({
@@ -7,14 +6,7 @@ export default async function PartnerDashboardLayout({
 }: {
   readonly children: React.ReactNode;
 }) {
-  const session = await getServerSession();
-  if (!session.user) {
-    redirect('/sign-in');
-  }
-
-  if (!session.user.roles.includes('PARTNER')) {
-    redirect('/unauthorized');
-  }
+  await requirePortalSession('partner');
 
   return <PartnerLayout>{children}</PartnerLayout>;
 }

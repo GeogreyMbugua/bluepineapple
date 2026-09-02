@@ -3,8 +3,9 @@
 import { useRouter } from 'next/navigation';
 import { createContext, useContext, useEffect, useState, type ReactNode } from 'react';
 import type { AuthUser } from '@/features/auth/types';
-import { getCurrentUser, logout } from '@/features/auth/services';
+import { getCurrentUser } from '@/features/auth/services';
 import { useClerk } from '@clerk/nextjs';
+import { getSignInPath, hasPartnerRole } from '@/lib/auth/portals';
 
 interface SessionContextValue {
   readonly user: AuthUser | null;
@@ -47,24 +48,17 @@ export function SessionProvider({ children }: { readonly children: ReactNode }) 
   }, []);
 
   const handleLogout = async () => {
-    const isPartnerUser = user?.roles?.includes('PARTNER');
-    try {
-      await logout();
-    } catch {
-      // best-effort
-    }
+    const portal = user && hasPartnerRole(user.roles) ? 'partner' : 'admin';
+
     try {
       await clerkSignOut();
     } catch {
       // best-effort
     }
+
     setUser(null);
     setExpiresAt(null);
-    if (isPartnerUser) {
-      router.push('/partner/login');
-    } else {
-      router.push('/login');
-    }
+    router.push(getSignInPath(portal));
   };
 
   const value: SessionContextValue = {

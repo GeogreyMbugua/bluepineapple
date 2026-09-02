@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@blue-pineapple/database';
-import { getServerSession } from '@/lib/auth';
+import { requirePartnerAuth } from '@/lib/api/partner-helpers';
 import { bookingService, departureService } from '@blue-pineapple/iam';
 import { initializeIam } from '@/lib/server/iam-init';
 import { calculatePricing, type Stop } from '@/lib/pricing/engine';
@@ -10,12 +10,9 @@ export const dynamic = 'force-dynamic';
 export async function POST(request: NextRequest) {
   try {
     initializeIam();
-    const session = await getServerSession();
-    if (!session.user) {
-      return NextResponse.json(
-        { error: { code: 'UNAUTHORIZED', message: 'Authentication required' } },
-        { status: 401 }
-      );
+    const authResult = await requirePartnerAuth(request);
+    if (authResult instanceof Response) {
+      return authResult;
     }
 
     const body = await request.json();
@@ -143,7 +140,7 @@ export async function POST(request: NextRequest) {
     });
 
     const partnerProfile = await prisma.partnerProfile.findUnique({
-      where: { userId: session.user.id },
+      where: { userId: authResult.id },
       select: { id: true, status: true },
     });
 
@@ -203,18 +200,15 @@ export async function POST(request: NextRequest) {
   }
 }
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
-    const session = await getServerSession();
-    if (!session.user) {
-      return NextResponse.json(
-        { error: { code: 'UNAUTHORIZED', message: 'Authentication required' } },
-        { status: 401 }
-      );
+    const authResult = await requirePartnerAuth(request);
+    if (authResult instanceof Response) {
+      return authResult;
     }
 
     const partnerProfile = await prisma.partnerProfile.findUnique({
-      where: { userId: session.user.id },
+      where: { userId: authResult.id },
       select: { id: true },
     });
 

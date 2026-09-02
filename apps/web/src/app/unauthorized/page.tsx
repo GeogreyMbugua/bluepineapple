@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { getSignInPath } from '@/lib/auth/portals';
 
 export default function UnauthorizedPage() {
   return (
@@ -7,7 +8,7 @@ export default function UnauthorizedPage() {
         <div className="inline-flex h-16 w-16 items-center justify-center rounded-full bg-red-500/10 text-red-400 border border-red-500/20 text-2xl font-bold">
           403
         </div>
-        
+
         <div className="space-y-2">
           <h1 className="text-2xl font-bold tracking-tight">Access Restricted</h1>
           <p className="text-sm text-zinc-300">
@@ -17,14 +18,14 @@ export default function UnauthorizedPage() {
 
         <div className="pt-4 flex flex-col gap-3">
           <Link
-            href="/partner/login"
+            href={getSignInPath('partner')}
             className="w-full py-2.5 px-4 rounded-xl bg-[var(--color-cyan,#06b6d4)] text-navy-950 font-medium hover:brightness-110 transition text-sm flex items-center justify-center gap-2"
           >
             Sign in as Partner
           </Link>
 
           <Link
-            href="/login"
+            href={getSignInPath('admin')}
             className="w-full py-2.5 px-4 rounded-xl border border-white/20 bg-white/5 font-medium hover:bg-white/10 transition text-sm flex items-center justify-center gap-2 text-white"
           >
             Sign in as Admin
@@ -41,4 +42,3 @@ export default function UnauthorizedPage() {
     </div>
   );
 }
-

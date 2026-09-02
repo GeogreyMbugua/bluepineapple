@@ -1,51 +1,10 @@
-import { ClerkLoaded, SignIn } from '@clerk/nextjs';
-import { auth } from '@clerk/nextjs/server';
-import { redirect } from 'next/navigation';
-import { getServerSession } from '@/lib/auth';
+import { PortalSignInPage } from '@/components/auth/portal-sign-in';
 
-async function getSessionUser() {
-  try {
-    const session = await getServerSession();
-    return session.user;
-  } catch {
-    return null;
-  }
+type SignInPageProps = {
+  searchParams?: Promise<{ portal?: string }>;
+};
+
+export default async function SignInPage({ searchParams }: SignInPageProps) {
+  const params = searchParams ? await searchParams : undefined;
+  return <PortalSignInPage searchParams={params} />;
 }
-
-export default async function SignInPage() {
-  const sessionUser = await getSessionUser();
-  const clerkSession = await auth();
-  const clerkUserId = clerkSession.userId;
-
-  if (sessionUser && clerkUserId) {
-    if (sessionUser.roles.includes('PARTNER' as never)) {
-      redirect('/partner');
-    }
-    if (sessionUser.roles.includes('ADMIN' as never) || sessionUser.roles.includes('SUPER_ADMIN' as never)) {
-      redirect('/admin');
-    }
-  }
-
-  if (clerkUserId && !sessionUser) {
-    redirect('/');
-  }
-
-  return (
-    <div className="flex min-h-screen items-center justify-center bg-muted px-4">
-      <ClerkLoaded>
-        <SignIn
-          routing="path"
-          path="/sign-in"
-          signUpUrl="/sign-up"
-          appearance={{
-            elements: {
-              rootBox: 'mx-auto w-full max-w-md',
-              card: 'border border-stroke shadow-1',
-            },
-          }}
-        />
-      </ClerkLoaded>
-    </div>
-  );
-}
-

@@ -7,20 +7,17 @@ import {
   DropdownTrigger,
 } from '@/components/admin/ui/dropdown';
 import { cn } from '@/lib/utils';
-import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { useSession } from '@/providers/session-provider';
 import { LogOutIcon, UserIcon } from './icons';
 
 export function UserInfo() {
   const [isOpen, setIsOpen] = useState(false);
-  const router = useRouter();
   const { user, logout } = useSession();
 
   async function handleLogout() {
     setIsOpen(false);
     await logout();
-    router.push('/login');
   }
 
   const userName = user ? `${user.firstName ?? ''} ${user.lastName ?? ''}`.trim() || user.email || 'Admin' : 'Admin';

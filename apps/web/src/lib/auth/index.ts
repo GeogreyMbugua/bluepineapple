@@ -3,6 +3,7 @@ import { auth } from '@clerk/nextjs/server';
 import type { AuthUser, Role } from '@blue-pineapple/iam';
 import { AuthorizationError } from '@/services/api/errors';
 import { userRepository } from '@blue-pineapple/database';
+import { resolveDbUserForClerk } from '@/lib/auth/link-clerk-user';
 
 export interface Session {
   user: AuthUser | null;
@@ -35,7 +36,7 @@ export const getServerSession = React.cache(async (): Promise<Session> => {
       return { user: null, expiresAt: null };
     }
 
-    const dbUser = await userRepository.findByClerkUserId(clerkUserId);
+    const dbUser = await resolveDbUserForClerk(clerkUserId);
 
     if (!dbUser) {
       return { user: null, expiresAt: null };

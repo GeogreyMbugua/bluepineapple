@@ -37,8 +37,8 @@ const footerNavigation = [
             { label: "Book a Trip", href: "/trips" },
             { label: "Partner with Us", href: "/partner" },
             { label: "Client Care", href: ROUTES.marketing.contact },
-            { label: "Partner Login", href: "/partner/login" },
-            { label: "Admin Login", href: "/login" },
+            { label: "Partner Login", href: "/sign-in?portal=partner" },
+            { label: "Admin Login", href: "/sign-in?portal=admin" },
         ],
     },
 ];

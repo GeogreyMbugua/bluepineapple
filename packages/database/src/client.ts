@@ -5,15 +5,32 @@ export { BookingStatus, VesselType } from '@prisma/client';
 
 const isProduction = process.env.NODE_ENV === 'production';
 
-const connectionLimit = isProduction ? 1 : 10;
+const appendParam = (url: string, key: string, value: string): string => {
+  if (url.includes(`${key}=`)) return url;
+  const separator = url.includes('?') ? '&' : '?';
+  return `${url}${separator}${key}=${value}`;
+};
 
 const getDatabaseUrlWithLimit = (): string | undefined => {
   const url = process.env.DATABASE_URL;
   if (!url) return undefined;
-  if (url.includes('connection_limit=')) return undefined;
 
-  const separator = url.includes('?') ? '&' : '?';
-  return `${url}${separator}connection_limit=${connectionLimit}`;
+  const isNeon = url.includes('neon.tech');
+  const isNeonPooler = isNeon && url.includes('-pooler');
+
+  if (isNeon) {
+    let enhanced = url;
+    enhanced = appendParam(enhanced, 'connect_timeout', '15');
+    enhanced = appendParam(enhanced, 'pool_timeout', '20');
+    if (isNeonPooler) {
+      enhanced = appendParam(enhanced, 'pgbouncer', 'true');
+      enhanced = appendParam(enhanced, 'connection_limit', '1');
+    }
+    return enhanced === url ? undefined : enhanced;
+  }
+
+  if (!isProduction || url.includes('connection_limit=')) return undefined;
+  return appendParam(url, 'connection_limit', '1');
 };
 
 const prismaClientSingleton = () => {

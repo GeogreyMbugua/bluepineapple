@@ -27,6 +27,9 @@ type ClerkUser = {
   phone_numbers: ClerkPhoneNumber[];
   first_name: string | null;
   last_name: string | null;
+  unsafe_metadata?: {
+    signupPortal?: string;
+  };
 };
 
 type ClerkWebhookEvent = {
@@ -174,7 +177,7 @@ async function handleUserCreated(clerkUser: ClerkUser) {
     return;
   }
 
-  // Brand-new user — create DB record and provision as PARTNER
+  // Brand-new user — create DB record; partner provisioning only for explicit partner signups
   const newUser = await userRepository.create({
     email: email ?? undefined,
     phone: phone ?? undefined,
@@ -186,12 +189,17 @@ async function handleUserCreated(clerkUser: ClerkUser) {
     phoneVerifiedAt: isPhoneVerified ? new Date() : undefined,
   } as Prisma.UserCreateInput);
 
-  await ensurePartnerRole(newUser.id);
-  await ensurePartnerProfile(newUser.id, fullName);
+  const signupPortal = clerkUser.unsafe_metadata?.signupPortal;
+  if (signupPortal === 'partner') {
+    await ensurePartnerRole(newUser.id);
+    await ensurePartnerProfile(newUser.id, fullName);
+    await syncClerkRoles(clerkUser.id, ['PARTNER']);
+    console.log(`[clerk-webhook] Created new PARTNER user ${newUser.id} for clerkId=${clerkUser.id}`);
+    return;
+  }
 
-  await syncClerkRoles(clerkUser.id, ['PARTNER']);
-
-  console.log(`[clerk-webhook] Created new PARTNER user ${newUser.id} for clerkId=${clerkUser.id}`);
+  await syncClerkRoles(clerkUser.id, []);
+  console.log(`[clerk-webhook] Created new user ${newUser.id} for clerkId=${clerkUser.id} (no roles assigned)`);
 }
 
 async function handleUserUpdated(clerkUser: ClerkUser) {

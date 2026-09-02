@@ -14,7 +14,9 @@
     "test": "turbo run test",
     "typecheck": "turbo run typecheck",
     "clean": "turbo run clean",
-    "format": "prettier --write ."
+    "format": "prettier --write .",
+    "db:push": "dotenv -e .env.local -- sh -c 'DATABASE_URL=\"$DATABASE_URL_UNPOOLED\" pnpm --filter @blue-pineapple/database exec prisma db push --accept-data-loss'",
+    "db:seed": "dotenv -e .env.local -- sh -c 'DATABASE_URL=\"$DATABASE_URL_UNPOOLED\" pnpm --filter @blue-pineapple/database run seed'"
   },
   "devDependencies": {
     "@types/node": "^26.0.0",
@@ -26,6 +28,8 @@
     "typescript": "^5.8.0"
   },
   "dependencies": {
+    "@neon/config": "^1.1.0",
+    "@neon/env": "^1.1.6",
     "resend": "^6.18.1"
   }
 }

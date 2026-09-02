@@ -15,7 +15,6 @@ export class BookingNotificationEngine {
     this.isRunning = true;
     this.unsubscribeConfirmed = eventBus.on('booking.confirmed', this.handleBookingConfirmed);
     this.unsubscribeCreated = eventBus.on('booking.created', this.handleBookingCreated);
-    void this.processPendingAdminNotifications();
   }
 
   stop() {
@@ -101,21 +100,6 @@ export class BookingNotificationEngine {
       await this.deliverAdminNotification(event.bookingId);
     } catch (error) {
       console.error('[BookingNotificationEngine] Failed to enqueue admin booking notification:', error);
-    }
-  };
-
-  private processPendingAdminNotifications = async () => {
-    try {
-      const pending = await prisma.notificationOutbox.findMany({
-        where: { status: 'PENDING' },
-        orderBy: { createdAt: 'asc' },
-        take: 25,
-      });
-      for (const notification of pending) {
-        await this.deliverAdminNotification(notification.bookingId);
-      }
-    } catch (error) {
-      console.error('[BookingNotificationEngine] Failed to process notification outbox:', error);
     }
   };
 
