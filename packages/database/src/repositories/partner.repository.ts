@@ -24,10 +24,87 @@ export class PartnerRepository {
     return prisma.partnerProfile.findUnique({ where: { partnerCode } });
   }
 
-  async findWithPayoutAccounts(partnerId: string): Promise<(PartnerProfile & { payoutAccounts: PartnerPayoutAccount[] }) | null> {
+  async findWithPayoutAccounts(partnerId: string) {
     return prisma.partnerProfile.findUnique({
       where: { id: partnerId },
-      include: { payoutAccounts: true, statusHistory: { orderBy: { createdAt: "desc" }, take: 10 } },
+      include: {
+        user: {
+          select: {
+            id: true,
+            email: true,
+            phone: true,
+            firstName: true,
+            lastName: true,
+            status: true,
+            clerkUserId: true,
+          },
+        },
+        payoutAccounts: true,
+        statusHistory: { orderBy: { createdAt: "desc" }, take: 25 },
+        _count: { select: { bookings: true, partnerRewards: true } },
+      },
+    });
+  }
+
+  async list(params: {
+    status?: PartnerStatus;
+    search?: string;
+    skip?: number;
+    take?: number;
+  } = {}) {
+    const search = params.search?.trim();
+    return prisma.partnerProfile.findMany({
+      where: {
+        ...(params.status ? { status: params.status } : {}),
+        ...(search
+          ? {
+              OR: [
+                { partnerCode: { contains: search, mode: "insensitive" } },
+                { companyName: { contains: search, mode: "insensitive" } },
+                { user: { email: { contains: search, mode: "insensitive" } } },
+                { user: { firstName: { contains: search, mode: "insensitive" } } },
+                { user: { lastName: { contains: search, mode: "insensitive" } } },
+              ],
+            }
+          : {}),
+      },
+      include: {
+        user: {
+          select: {
+            id: true,
+            email: true,
+            phone: true,
+            firstName: true,
+            lastName: true,
+            status: true,
+            clerkUserId: true,
+          },
+        },
+        _count: { select: { bookings: true, partnerRewards: true } },
+      },
+      orderBy: { joinedAt: "desc" },
+      ...(params.skip !== undefined ? { skip: params.skip } : {}),
+      ...(params.take !== undefined ? { take: params.take } : {}),
+    });
+  }
+
+  async count(params: { status?: PartnerStatus; search?: string } = {}) {
+    const search = params.search?.trim();
+    return prisma.partnerProfile.count({
+      where: {
+        ...(params.status ? { status: params.status } : {}),
+        ...(search
+          ? {
+              OR: [
+                { partnerCode: { contains: search, mode: "insensitive" } },
+                { companyName: { contains: search, mode: "insensitive" } },
+                { user: { email: { contains: search, mode: "insensitive" } } },
+                { user: { firstName: { contains: search, mode: "insensitive" } } },
+                { user: { lastName: { contains: search, mode: "insensitive" } } },
+              ],
+            }
+          : {}),
+      },
     });
   }
 
@@ -43,11 +120,25 @@ export class PartnerRepository {
     return prisma.partnerPayoutAccount.create({ data });
   }
 
-  async removePayoutAccount(accountId: string): Promise<PartnerPayoutAccount> {
+  async removePayoutAccount(accountId: string, partnerId: string): Promise<PartnerPayoutAccount> {
+    const account = await prisma.partnerPayoutAccount.findUnique({
+      where: { id: accountId },
+      select: { partnerId: true },
+    });
+    if (!account || account.partnerId !== partnerId) {
+      throw new Error("Payout account not found for partner");
+    }
     return prisma.partnerPayoutAccount.delete({ where: { id: accountId } });
   }
 
   async setDefaultPayoutAccount(accountId: string, partnerId: string): Promise<void> {
+    const account = await prisma.partnerPayoutAccount.findUnique({
+      where: { id: accountId },
+      select: { partnerId: true },
+    });
+    if (!account || account.partnerId !== partnerId) {
+      throw new Error("Payout account not found for partner");
+    }
     await prisma.$transaction([
       prisma.partnerPayoutAccount.updateMany({ where: { partnerId }, data: { isDefault: false } }),
       prisma.partnerPayoutAccount.update({ where: { id: accountId }, data: { isDefault: true } }),

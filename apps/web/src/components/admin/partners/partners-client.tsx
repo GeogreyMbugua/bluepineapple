@@ -7,6 +7,7 @@ import { CreatePartnerModal } from '@/components/admin/partners/create-partner-m
 import { ImportPartnersModal } from '@/components/admin/partners/import-partners-modal';
 import { useToast } from '@/providers/toast-provider';
 import { adminPartnersOptions } from '@/lib/queries/admin/partners';
+import { Input } from '@/components/admin/ui/input';
 
 const STATUS_FILTERS = ['ALL', 'ACTIVE', 'PENDING', 'SUSPENDED', 'TERMINATED'] as const;
 type StatusFilter = typeof STATUS_FILTERS[number];
@@ -24,11 +25,19 @@ export function PartnersClient() {
   const [showImportModal, setShowImportModal] = useState(false);
   const [isSyncing, setIsSyncing] = useState(false);
   const [syncResult, setSyncResult] = useState<SyncSummary | null>(null);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [page, setPage] = useState(1);
 
-  const { data: partners = [], isLoading } = useQuery({
-    ...adminPartnersOptions(),
-    select: (data) => data,
-  });
+  const {
+    data: partnerData = { partners: [], total: 0, page: 1, limit: 20, totalPages: 0, statusCounts: {} },
+    isLoading,
+    error,
+  } = useQuery(adminPartnersOptions({
+    status: activeFilter,
+    search: searchQuery,
+    page,
+  }));
+  const partners = partnerData.partners;
 
   const refreshPartners = useCallback(() => {
     queryClient.invalidateQueries({ queryKey: ['admin', 'partners'] });
@@ -63,16 +72,11 @@ export function PartnersClient() {
   }, [addToast, refreshPartners]);
 
   const stats = useMemo(() => ({
-    total: partners.length,
-    active: partners.filter((p) => p.status === 'ACTIVE').length,
-    pending: partners.filter((p) => p.status === 'PENDING').length,
-    suspended: partners.filter((p) => p.status === 'SUSPENDED').length,
-  }), [partners]);
-
-  const filteredPartners = useMemo(
-    () => (activeFilter === 'ALL' ? partners : partners.filter((p) => p.status === activeFilter)),
-    [partners, activeFilter],
-  );
+    total: partnerData.total,
+    active: partnerData.statusCounts.ACTIVE ?? 0,
+    pending: partnerData.statusCounts.PENDING ?? 0,
+    suspended: partnerData.statusCounts.SUSPENDED ?? 0,
+  }), [partnerData]);
 
   return (
     <>
@@ -120,8 +124,11 @@ export function PartnersClient() {
         {STATUS_FILTERS.map((status) => (
           <button
             key={status}
-            onClick={() => setActiveFilter(status)}
-            disabled={isLoading || isLoading}
+            onClick={() => {
+              setActiveFilter(status);
+              setPage(1);
+            }}
+            disabled={isLoading}
             className={[
               'rounded border px-4 py-2 text-sm font-medium transition-colors disabled:opacity-60',
               activeFilter === status
@@ -135,8 +142,52 @@ export function PartnersClient() {
         {isLoading && <span className="self-center ml-2 text-sm text-dark-5">Loading…</span>}
       </div>
 
+      <div className="max-w-sm">
+        <Input
+          type="search"
+          label="Search partners"
+          value={searchQuery}
+          onChange={(event) => {
+            setSearchQuery(event.target.value);
+            setPage(1);
+          }}
+          placeholder="Name, company, code, or email"
+        />
+      </div>
+
       {/* Partners Table */}
-      <PartnersTableContent partners={filteredPartners} />
+      {error ? (
+        <div className="border border-red bg-red-light-5 px-4 py-3 text-sm text-red">
+          Failed to load partners. Please try again.
+        </div>
+      ) : (
+        <>
+          <PartnersTableContent partners={partners} />
+          {partnerData.totalPages > 1 && (
+            <div className="flex items-center justify-between">
+              <p className="text-sm text-dark-5">
+                Page {partnerData.page} of {partnerData.totalPages} ({partnerData.total} partners)
+              </p>
+              <div className="flex gap-2">
+                <ActionButton
+                  variant="secondary"
+                  onClick={() => setPage((current) => Math.max(1, current - 1))}
+                  disabled={page === 1 || isLoading}
+                >
+                  Previous
+                </ActionButton>
+                <ActionButton
+                  variant="secondary"
+                  onClick={() => setPage((current) => Math.min(partnerData.totalPages, current + 1))}
+                  disabled={page >= partnerData.totalPages || isLoading}
+                >
+                  Next
+                </ActionButton>
+              </div>
+            </div>
+          )}
+        </>
+      )}
 
       {/* Modals */}
       <CreatePartnerModal

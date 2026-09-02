@@ -344,6 +344,7 @@ model Booking {
   id                  String           @id @default(uuid())
   bookingReference    String           @unique
   departureId         String
+  confirmedDepartureTime DateTime?
   partnerId           String
   guestId             String?
   totalGuests         Int
@@ -782,7 +783,7 @@ model PartnerStatusHistory {
 
   partner PartnerProfile @relation(fields: [partnerId], references: [id], onDelete: Cascade)
 
-  oldStatus PartnerStatus
+  oldStatus PartnerStatus?
 
   newStatus PartnerStatus
 

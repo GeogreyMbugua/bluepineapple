@@ -1,6 +1,21 @@
 import { NextRequest } from 'next/server';
 import { requireAdminAuth } from '@/lib/api/admin-helpers';
-import { partnerService, partnerLifecycleService } from '@blue-pineapple/iam';
+import {
+  partnerService,
+  partnerLifecycleService,
+  UpdatePartnerSchema,
+} from '@blue-pineapple/iam';
+import { z } from 'zod';
+
+const PartnerActionSchema = z.object({
+  action: z.enum(['activate', 'suspend', 'terminate']),
+  reason: z.string().trim().max(500).optional(),
+});
+
+function maskSensitiveValue(value: string | null): string | null {
+  if (!value) return null;
+  return `••••${value.slice(-4)}`;
+}
 
 export async function GET(
   request: NextRequest,
@@ -17,15 +32,45 @@ export async function GET(
     );
   }
 
-  const partner = await partnerService.findById(id);
-  if (!partner) {
+  try {
+    const partner = await partnerService.findById(id);
+    if (!partner) {
+      return Response.json(
+        { error: { code: 'NOT_FOUND', message: 'Partner not found' } },
+        { status: 404 },
+      );
+    }
+
+    return Response.json({
+      data: {
+        id: partner.id,
+        userId: partner.userId,
+        partnerCode: partner.partnerCode,
+        companyName: partner.companyName,
+        commissionRate: Number(partner.commissionRate),
+        status: partner.status,
+        joinedAt: partner.joinedAt,
+        createdAt: partner.createdAt,
+        updatedAt: partner.updatedAt,
+        user: partner.user,
+        clerkLinked: Boolean(partner.user?.clerkUserId),
+        bookingCount: partner._count.bookings,
+        rewardCount: partner._count.partnerRewards,
+        payoutAccounts: partner.payoutAccounts.map((account) => ({
+          ...account,
+          accountNumber: maskSensitiveValue(account.accountNumber),
+          mpesaNumber: maskSensitiveValue(account.mpesaNumber),
+        })),
+        statusHistory: partner.statusHistory,
+      },
+      timestamp: new Date().toISOString(),
+    });
+  } catch {
     return Response.json(
-      { error: { code: 'NOT_FOUND', message: 'Partner not found' } },
-      { status: 404 }
+      { error: { code: 'INTERNAL_ERROR', message: 'Failed to fetch partner' } },
+      { status: 500 },
     );
   }
-
-  return Response.json({ data: partner, timestamp: new Date().toISOString() });
 }
 
 export async function PATCH(
@@ -43,17 +88,26 @@ export async function PATCH(
     );
   }
 
-  const body = await request.json();
-  const { companyName, commissionRate, status } = body;
+  try {
+    const body = await request.json();
+    const validated = UpdatePartnerSchema.omit({ status: true }).strict().parse(body);
+    const updated = await partnerService.updateProfile(id, validated, result.id);
 
-  const updateData: Record<string, unknown> = {};
-  if (companyName !== undefined) updateData.companyName = companyName;
-  if (commissionRate !== undefined) updateData.commissionRate = commissionRate;
-  if (status !== undefined) updateData.status = status;
-
-  const updated = await partnerService.updateProfile(id, updateData);
-
-  return Response.json({ data: updated, timestamp: new Date().toISOString() });
+    return Response.json(
+      { data: { ...updated, commissionRate: Number(updated.commissionRate) }, timestamp: new Date().toISOString() },
+    );
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      return Response.json(
+        { error: { code: 'VALIDATION_ERROR', message: error.issues[0]?.message ?? 'Invalid partner details' } },
+        { status: 400 },
+      );
+    }
+    return Response.json(
+      { error: { code: 'INTERNAL_ERROR', message: 'Failed to update partner' } },
+      { status: 500 },
+    );
+  }
 }
 
 export async function POST(
@@ -71,25 +125,38 @@ export async function POST(
     );
   }
 
-  const body = await request.json();
-  const { action } = body;
+  try {
+    const body = PartnerActionSchema.parse(await request.json());
 
-  switch (action) {
-    case 'activate':
-      await partnerLifecycleService.activatePartner(id, result.id);
-      break;
-    case 'suspend':
-      await partnerLifecycleService.suspendPartner(id, result.id, body.reason);
-      break;
-    case 'terminate':
-      await partnerLifecycleService.terminatePartner(id, result.id, body.reason);
-      break;
-    default:
+    switch (body.action) {
+      case 'activate':
+        await partnerLifecycleService.activatePartner(id, result.id);
+        break;
+      case 'suspend':
+        await partnerLifecycleService.suspendPartner(id, result.id, body.reason);
+        break;
+      case 'terminate':
+        await partnerLifecycleService.terminatePartner(id, result.id, body.reason);
+        break;
+    }
+
+    return Response.json({ data: { success: true }, timestamp: new Date().toISOString() });
+  } catch (error) {
+    if (error instanceof z.ZodError) {
       return Response.json(
-        { error: { code: 'INVALID_ACTION', message: 'Unknown action' } },
-        { status: 400 }
+        { error: { code: 'VALIDATION_ERROR', message: error.issues[0]?.message ?? 'Invalid partner action' } },
+        { status: 400 },
       );
+    }
+    if (error instanceof Error) {
+      return Response.json(
+        { error: { code: 'OPERATION_FAILED', message: error.message } },
+        { status: 400 },
+      );
+    }
+    return Response.json(
+      { error: { code: 'INTERNAL_ERROR', message: 'Failed to update partner status' } },
+      { status: 500 },
+    );
   }
-
-  return Response.json({ data: { success: true }, timestamp: new Date().toISOString() });
 }

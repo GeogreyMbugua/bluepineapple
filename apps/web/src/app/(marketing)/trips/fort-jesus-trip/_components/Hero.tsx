@@ -5,6 +5,7 @@ import { ArrowRight } from 'lucide-react';
 import { useState } from 'react';
 import { publicPath } from '@/lib/paths';
 import { BookingCard } from './BookingCard';
+import { OtherExperiences } from './OtherExperiences';
 
 export function Hero() {
   const [mobileBookingOpen, setMobileBookingOpen] = useState(false);
@@ -83,6 +84,7 @@ export function Hero() {
             </button>
           </div>
         </div>
+        <OtherExperiences />
       </section>
       <div className="md:hidden">
         <BookingCard

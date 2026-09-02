@@ -2,6 +2,7 @@ export function renderBookingConfirmationEmail(booking: {
   bookingReference: string;
   totalGuests: number;
   totalAmount: string;
+  confirmedDepartureTime?: Date | null;
   guest?: { firstName?: string; lastName?: string } | null;
   departure?: {
     departureDateTime?: Date;
@@ -13,10 +14,12 @@ export function renderBookingConfirmationEmail(booking: {
 }): string {
   const guestName = `${booking.guest?.firstName ?? ''} ${booking.guest?.lastName ?? ''}`.trim() || 'Guest';
 
-  const departureDate = booking.departure?.departureDateTime
-    ? new Date(booking.departure.departureDateTime).toLocaleDateString('en-KE', {
+  const departureDateTime =
+    booking.confirmedDepartureTime ?? booking.departure?.departureDateTime;
+  const departureDate = departureDateTime
+    ? new Date(departureDateTime).toLocaleDateString('en-KE', {
         weekday: 'long', year: 'numeric', month: 'long', day: 'numeric',
-        hour: '2-digit', minute: '2-digit'
+        hour: '2-digit', minute: '2-digit', timeZone: 'Africa/Nairobi',
       })
     : 'TBD';
 

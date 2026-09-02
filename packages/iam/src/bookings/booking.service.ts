@@ -23,6 +23,20 @@ type BookingCreationInput = Omit<CreateBookingInput, "partnerId"> & {
   partnerId: string;
 };
 
+function toEastAfricaDate(dateTime: Date, time: string): Date {
+  const match = /^(\d{2}):(\d{2})$/.exec(time);
+  const hours = Number(match?.[1]);
+  const minutes = Number(match?.[2]);
+  if (!match || hours > 23 || minutes > 59) {
+    throw new Error("A valid departure time is required");
+  }
+
+  const dateInKenya = dateTime.toLocaleDateString("en-CA", {
+    timeZone: "Africa/Nairobi",
+  });
+  return new Date(`${dateInKenya}T${time}:00+03:00`);
+}
+
 export class BookingService {
   private generateBookingReference(): string {
     const timestamp = Date.now().toString(36).toUpperCase();
@@ -248,18 +262,26 @@ export class BookingService {
     } as BookingStatusChangedEvent);
   }
 
-  async confirmBooking(id: string, actorId?: string): Promise<void> {
+  async confirmBooking(
+    id: string,
+    actorId?: string,
+    departureTime?: string,
+  ): Promise<void> {
     const booking = await bookingRepository.findById(id);
     if (!booking) {
       throw new Error("Booking not found");
     }
 
     const departure = await departureRepository.findById(booking.departureId);
-    if (departure) {
-      BookingPolicy.assertModifiable(booking.status, departure.status);
+    if (!departure) {
+      throw new Error("Departure not found");
     }
+    BookingPolicy.assertModifiable(booking.status, departure.status);
 
     BookingPolicy.assertTransition(booking.status, "CONFIRMED");
+    const confirmedDepartureTime = departureTime
+      ? toEastAfricaDate(departure.departureDateTime, departureTime)
+      : undefined;
 
     await prisma.$transaction(async (tx) => {
       await tx.booking.update({
@@ -267,6 +289,7 @@ export class BookingService {
         data: {
           status: "CONFIRMED",
           paymentStatus: "PAID",
+          ...(confirmedDepartureTime && { confirmedDepartureTime }),
         },
       });
 

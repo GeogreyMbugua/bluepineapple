@@ -4,10 +4,21 @@ import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import type { PartnerRow } from '@/components/admin/types';
 import type { PartnerPayoutAccountData } from '@blue-pineapple/iam';
+import { Input } from '@/components/admin/ui/input';
 
 type PartnerDetail = PartnerRow & {
+  user?: {
+    id: string;
+    email: string | null;
+    phone: string | null;
+    firstName: string;
+    lastName: string;
+    status: string;
+    clerkUserId: string | null;
+  };
+  clerkLinked: boolean;
   payoutAccounts: PartnerPayoutAccountData[];
-  statusHistory: { oldStatus: string; newStatus: string; reason?: string; createdAt: string }[];
+  statusHistory: { oldStatus?: string | null; newStatus: string; reason?: string | null; createdAt: string }[];
 };
 
 export default function AdminPartnerDetailPage() {
@@ -16,16 +27,28 @@ export default function AdminPartnerDetailPage() {
   const [partner, setPartner] = useState<PartnerDetail | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<'profile' | 'payouts' | 'history'>('profile');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState<string | null>(null);
+  const [showPayoutForm, setShowPayoutForm] = useState(false);
+  const [payoutForm, setPayoutForm] = useState({
+    accountName: '',
+    accountNumber: '',
+    bankName: '',
+    mpesaNumber: '',
+    isDefault: false,
+  });
 
   useEffect(() => {
     void (async () => {
       try {
         const res = await fetch(`/api/admin/partners/${params.id}`, { cache: 'no-store' });
-        if (!res.ok) throw new Error('Failed');
+        if (!res.ok) throw new Error('Failed to load partner');
         const json = await res.json();
+        if (!json.data) throw new Error(json.error?.message || 'Partner not found');
         setPartner(json.data);
-      } catch {
-        // Handle error
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'Failed to load partner');
       } finally {
         setIsLoading(false);
       }
@@ -33,14 +56,83 @@ export default function AdminPartnerDetailPage() {
   }, [params.id]);
 
   const handleAction = async (action: 'activate' | 'suspend' | 'terminate', reason?: string) => {
-    await fetch(`/api/admin/partners/${params.id}`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ action, reason }),
-    });
-    const res = await fetch(`/api/admin/partners/${params.id}`, { cache: 'no-store' });
-    const json = await res.json();
-    setPartner(json.data);
+    if (action !== 'activate' && !window.confirm(`Are you sure you want to ${action} this partner?`)) {
+      return;
+    }
+    setError(null);
+    setSuccess(null);
+    setIsSubmitting(true);
+    try {
+      const res = await fetch(`/api/admin/partners/${params.id}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action, reason }),
+      });
+      const json = await res.json();
+      if (!res.ok) throw new Error(json.error?.message || 'Failed to update partner status');
+      const refreshed = await fetch(`/api/admin/partners/${params.id}`, { cache: 'no-store' });
+      const refreshedJson = await refreshed.json();
+      if (!refreshed.ok) throw new Error(refreshedJson.error?.message || 'Failed to refresh partner');
+      setPartner(refreshedJson.data);
+      setSuccess('Partner status updated successfully');
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to update partner status');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleAddPayout = async (event: React.FormEvent) => {
+    event.preventDefault();
+    setError(null);
+    setSuccess(null);
+    setIsSubmitting(true);
+    try {
+      const res = await fetch(`/api/admin/partners/${params.id}/payouts`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payoutForm),
+      });
+      const json = await res.json();
+      if (!res.ok) throw new Error(json.error?.message || 'Failed to add payout account');
+      setPayoutForm({ accountName: '', accountNumber: '', bankName: '', mpesaNumber: '', isDefault: false });
+      setShowPayoutForm(false);
+      setSuccess('Payout account added successfully');
+      const refreshed = await fetch(`/api/admin/partners/${params.id}`, { cache: 'no-store' });
+      const refreshedJson = await refreshed.json();
+      if (!refreshed.ok) throw new Error(refreshedJson.error?.message || 'Failed to refresh partner');
+      setPartner(refreshedJson.data);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to add payout account');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handlePayoutAction = async (action: 'set-default' | 'remove', accountId: string) => {
+    setError(null);
+    setSuccess(null);
+    setIsSubmitting(true);
+    try {
+      const res = action === 'remove'
+        ? await fetch(`/api/admin/partners/${params.id}/payouts?accountId=${accountId}`, { method: 'DELETE' })
+        : await fetch(`/api/admin/partners/${params.id}/payouts`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ action, accountId }),
+          });
+      const json = await res.json();
+      if (!res.ok) throw new Error(json.error?.message || 'Failed to update payout account');
+      const refreshed = await fetch(`/api/admin/partners/${params.id}`, { cache: 'no-store' });
+      const refreshedJson = await refreshed.json();
+      if (!refreshed.ok) throw new Error(refreshedJson.error?.message || 'Failed to refresh partner');
+      setPartner(refreshedJson.data);
+      setSuccess(action === 'remove' ? 'Payout account removed' : 'Default payout account updated');
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to update payout account');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   if (isLoading) {
@@ -72,29 +164,43 @@ export default function AdminPartnerDetailPage() {
           {partner.status === 'PENDING' && (
             <button
               onClick={() => handleAction('activate')}
+              disabled={isSubmitting}
               className="px-4 py-2 bg-green text-white text-sm font-medium hover:bg-green-dark"
             >
-              Approve
+              {isSubmitting ? 'Updating...' : 'Approve'}
             </button>
           )}
           {partner.status === 'ACTIVE' && (
             <button
               onClick={() => handleAction('suspend', 'Suspended by admin')}
+              disabled={isSubmitting}
               className="px-4 py-2 bg-red text-white text-sm font-medium hover:bg-red-dark"
             >
-              Suspend
+              {isSubmitting ? 'Updating...' : 'Suspend'}
             </button>
           )}
           {(partner.status === 'ACTIVE' || partner.status === 'SUSPENDED') && (
             <button
               onClick={() => handleAction('terminate', 'Terminated by admin')}
+              disabled={isSubmitting}
               className="px-4 py-2 border border-red text-red text-sm font-medium hover:bg-red-50"
             >
-              Terminate
+              {isSubmitting ? 'Updating...' : 'Terminate'}
             </button>
           )}
         </div>
       </div>
+
+      {error && (
+        <div className="border border-red bg-red-light-5 px-4 py-3 text-sm text-red" role="alert">
+          {error}
+        </div>
+      )}
+      {success && (
+        <div className="border border-green bg-green-light-6 px-4 py-3 text-sm text-green" role="status">
+          {success}
+        </div>
+      )}
 
       {/* Tabs */}
       <div className="border-b border-gray-200">
@@ -146,15 +252,59 @@ export default function AdminPartnerDetailPage() {
               <dt className="text-sm text-gray-500">Joined</dt>
               <dd className="text-dark font-medium">{new Date(partner.joinedAt).toLocaleDateString()}</dd>
             </div>
+            <div>
+              <dt className="text-sm text-gray-500">Contact</dt>
+              <dd className="text-dark font-medium">{partner.user ? `${partner.user.firstName} ${partner.user.lastName}` : '—'}</dd>
+              <dd className="text-sm text-gray-500">{partner.user?.email || partner.user?.phone || 'No contact details'}</dd>
+            </div>
+            <div>
+              <dt className="text-sm text-gray-500">Account</dt>
+              <dd className="text-dark font-medium">{partner.user?.status || '—'}</dd>
+              <dd className={partner.clerkLinked ? 'text-sm text-green' : 'text-sm text-yellow-dark'}>
+                {partner.clerkLinked ? 'Clerk linked' : 'Clerk link pending'}
+              </dd>
+            </div>
+            <div>
+              <dt className="text-sm text-gray-500">Bookings</dt>
+              <dd className="text-dark font-medium">{partner.bookingCount ?? 0}</dd>
+            </div>
+            <div>
+              <dt className="text-sm text-gray-500">Rewards</dt>
+              <dd className="text-dark font-medium">{partner.rewardCount ?? 0}</dd>
+            </div>
           </dl>
         </div>
       )}
 
       {activeTab === 'payouts' && (
         <div className="border border-gray-200 bg-white">
-          <div className="px-6 py-4 border-b border-gray-200">
+          <div className="flex items-center justify-between border-b border-gray-200 px-6 py-4">
             <h2 className="text-lg font-bold text-dark">Payout Accounts</h2>
+            <button
+              type="button"
+              onClick={() => setShowPayoutForm((current) => !current)}
+              className="px-3 py-2 text-sm font-medium text-white bg-primary hover:bg-primary-deep"
+            >
+              {showPayoutForm ? 'Close' : 'Add account'}
+            </button>
           </div>
+          {showPayoutForm && (
+            <form onSubmit={handleAddPayout} className="grid grid-cols-1 gap-4 border-b border-gray-200 p-6 sm:grid-cols-2">
+              <Input label="Account name" value={payoutForm.accountName} onChange={(event) => setPayoutForm({ ...payoutForm, accountName: event.target.value })} required />
+              <Input label="Account number" value={payoutForm.accountNumber} onChange={(event) => setPayoutForm({ ...payoutForm, accountNumber: event.target.value })} required />
+              <Input label="Bank name" value={payoutForm.bankName} onChange={(event) => setPayoutForm({ ...payoutForm, bankName: event.target.value })} />
+              <Input label="M-Pesa number" value={payoutForm.mpesaNumber} onChange={(event) => setPayoutForm({ ...payoutForm, mpesaNumber: event.target.value })} />
+              <label className="flex items-center gap-2 text-sm text-dark">
+                <input type="checkbox" checked={payoutForm.isDefault} onChange={(event) => setPayoutForm({ ...payoutForm, isDefault: event.target.checked })} />
+                Set as default
+              </label>
+              <div className="flex justify-end sm:col-span-2">
+                <button type="submit" disabled={isSubmitting} className="px-4 py-2 text-sm font-medium text-white bg-primary hover:bg-primary-deep disabled:opacity-50">
+                  {isSubmitting ? 'Saving...' : 'Save account'}
+                </button>
+              </div>
+            </form>
+          )}
           <div className="divide-y divide-gray-200">
             {partner.payoutAccounts?.length === 0 ? (
               <p className="p-6 text-sm text-gray-500">No payout accounts configured.</p>
@@ -167,11 +317,18 @@ export default function AdminPartnerDetailPage() {
                     {account.bankName && <p className="text-sm text-gray-500">{account.bankName}</p>}
                     {account.mpesaNumber && <p className="text-sm text-gray-500">{account.mpesaNumber}</p>}
                   </div>
-                  {account.isDefault && (
-                    <span className="px-2 py-1 text-xs font-medium bg-cyan/10 text-primary-deep">
-                      Default
-                    </span>
-                  )}
+                  <div className="flex items-center gap-2">
+                    {account.isDefault ? (
+                      <span className="px-2 py-1 text-xs font-medium bg-cyan/10 text-primary-deep">Default</span>
+                    ) : (
+                      <button type="button" onClick={() => handlePayoutAction('set-default', account.id)} disabled={isSubmitting} className="text-xs text-primary-deep hover:underline disabled:opacity-50">
+                        Make default
+                      </button>
+                    )}
+                    <button type="button" onClick={() => handlePayoutAction('remove', account.id)} disabled={isSubmitting} className="text-xs text-red hover:underline disabled:opacity-50">
+                      Remove
+                    </button>
+                  </div>
                 </div>
               ))
             )}
@@ -192,7 +349,8 @@ export default function AdminPartnerDetailPage() {
                 <div key={idx} className="px-6 py-4 flex items-center justify-between">
                   <div>
                     <p className="font-medium text-dark">
-                      {entry.oldStatus} → {entry.newStatus}
+                      {entry.oldStatus ? `${entry.oldStatus} → ` : 'Created → '}
+                      {entry.newStatus}
                     </p>
                     {entry.reason && <p className="text-sm text-gray-500">{entry.reason}</p>}
                   </div>

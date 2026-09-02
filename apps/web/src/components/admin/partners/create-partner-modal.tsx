@@ -90,6 +90,15 @@ function CreatePartnerForm({ onSuccess, onClose }: { onSuccess: () => void; onCl
     }
   };
 
+  const handleNext = () => {
+    if (!foundUser && !userForm.email.trim()) {
+      setError('Search for an existing user or enter an email address for a new user');
+      return;
+    }
+    setError(null);
+    setStep('partner');
+  };
+
   return (
     <>
       {error && (
@@ -148,7 +157,7 @@ function CreatePartnerForm({ onSuccess, onClose }: { onSuccess: () => void; onCl
           )}
 
           <div className="flex justify-end">
-            <Button onClick={() => setStep('partner')}>
+            <Button onClick={handleNext}>
               Next: Partner Details
             </Button>
           </div>

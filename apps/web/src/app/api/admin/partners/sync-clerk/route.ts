@@ -8,6 +8,14 @@ export async function POST(_request: NextRequest) {
   if (result instanceof Response) return result;
 
   try {
+    const secretKey = process.env.CLERK_SECRET_KEY;
+    if (!secretKey) {
+      return Response.json(
+        { error: { code: 'CONFIGURATION_ERROR', message: 'Clerk synchronization is not configured' } },
+        { status: 503 },
+      );
+    }
+    const clerk = createClerkClient({ secretKey });
     const partners = await prisma.user.findMany({
       where: {
         roles: {
@@ -18,9 +26,13 @@ export async function POST(_request: NextRequest) {
           },
         },
         clerkUserId: null,
+        partnerProfile: { isNot: null },
       },
       include: {
         partnerProfile: true,
+        roles: {
+          include: { role: { select: { name: true } } },
+        },
       },
     });
 
@@ -45,11 +57,15 @@ export async function POST(_request: NextRequest) {
           continue;
         }
 
-        const clerk = createClerkClient({
-          secretKey: process.env.CLERK_SECRET_KEY!,
+        const matchingClerkUsers = await clerk.users.getUserList({
+          emailAddress: [partner.email],
+          limit: 10,
         });
+        if (matchingClerkUsers.data.length > 1) {
+          throw new Error('Multiple Clerk accounts match this email; link manually');
+        }
 
-        const clerkUser = await clerk.users.createUser({
+        const clerkUser = matchingClerkUsers.data[0] ?? await clerk.users.createUser({
           emailAddress: [partner.email],
           firstName: partner.firstName ?? 'Partner',
           lastName: partner.lastName ?? '',
@@ -57,20 +73,46 @@ export async function POST(_request: NextRequest) {
           skipLegalChecks: true,
         });
 
-        await prisma.user.update({
-          where: { id: partner.id },
+        const linkedUser = await prisma.user.findFirst({
+          where: { clerkUserId: clerkUser.id },
+          select: { id: true },
+        });
+        if (linkedUser && linkedUser.id !== partner.id) {
+          throw new Error('Clerk account is already linked to another database user');
+        }
+
+        const linked = await prisma.user.updateMany({
+          where: { id: partner.id, clerkUserId: null },
           data: {
             clerkUserId: clerkUser.id,
             status: 'ACTIVE',
           },
         });
+        if (linked.count !== 1) {
+          throw new Error('User was linked by another synchronization attempt');
+        }
+
+        let metadataSynced = true;
+        try {
+          await clerk.users.updateUser(clerkUser.id, {
+            publicMetadata: {
+              roles: partner.roles.map((userRole) => userRole.role.name),
+            },
+          });
+        } catch {
+          metadataSynced = false;
+        }
 
         results.push({
           userId: partner.id,
           partnerCode: partner.partnerProfile?.partnerCode ?? 'N/A',
           email: partner.email,
-          status: 'success',
-          message: 'Clerk account created',
+          status: metadataSynced ? 'success' : 'error',
+          message: metadataSynced
+            ? matchingClerkUsers.data[0]
+              ? 'Existing Clerk account linked'
+              : 'Clerk account created and linked'
+            : 'Database linked, but Clerk role metadata could not be synchronized',
         });
       } catch (error) {
         results.push({

@@ -32,4 +32,19 @@ describe("renderBookingConfirmationEmail", () => {
     });
     expect(html).toContain("Hi John Doe, your booking has been confirmed.");
   });
+
+  it("uses the admin-confirmed departure time", () => {
+    const html = renderBookingConfirmationEmail({
+      bookingReference: "BP-TEST",
+      totalGuests: 1,
+      totalAmount: "3000",
+      confirmedDepartureTime: new Date("2026-09-15T11:15:00.000Z"),
+      departure: {
+        departureDateTime: new Date("2026-09-15T06:30:00.000Z"),
+      },
+    });
+
+    expect(html).toContain("14:15");
+    expect(html).not.toContain("09:30");
+  });
 });

@@ -16,15 +16,29 @@ export function BookingsTableContent({ bookings, onUpdate }: BookingsTableConten
   const { addToast } = useToast();
   const [confirmingIds, setConfirmingIds] = useState<Set<string>>(new Set());
   const [cancellingIds, setCancellingIds] = useState<Set<string>>(new Set());
+  const [confirmModalOpen, setConfirmModalOpen] = useState(false);
+  const [confirmTargetId, setConfirmTargetId] = useState<string | null>(null);
+  const [confirmDepartureTime, setConfirmDepartureTime] = useState('09:30');
   const [cancelModalOpen, setCancelModalOpen] = useState(false);
   const [cancelTargetId, setCancelTargetId] = useState<string | null>(null);
   const [cancelReason, setCancelReason] = useState('');
 
-  const handleConfirm = async (id: string) => {
+  const openConfirmModal = (id: string) => {
+    setConfirmTargetId(id);
+    setConfirmDepartureTime('09:30');
+    setConfirmModalOpen(true);
+  };
+
+  const handleConfirm = async () => {
+    if (!confirmTargetId || !confirmDepartureTime) return;
+
+    const id = confirmTargetId;
     setConfirmingIds((prev) => new Set(prev).add(id));
     try {
       const res = await fetch(`/api/admin/bookings/${id}/confirm`, {
         method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ departureTime: confirmDepartureTime }),
         credentials: 'include',
       });
 
@@ -34,6 +48,8 @@ export function BookingsTableContent({ bookings, onUpdate }: BookingsTableConten
       }
 
       addToast('Booking confirmed successfully', 'success');
+      setConfirmModalOpen(false);
+      setConfirmTargetId(null);
       onUpdate?.();
     } catch (err) {
       addToast(err instanceof Error ? err.message : 'Failed to confirm booking', 'error');
@@ -89,6 +105,7 @@ export function BookingsTableContent({ bookings, onUpdate }: BookingsTableConten
     { key: 'bookingReference', header: 'Reference', sortable: true },
     { key: 'experience', header: 'Experience', sortable: true },
     { key: 'partner', header: 'Partner', sortable: true },
+    { key: 'departureTime', header: 'Departure', sortable: true },
     { key: 'status', header: 'Status', sortable: true },
     { key: 'paymentStatus', header: 'Payment', sortable: true },
     { key: 'amount', header: 'Amount', sortable: true },
@@ -102,7 +119,7 @@ export function BookingsTableContent({ bookings, onUpdate }: BookingsTableConten
           return (
             <div className="flex gap-2">
               <button
-                onClick={() => handleConfirm(row.id)}
+                onClick={() => openConfirmModal(row.id)}
                 disabled={isConfirming || isCancelling}
                 className="px-3 py-1 text-xs font-medium text-white bg-green hover:bg-green-dark rounded disabled:opacity-50 disabled:cursor-not-allowed"
               >
@@ -126,6 +143,60 @@ export function BookingsTableContent({ bookings, onUpdate }: BookingsTableConten
   return (
     <>
       <DataTable data={bookings} columns={columns} pageSize={10} />
+
+      <Modal
+        open={confirmModalOpen}
+        onClose={() => {
+          if (confirmTargetId && confirmingIds.has(confirmTargetId)) return;
+          setConfirmModalOpen(false);
+          setConfirmTargetId(null);
+        }}
+        title="Confirm Booking"
+        maxWidth="max-w-md"
+      >
+        <div className="space-y-4">
+          <p className="text-sm text-dark-6">
+            Set the departure time for this booking before confirming it.
+            Customers do not choose a departure time during booking.
+          </p>
+          <label className="block text-sm font-medium text-dark">
+            Departure time
+            <input
+              type="time"
+              value={confirmDepartureTime}
+              onChange={(event) => setConfirmDepartureTime(event.target.value)}
+              disabled={Boolean(confirmTargetId && confirmingIds.has(confirmTargetId))}
+              className="mt-2 block w-full border border-stroke bg-white px-3 py-3 text-base text-dark outline-none transition-colors focus:border-primary focus:ring-1 focus:ring-primary disabled:bg-gray-100"
+            />
+          </label>
+          <div className="flex justify-end gap-2">
+            <button
+              type="button"
+              onClick={() => {
+                setConfirmModalOpen(false);
+                setConfirmTargetId(null);
+              }}
+              disabled={Boolean(confirmTargetId && confirmingIds.has(confirmTargetId))}
+              className="rounded px-4 py-2 text-sm font-medium text-dark border border-stroke hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              Cancel
+            </button>
+            <button
+              type="button"
+              onClick={handleConfirm}
+              disabled={
+                !confirmDepartureTime ||
+                Boolean(confirmTargetId && confirmingIds.has(confirmTargetId))
+              }
+              className="rounded bg-green px-4 py-2 text-sm font-medium text-white hover:bg-green-dark disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              {confirmTargetId && confirmingIds.has(confirmTargetId)
+                ? 'Confirming...'
+                : 'Confirm booking'}
+            </button>
+          </div>
+        </div>
+      </Modal>
 
       <Modal
         open={cancelModalOpen}

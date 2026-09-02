@@ -33,6 +33,7 @@ export default async function AdminLoginPage() {
           routing="path"
           path="/login"
           signUpUrl="/sign-up"
+          fallbackRedirectUrl="/admin"
           appearance={{
             elements: {
               rootBox: 'mx-auto w-full max-w-md',

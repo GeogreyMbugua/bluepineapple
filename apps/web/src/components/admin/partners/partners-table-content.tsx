@@ -38,6 +38,17 @@ export function PartnersTableContent({ partners }: PartnersTableContentProps) {
       ),
     },
     {
+      key: 'contactName',
+      header: 'Contact',
+      sortable: true,
+      cell: (row) => (
+        <div>
+          <p className="text-sm text-dark">{row.contactName || '—'}</p>
+          <p className="text-xs text-dark-5">{row.email || row.phone || 'No contact'}</p>
+        </div>
+      ),
+    },
+    {
       key: 'status',
       header: 'Status',
       cell: (row) => <StatusBadge status={row.status} />,
@@ -48,10 +59,20 @@ export function PartnersTableContent({ partners }: PartnersTableContentProps) {
       sortable: true,
       cell: (row) => `${row.commissionRate}%`,
     },
+    { key: 'bookingCount', header: 'Bookings', sortable: true, cell: (row) => row.bookingCount ?? 0 },
+    {
+      key: 'clerkLinked',
+      header: 'Login',
+      cell: (row) => (
+        <span className={row.clerkLinked ? 'text-green' : 'text-yellow-dark'}>
+          {row.clerkLinked ? 'Linked' : 'Pending'}
+        </span>
+      ),
+    },
     { key: 'joinedAt', header: 'Joined', sortable: true, cell: (row) => new Date(row.joinedAt).toLocaleDateString() },
   ];
 
-  return <DataTable data={partners} columns={columns} pageSize={10} />;
+  return <DataTable data={partners} columns={columns} pageSize={20} />;
 }
 
 function StatusBadge({ status }: { status: string }) {

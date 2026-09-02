@@ -10,6 +10,9 @@ export interface PartnerProfileData {
   updatedAt: Date;
   firstName?: string | null;
   lastName?: string | null;
+  user?: PartnerUserData;
+  bookingCount?: number;
+  rewardCount?: number;
 }
 
 export interface PartnerWithPayoutAccounts extends PartnerProfileData {
@@ -17,11 +20,21 @@ export interface PartnerWithPayoutAccounts extends PartnerProfileData {
   statusHistory: PartnerStatusHistoryData[];
 }
 
+export interface PartnerUserData {
+  id: string;
+  email?: string | null;
+  phone?: string | null;
+  firstName: string;
+  lastName: string;
+  status: string;
+  clerkUserId?: string | null;
+}
+
 export interface PartnerPayoutAccountData {
   id: string;
   partnerId: string;
   accountName: string;
-  accountNumber: string;
+  accountNumber: string | null;
   bankName?: string | null;
   mpesaNumber?: string | null;
   isDefault: boolean;
@@ -29,7 +42,7 @@ export interface PartnerPayoutAccountData {
 
 export interface PartnerStatusHistoryData {
   id: string;
-  oldStatus: string;
+  oldStatus?: string | null;
   newStatus: string;
   reason?: string | null;
   changedAt: Date;

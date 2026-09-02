@@ -4,6 +4,18 @@ export const stops = ["Mtwapa Beach", "Serena", "Bamburi", "Whitesands", "Pirate
 
 export type Stop = (typeof stops)[number];
 
+export const fortJesusPickupTimes: Record<Stop, string> = {
+  "Mtwapa Beach": "9:30 AM",
+  Serena: "9:38 AM",
+  Bamburi: "9:46 AM",
+  Whitesands: "9:55 AM",
+  Pirates: "10:05 AM",
+  "Mombasa Beach": "10:30 AM",
+  Nyali: "10:45 AM",
+  "English Point": "11:00 AM",
+  "Fort Jesus": "11:30 AM",
+};
+
 export const trip = {
   name: "Fort Jesus Water Taxi",
   tagline: "Hop on along the coast. Arrive at Fort Jesus.",

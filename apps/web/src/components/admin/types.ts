@@ -31,10 +31,17 @@ export interface PartnerRow {
   id: string;
   partnerCode: string;
   companyName: string | null;
+  contactName?: string | null;
+  email?: string | null;
+  phone?: string | null;
   status: string;
   commissionRate: number;
   joinedAt: string;
   userId: string;
+  userStatus?: string | null;
+  clerkLinked?: boolean;
+  bookingCount?: number;
+  rewardCount?: number;
 }
 
 export interface BookingRow {
@@ -42,6 +49,7 @@ export interface BookingRow {
   bookingReference: string;
   experience: string;
   partner: string;
+  departureTime: string;
   status: string;
   paymentStatus: string;
   amount: string;

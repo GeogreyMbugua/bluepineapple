@@ -62,11 +62,6 @@ export function buildNavData(user: AuthUser | null): NavSection[] {
             href: '/admin/partners',
             permission: 'partner.read',
           } as NavItem,
-          {
-            title: 'Payout Accounts',
-            href: '/admin/partners/payouts',
-            permission: 'partner.read',
-          } as NavItem,
         ],
       } as NavItem,
       {

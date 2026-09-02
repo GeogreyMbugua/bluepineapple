@@ -1,51 +1,65 @@
 import { NextRequest } from 'next/server';
 import { requireAdminAuth } from '@/lib/api/admin-helpers';
-import { partnerService, userService, currentUserService, roleManagementService } from '@blue-pineapple/iam';
+import { CreatePartnerSchema, partnerService } from '@blue-pineapple/iam';
 import { z } from 'zod';
 
-const CreatePartnerWithUserSchema = z.object({
-  userId: z.string().uuid().optional(),
-  partnerCode: z.string().min(2, 'Partner code must be at least 2 characters'),
-  companyName: z.string().optional().nullable(),
-  commissionRate: z.coerce.number().min(0).max(100),
-  email: z.string().email('Invalid email address').optional().nullable(),
-  firstName: z.string().optional().nullable(),
-  lastName: z.string().optional().nullable(),
-  phone: z.string().optional().nullable(),
-}).refine((data) => data.userId || data.email, {
-  message: 'Either userId or email is required',
-  path: ['userId'],
+const PartnerListQuerySchema = z.object({
+  status: z.enum(['PENDING', 'ACTIVE', 'SUSPENDED', 'TERMINATED']).optional(),
+  search: z.string().trim().max(100).optional(),
+  page: z.coerce.number().int().min(1).default(1),
+  limit: z.coerce.number().int().min(1).max(100).default(20),
 });
 
 export async function GET(request: NextRequest) {
   const result = await requireAdminAuth(request);
   if (result instanceof Response) return result;
 
-  const { searchParams } = new URL(request.url);
-  const status = searchParams.get('status') || undefined;
+  try {
+    const { searchParams } = new URL(request.url);
+    const query = PartnerListQuerySchema.parse(Object.fromEntries(searchParams));
+    const result = await partnerService.list(query);
+    const partners = result.partners.map((partner) => ({
+      id: partner.id,
+      partnerCode: partner.partnerCode,
+      companyName: partner.companyName,
+      status: partner.status,
+      commissionRate: Number(partner.commissionRate),
+      joinedAt: partner.joinedAt,
+      userId: partner.userId,
+      contactName: partner.user
+        ? `${partner.user.firstName} ${partner.user.lastName}`.trim()
+        : null,
+      email: partner.user?.email ?? null,
+      phone: partner.user?.phone ?? null,
+      userStatus: partner.user?.status ?? null,
+      clerkLinked: Boolean(partner.user?.clerkUserId),
+      bookingCount: partner._count.bookings,
+      rewardCount: partner._count.partnerRewards,
+    }));
 
-  let partners;
-  if (status) {
-    partners = await partnerService.listByStatus(status);
-  } else {
-    partners = await partnerService.listByStatus('ACTIVE');
-    const pending = await partnerService.listByStatus('PENDING');
-    const suspended = await partnerService.listByStatus('SUSPENDED');
-    const terminated = await partnerService.listByStatus('TERMINATED');
-    partners = [...partners, ...pending, ...suspended, ...terminated];
+    return Response.json({
+      data: {
+        partners,
+        total: result.total,
+        page: result.page,
+        limit: result.limit,
+        totalPages: Math.ceil(result.total / result.limit),
+        statusCounts: result.statusCounts,
+      },
+      timestamp: new Date().toISOString(),
+    });
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      return Response.json(
+        { error: { code: 'VALIDATION_ERROR', message: error.issues[0]?.message ?? 'Invalid query' } },
+        { status: 400 },
+      );
+    }
+    return Response.json(
+      { error: { code: 'INTERNAL_ERROR', message: 'Failed to fetch partners' } },
+      { status: 500 },
+    );
   }
-
-  const formatted = partners.map((p) => ({
-    id: p.id,
-    partnerCode: p.partnerCode,
-    companyName: p.companyName,
-    status: p.status,
-    commissionRate: p.commissionRate,
-    joinedAt: p.joinedAt,
-    userId: p.userId,
-  }));
-
-  return Response.json({ data: { partners: formatted, total: formatted.length }, timestamp: new Date().toISOString() });
 }
 
 export async function POST(request: NextRequest) {
@@ -56,44 +70,12 @@ export async function POST(request: NextRequest) {
 
   try {
     const body = await request.json();
-    const validated = CreatePartnerWithUserSchema.parse(body);
-
-    let userId = validated.userId;
-
-    if (!userId && validated.email) {
-      const existingUser = await currentUserService.getByEmail(validated.email);
-      if (existingUser) {
-        userId = existingUser.id;
-      } else {
-        const firstName = validated.firstName ?? validated.email.split('@')[0];
-        const lastName = validated.lastName ?? 'Partner';
-        userId = await userService.createUser({
-          firstName: firstName || 'Partner',
-          lastName: lastName || 'User',
-          email: validated.email,
-          phone: validated.phone || null,
-        });
-        await roleManagementService.assignRole(userId, 'PARTNER', admin.id);
-      }
-    }
-
-    if (!userId) {
-      return Response.json(
-        { error: { code: 'VALIDATION_ERROR', message: 'userId or email is required' } },
-        { status: 400 }
-      );
-    }
+    const validated = CreatePartnerSchema.parse(body);
 
     const partnerId = await partnerService.createPartner({
-      userId,
-      partnerCode: validated.partnerCode,
-      companyName: validated.companyName,
-      commissionRate: validated.commissionRate,
+      ...validated,
+      actorId: admin.id,
     });
-
-    if (!validated.userId && validated.email) {
-      await roleManagementService.assignRole(userId, 'PARTNER', admin.id);
-    }
 
     const partner = await partnerService.findById(partnerId);
 

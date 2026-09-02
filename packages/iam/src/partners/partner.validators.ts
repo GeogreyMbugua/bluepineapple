@@ -1,10 +1,17 @@
 import { z } from "zod";
 
 export const CreatePartnerSchema = z.object({
-  userId: z.string().uuid("Valid user ID is required"),
+  userId: z.string().uuid("Valid user ID is required").optional(),
   partnerCode: z.string().min(2, "Partner code must be at least 2 characters"),
   companyName: z.string().optional().nullable(),
   commissionRate: z.number().min(0).max(100),
+  email: z.string().email("Invalid email address").optional().nullable(),
+  firstName: z.string().optional().nullable(),
+  lastName: z.string().optional().nullable(),
+  phone: z.string().optional().nullable(),
+}).refine((data) => data.userId || data.email, {
+  message: "Either userId or email is required",
+  path: ["userId"],
 });
 
 export type CreatePartnerInput = z.infer<typeof CreatePartnerSchema>;

@@ -9,6 +9,7 @@ export interface BookingData {
   id: string;
   bookingReference: string;
   departureId: string;
+  confirmedDepartureTime?: Date | null;
   partnerId: string;
   guestId?: string | null;
   totalGuests: number;

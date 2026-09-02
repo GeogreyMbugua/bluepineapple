@@ -7,6 +7,13 @@ import { initializeIam } from '@/lib/server/iam-init';
 import { z } from 'zod';
 import { calculatePricing, type Stop } from '@/lib/pricing/engine';
 
+const FortJesusBookingMetadataSchema = z.object({
+  experienceSlug: z.literal('fort-jesus'),
+  travelDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Valid travel date is required'),
+  originStopName: z.string().min(1, 'Pickup stop is required'),
+  destinationStopName: z.string().min(1, 'Destination stop is required'),
+});
+
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
@@ -52,8 +59,49 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     initializeIam();
-    const body = await request.json();
-    const validated = CreateBookingSchema.parse(body);
+    const body = (await request.json()) as Record<string, unknown>;
+    let bookingPayload = body;
+
+    if (!body.departureId && body.experienceSlug === 'fort-jesus') {
+      const metadata = FortJesusBookingMetadataSchema.safeParse(body);
+      if (!metadata.success) {
+        return Response.json(
+          { error: { code: 'VALIDATION_ERROR', message: metadata.error.issues[0]?.message ?? 'Invalid Fort Jesus booking details' } },
+          { status: 400 },
+        );
+      }
+
+      const departure = await departureService.ensureFortJesusDeparture(
+        metadata.data.travelDate,
+      );
+      const routeStops = await prisma.routeStop.findMany({
+        where: { routeId: departure.routeId },
+        select: { id: true, name: true },
+      });
+      const originStop = routeStops.find(
+        (stop) => stop.name === metadata.data.originStopName,
+      );
+      const destinationStop = routeStops.find(
+        (stop) => stop.name === metadata.data.destinationStopName,
+      );
+
+      if (!originStop || !destinationStop) {
+        return Response.json(
+          { error: { code: 'INVALID_ROUTE', message: 'Origin and destination must belong to the Fort Jesus route' } },
+          { status: 400 },
+        );
+      }
+
+      bookingPayload = {
+        ...body,
+        departureId: departure.id,
+        pickupStopId: originStop.id,
+        originStopId: originStop.id,
+        destinationStopId: destinationStop.id,
+      };
+    }
+
+    const validated = CreateBookingSchema.parse(bookingPayload);
     const source = validated.source ?? "DIRECT";
     if (source !== "DIRECT") {
       return Response.json(

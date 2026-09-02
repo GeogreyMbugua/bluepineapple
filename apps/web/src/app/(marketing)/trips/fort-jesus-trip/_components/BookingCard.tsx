@@ -5,7 +5,7 @@ import {
   ArrowRight,
   CalendarDays,
   Check,
-  Info,
+  Clock3,
   Loader2,
   Mail,
   MapPin,
@@ -18,8 +18,8 @@ import { AnimatePresence, motion } from 'framer-motion';
 import {
   stops,
   calculateBooking,
+  fortJesusPickupTimes,
   getTodayDate,
-  trip,
   type Stop,
 } from '../_data/trip';
 
@@ -29,23 +29,6 @@ type FormData = {
   fullName: string;
   phoneNumber: string;
   email: string;
-};
-
-type RouteStop = {
-  id: string;
-  name: string;
-  code: string;
-  sequence?: number;
-  estimatedArrivalMinutes?: number | null;
-};
-
-type DepartureData = {
-  id: string;
-  departureDateTime: string;
-  availableCapacity: number;
-  onlineAvailableCapacity?: number;
-  onlineCapacity?: number;
-  route?: { stops: RouteStop[] };
 };
 
 type PassengerCount = number | '';
@@ -62,21 +45,6 @@ function clampPassengerCount(value: string, minimum: number): PassengerCount {
   const count = Number(value);
   if (!Number.isFinite(count)) return minimum;
   return Math.min(20, Math.max(minimum, count));
-}
-
-function formatDepartureTime(dateTime: string) {
-  return new Date(dateTime).toLocaleTimeString('en-KE', {
-    hour: '2-digit',
-    minute: '2-digit',
-    timeZone: 'Africa/Nairobi',
-  });
-}
-
-function formatPickupTime(dateTime: string, estimatedArrivalMinutes = 0) {
-  const pickupTime = new Date(
-    new Date(dateTime).getTime() + estimatedArrivalMinutes * 60_000,
-  );
-  return formatDepartureTime(pickupTime.toISOString());
 }
 
 export function BookingCard({
@@ -127,12 +95,6 @@ export function BookingCard({
     canCalculatePrice,
   ]);
 
-  const [departures, setDepartures] = useState<DepartureData[]>([]);
-  const [selectedDeparture, setSelectedDeparture] = useState<string>('');
-  const [departureLoading, setDepartureLoading] = useState(false);
-  const [departureError, setDepartureError] = useState<string | null>(null);
-  const [availabilityRequest, setAvailabilityRequest] = useState(0);
-
   const mobileSheetOpen =
     controlledMobileSheetOpen ?? internalMobileSheetOpen;
   const resetBookingState = () => {
@@ -153,11 +115,6 @@ export function BookingCard({
       phoneNumber: '',
       email: '',
     });
-    setDepartures([]);
-    setSelectedDeparture('');
-    setDepartureLoading(false);
-    setDepartureError(null);
-    setAvailabilityRequest(0);
   };
   const setMobileSheetOpen = (open: boolean) => {
     if (!open && status === 'loading') return;
@@ -184,65 +141,7 @@ export function BookingCard({
     setAdults((value) => (value === '' ? 1 : value));
   }, []);
 
-  useEffect(() => {
-    if (!date) return;
-
-    const controller = new AbortController();
-
-    fetch(
-      `/api/bookings?experienceSlug=fort-jesus&date=${encodeURIComponent(date)}`,
-      {
-        signal: controller.signal,
-        cache: 'no-store',
-      },
-    )
-      .then((res) => {
-        if (!res.ok) throw new Error('We could not check availability.');
-        return res.json();
-      })
-      .then((json) => {
-        const list = Array.isArray(json.data) ? json.data : [];
-        const filtered = list.filter(
-          (departure: DepartureData) =>
-            (departure.onlineAvailableCapacity ?? departure.availableCapacity) >
-            0,
-        );
-        setDepartures(filtered);
-        if (filtered.length > 0) setSelectedDeparture(filtered[0].id);
-      })
-      .catch((err: unknown) => {
-        if (err instanceof DOMException && err.name === 'AbortError') return;
-        setDepartures([]);
-        setDepartureError(
-          err instanceof Error
-            ? err.message
-            : 'We could not check availability.',
-        );
-      })
-      .finally(() => {
-        if (!controller.signal.aborted) setDepartureLoading(false);
-      });
-
-    return () => controller.abort();
-  }, [date, availabilityRequest]);
-
-  const selectedDepartureData = departures.find(
-    (departure) => departure.id === selectedDeparture,
-  );
-  const selectedOriginStop = selectedDepartureData?.route?.stops?.find(
-    (stop) => stop.name === origin,
-  );
-
-  const apiStops = selectedDepartureData?.route?.stops
-    ?.slice()
-    .sort((a, b) => (a.sequence ?? 0) - (b.sequence ?? 0))
-    .map((stop) => stop.name)
-    .filter((name): name is Stop => stops.includes(name as Stop));
-
-  // The route is useful even when availability is unavailable. API route data
-  // is used when complete; the pricing route remains the safe fallback.
-  const routeStops: Stop[] =
-    apiStops?.length === stops.length ? apiStops : [...stops];
+  const routeStops: Stop[] = [...stops];
 
   const destinationOptions = origin
     ? routeStops.slice(routeStops.indexOf(origin) + 1)
@@ -279,18 +178,9 @@ export function BookingCard({
   };
 
   const passengerCount = adultCount + childCount + infantCount;
-  const availableCapacity =
-    selectedDepartureData?.onlineAvailableCapacity ??
-    selectedDepartureData?.availableCapacity ??
-    0;
-
   const journeyIsValid =
     Boolean(origin && destination && date) &&
-    selectedDeparture !== '' &&
-    adultCount > 0 &&
-    passengerCount <= availableCapacity &&
-    !departureLoading &&
-    !departureError;
+    adultCount > 0;
   const isFormValid =
     journeyIsValid &&
     guest.fullName.trim().length > 0 &&
@@ -306,7 +196,7 @@ export function BookingCard({
       }
       return;
     }
-    if (!isFormValid || !selectedDeparture) return;
+    if (!isFormValid) return;
 
     setStatus('loading');
     setError(null);
@@ -316,18 +206,14 @@ export function BookingCard({
       const firstName = nameParts[0] || '';
       const lastName = nameParts.slice(1).join(' ') || firstName;
 
-      const pickupStopId =
-        selectedDepartureData?.route?.stops?.find((s) => s.name === origin)
-          ?.id || null;
-      const destinationStopId =
-        selectedDepartureData?.route?.stops?.find((s) => s.name === destination)
-          ?.id || null;
-
       const res = await fetch('/api/bookings', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          departureId: selectedDeparture,
+          experienceSlug: 'fort-jesus',
+          travelDate: date,
+          originStopName: origin,
+          destinationStopName: destination,
           guest: {
             firstName,
             lastName,
@@ -336,9 +222,6 @@ export function BookingCard({
           },
           totalGuests: passengerCount,
           totalAmount: summary?.total ?? 0,
-          pickupStopId,
-          originStopId: pickupStopId,
-          destinationStopId,
           adults: adultCount,
           children: childCount,
           infants: infantCount,
@@ -402,12 +285,7 @@ export function BookingCard({
           <p className="mt-1 text-sm text-slate-600">
             {origin} → {destination}
             {' · '}
-            {selectedDepartureData && selectedOriginStop
-              ? `${formatPickupTime(
-                  selectedDepartureData.departureDateTime,
-                  selectedOriginStop.estimatedArrivalMinutes ?? 0,
-                )} EAT`
-              : 'pickup time'}
+            {origin ? `${fortJesusPickupTimes[origin]} EAT` : 'pickup time'}
           </p>
           <p className="mt-1 text-sm text-slate-600">
             Total: <span className="font-semibold">{summary?.totalLabel}</span>
@@ -569,7 +447,10 @@ export function BookingCard({
 
               {mobileStep === 2 && (
                 <div className="mt-7 space-y-4">
-                  <p className="text-sm leading-6 text-slate-600">Choose a travel date and an available departure.</p>
+                  <p className="text-sm leading-6 text-slate-600">
+                    Choose your travel date. Your pickup time is set by your
+                    selected stop.
+                  </p>
                   <label className="block text-sm font-medium text-slate-900">
                     Travel date
                     <div className="relative mt-2">
@@ -579,48 +460,35 @@ export function BookingCard({
                         value={date}
                         min={getTodayDate()}
                         onChange={(event) => {
-                          const nextDate = event.target.value;
-                          setDate(nextDate);
-                          setDepartureLoading(Boolean(nextDate));
-                          setDepartureError(null);
-                          setSelectedDeparture('');
-                          if (!nextDate) setDepartures([]);
+                          setDate(event.target.value);
                         }}
                         className="min-h-12 w-full rounded-xl border border-slate-200 bg-white px-10 py-3 text-base text-slate-900 outline-none transition focus:border-[#0d3b66] focus:ring-2 focus:ring-[#0d3b66]/15"
                       />
                     </div>
                   </label>
-                  <label className="block text-sm font-medium text-slate-900">
-                    Departure
-                    <select
-                      value={selectedDeparture}
-                      onChange={(event) => setSelectedDeparture(event.target.value)}
-                      disabled={!date || departureLoading || departures.length === 0}
-                      className="mt-2 min-h-12 w-full rounded-xl border border-slate-200 bg-white px-3 py-3 text-base text-slate-900 outline-none transition focus:border-[#0d3b66] focus:ring-2 focus:ring-[#0d3b66]/15 disabled:bg-slate-100 disabled:text-slate-400"
-                    >
-                      <option value="">
-                        {departureLoading ? 'Checking availability…' : departures.length ? 'Select departure' : 'No departure selected'}
-                      </option>
-                      {departures.map((departure) => (
-                        <option key={departure.id} value={departure.id}>
-                          {formatDepartureTime(departure.departureDateTime)} · {departure.onlineAvailableCapacity ?? departure.availableCapacity} seats left
-                        </option>
-                      ))}
-                    </select>
-                  </label>
-                  {date && !departureLoading && departureError && (
-                    <p className="rounded-lg bg-amber-50 p-3 text-sm text-amber-800">{departureError}</p>
-                  )}
-                  {date && !departureLoading && !departureError && departures.length === 0 && (
-                    <p className="rounded-lg bg-slate-100 p-3 text-sm text-slate-600">No scheduled departure is available for this date.</p>
-                  )}
+                  <div className="flex items-start gap-3 rounded-xl bg-white p-4">
+                    <Clock3
+                      className="mt-0.5 h-4 w-4 shrink-0 text-[#b58845]"
+                      aria-hidden="true"
+                    />
+                    <div>
+                      <p className="text-xs font-semibold text-slate-950">
+                        Pickup time
+                      </p>
+                      <p className="mt-1 text-sm text-slate-600">
+                        {origin
+                          ? `${origin} · ${fortJesusPickupTimes[origin]} EAT`
+                          : 'Choose a pickup point first'}
+                      </p>
+                    </div>
+                  </div>
                   <div className="flex gap-3 pt-3">
                     <button type="button" onClick={() => setMobileStep(1)} className="min-h-12 flex-1 rounded-xl border border-slate-300 bg-white px-4 text-sm font-semibold text-slate-700 transition hover:border-slate-400">
                       Back
                     </button>
                     <button
                       type="button"
-                      disabled={!date || departureLoading || Boolean(departureError) || !selectedDeparture}
+                      disabled={!date}
                       onClick={() => setMobileStep(3)}
                       className="inline-flex min-h-12 flex-[1.5] items-center justify-center gap-2 rounded-xl bg-[#0d3b66] px-4 text-sm font-semibold text-white transition hover:bg-[#0b335a] disabled:cursor-not-allowed disabled:opacity-45"
                     >
@@ -682,16 +550,13 @@ export function BookingCard({
                     </button>
                     <button
                       type="button"
-                      disabled={adultCount < 1 || passengerCount > availableCapacity}
+                      disabled={adultCount < 1}
                       onClick={() => setMobileStep(4)}
                       className="inline-flex min-h-12 flex-[1.5] items-center justify-center gap-2 rounded-xl bg-[#0d3b66] px-4 text-sm font-semibold text-white transition hover:bg-[#0b335a] disabled:cursor-not-allowed disabled:opacity-45"
                     >
                       Continue <ArrowRight size={17} />
                     </button>
                   </div>
-                  {passengerCount > availableCapacity && (
-                    <p className="mt-3 text-sm text-red-600">There are only {availableCapacity} seats left on this departure.</p>
-                  )}
                 </div>
               )}
 
@@ -707,8 +572,8 @@ export function BookingCard({
                     </div>
                     <div className="flex items-start justify-between gap-4 py-4">
                       <div>
-                        <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-slate-400">Date & departure</p>
-                        <p className="mt-1 text-sm font-semibold text-slate-950">{date} · {selectedDepartureData ? formatDepartureTime(selectedDepartureData.departureDateTime) : '—'}</p>
+                        <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-slate-400">Date & pickup</p>
+                        <p className="mt-1 text-sm font-semibold text-slate-950">{date} · {origin ? `${fortJesusPickupTimes[origin]} EAT` : '—'}</p>
                       </div>
                       <CalendarDays className="mt-1 h-4 w-4 text-[#b58845]" />
                     </div>
@@ -782,14 +647,9 @@ export function BookingCard({
                 </option>
               ))}
             </select>
-            {selectedOriginStop && selectedDepartureData && (
+            {origin && (
               <p className="mt-1 text-[11px] text-slate-500">
-                Boat arrives around{' '}
-                {formatPickupTime(
-                  selectedDepartureData.departureDateTime,
-                  selectedOriginStop.estimatedArrivalMinutes ?? 0,
-                )}{' '}
-                EAT
+                Boat arrives around {fortJesusPickupTimes[origin]} EAT
               </p>
             )}
           </div>
@@ -831,14 +691,7 @@ export function BookingCard({
             type="date"
             value={date}
             min={getTodayDate()}
-            onChange={(e) => {
-              const nextDate = e.target.value;
-              setDate(nextDate);
-              setDepartureLoading(Boolean(nextDate));
-              setDepartureError(null);
-              setSelectedDeparture('');
-              if (!nextDate) setDepartures([]);
-            }}
+            onChange={(e) => setDate(e.target.value)}
             className="min-h-11 w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2.5 text-base text-slate-900 outline-none transition focus:border-[#0d3b66] focus:bg-white sm:text-sm"
           />
         </div>
@@ -908,65 +761,6 @@ export function BookingCard({
         </label>
       </div>
 
-      {date && departureLoading && (
-        <p className="text-xs text-slate-500">
-          Loading available departures...
-        </p>
-      )}
-      {date && !departureLoading && departureError && (
-        <div className="flex items-start gap-2 rounded-lg bg-amber-50 p-3 text-xs text-amber-800">
-          <Info className="mt-0.5 h-3.5 w-3.5 shrink-0" />
-          <div>
-            <p>{departureError}</p>
-            <button
-              type="button"
-              onClick={() => {
-                setDepartureLoading(true);
-                setDepartureError(null);
-                setAvailabilityRequest((request) => request + 1);
-              }}
-              className="mt-1 font-semibold underline underline-offset-2"
-            >
-              Try again
-            </button>
-          </div>
-        </div>
-      )}
-      {date &&
-        !departureLoading &&
-        !departureError &&
-        departures.length === 0 && (
-          <div className="rounded-lg bg-slate-50 p-3 text-xs text-slate-600">
-            <p>No scheduled departure is available for this date.</p>
-            <a
-              href={trip.whatsapp.question}
-              className="mt-1 inline-block font-semibold text-[#0d3b66] underline underline-offset-2"
-            >
-              Ask us about another date
-            </a>
-          </div>
-        )}
-      {date &&
-        !departureLoading &&
-        !departureError &&
-        selectedDepartureData && (
-          <p className="text-xs font-medium text-[#0d3b66]">
-            Online availability: {availableCapacity}/
-            {selectedDepartureData.onlineCapacity ?? 20} seats remaining
-          </p>
-        )}
-
-      {date &&
-        !departureLoading &&
-        !departureError &&
-        selectedDepartureData &&
-        passengerCount > availableCapacity && (
-          <p className="text-xs text-red-600">
-            This departure has {availableCapacity} seat
-            {availableCapacity === 1 ? '' : 's'} left. Reduce the passenger
-            count or choose another departure.
-          </p>
-        )}
       {summary && (
         <div className="mt-5 rounded-xl border border-slate-200 bg-slate-50/70 p-4">
           <div className="flex items-end justify-between gap-4">

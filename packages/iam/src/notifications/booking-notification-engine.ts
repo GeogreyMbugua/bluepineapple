@@ -52,6 +52,7 @@ export class BookingNotificationEngine {
         bookingReference: booking.bookingReference,
         totalGuests: booking.totalGuests,
         totalAmount: String(booking.totalAmount),
+        confirmedDepartureTime: booking.confirmedDepartureTime,
         guest: booking.guest
           ? {
               firstName: booking.guest.firstName,

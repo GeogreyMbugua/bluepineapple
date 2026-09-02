@@ -58,6 +58,13 @@ async function createClerkUser(
   if (!clerk) return null;
 
   try {
+    const matches = await clerk.users.getUserList({ emailAddress: [email], limit: 10 });
+    if (matches.data.length > 1) {
+      throw new Error('Multiple Clerk accounts match this email');
+    }
+    if (matches.data[0]) {
+      return matches.data[0].id;
+    }
     const clerkUser = await clerk.users.createUser({
       emailAddress: [email],
       firstName,
@@ -71,12 +78,27 @@ async function createClerkUser(
   }
 }
 
+async function syncClerkPartnerMetadata(clerkUserId: string): Promise<boolean> {
+  const clerk = getClerkClient();
+  if (!clerk) return false;
+
+  try {
+    await clerk.users.updateUser(clerkUserId, {
+      publicMetadata: { roles: ['PARTNER'] },
+    });
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 async function processRow(
   row: ParsedRow,
   partnerRoleId: string,
   userByEmail: Map<string, { id: string; hasPartnerRole: boolean }>,
   userByPhone: Map<string, { id: string; hasPartnerRole: boolean }>,
-  hasProfile: Set<string>
+  hasProfile: Set<string>,
+  actorId: string,
 ): Promise<ImportResult> {
   try {
     let userId: string;
@@ -101,7 +123,7 @@ async function processRow(
           lastName,
           email: row.email,
           phone: row.phone,
-          status: 'PENDING_VERIFICATION',
+          status: 'ACTIVE',
         },
         select: { id: true },
       });
@@ -139,8 +161,18 @@ async function processRow(
         partnerCode: row.partnerCode,
         companyName,
         commissionRate: 10,
+        status: 'ACTIVE',
       },
       select: { id: true },
+    });
+    await prisma.partnerStatusHistory.create({
+      data: {
+        partnerId: partner.id,
+        oldStatus: null,
+        newStatus: 'ACTIVE',
+        reason: 'Imported partner',
+        changedByUserId: actorId,
+      },
     });
 
     if (!isNewUser) {
@@ -150,11 +182,14 @@ async function processRow(
       });
 
       if (existingUser?.clerkUserId) {
+        const metadataSynced = await syncClerkPartnerMetadata(existingUser.clerkUserId);
         return {
           row: row.rowNumber,
           partnerCode: row.partnerCode,
-          status: 'success',
-          message: 'Created successfully',
+          status: metadataSynced ? 'success' : 'error',
+          message: metadataSynced
+            ? 'Created successfully (Clerk account linked)'
+            : 'Created successfully, but Clerk role metadata could not be synchronized',
           userId,
           partnerId: partner.id,
         };
@@ -166,22 +201,39 @@ async function processRow(
     const clerkUserId = row.email ? await createClerkUser(row.email, firstName, lastName) : null;
 
     if (clerkUserId) {
-      await prisma.user.update({
-        where: { id: userId },
+      const alreadyLinked = await prisma.user.findFirst({
+        where: { clerkUserId, NOT: { id: userId } },
+        select: { id: true },
+      });
+      if (alreadyLinked) {
+        throw new Error('Clerk account is already linked to another database user');
+      }
+      const linked = await prisma.user.updateMany({
+        where: { id: userId, clerkUserId: null },
         data: { clerkUserId, status: 'ACTIVE' },
       });
+      if (linked.count !== 1) {
+        throw new Error('User was linked by another import attempt');
+      }
     }
+    const metadataSynced = clerkUserId
+      ? await syncClerkPartnerMetadata(clerkUserId)
+      : true;
 
     return {
       row: row.rowNumber,
       partnerCode: row.partnerCode,
-      status: 'success',
+      status: metadataSynced ? 'success' : 'error',
       message: isNewUser
         ? clerkUserId
-          ? 'Created successfully (role assigned, Clerk account linked)'
+          ? metadataSynced
+            ? 'Created successfully (role assigned, Clerk account linked)'
+            : 'Created successfully, but Clerk role metadata could not be synchronized'
           : 'Created successfully (role assigned, Clerk account pending)'
         : clerkUserId
-          ? 'Created successfully (Clerk account linked)'
+          ? metadataSynced
+            ? 'Created successfully (Clerk account linked)'
+            : 'Created successfully, but Clerk role metadata could not be synchronized'
           : 'Created successfully (Clerk account pending)',
       userId,
       partnerId: partner.id,
@@ -286,9 +338,12 @@ export async function POST(request: NextRequest) {
                 lastName,
                 email: null,
                 phone: null,
-                status: 'PENDING_VERIFICATION',
+                status: 'ACTIVE',
               },
               select: { id: true },
+            });
+            await prisma.userRole.create({
+              data: { userId: user.id, roleId: partnerRole.id },
             });
 
             const partner = await prisma.partnerProfile.create({
@@ -297,9 +352,18 @@ export async function POST(request: NextRequest) {
                 partnerCode,
                 companyName: name || `Partner ${partnerCode}`,
                 commissionRate: 10,
-                status: 'PENDING',
+                status: 'ACTIVE',
               },
               select: { id: true },
+            });
+            await prisma.partnerStatusHistory.create({
+              data: {
+                partnerId: partner.id,
+                oldStatus: null,
+                newStatus: 'ACTIVE',
+                reason: 'Imported partner',
+                changedByUserId: result.id,
+              },
             });
 
             results.push({
@@ -397,7 +461,7 @@ export async function POST(request: NextRequest) {
       const batch = rows.slice(i, i + CONCURRENCY);
       const batchResults = await Promise.all(
         batch.map((row) =>
-          processRow(row, partnerRole.id, userByEmail, userByPhone, hasProfile)
+          processRow(row, partnerRole.id, userByEmail, userByPhone, hasProfile, result.id)
         )
       );
       results.push(...batchResults);
