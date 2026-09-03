@@ -1,6 +1,6 @@
 import React from 'react';
 import { auth } from '@clerk/nextjs/server';
-import type { AuthUser, Role } from '@blue-pineapple/iam';
+import type { AuthUser, Permission, Role } from '@blue-pineapple/iam';
 import { AuthorizationError } from '@/services/api/errors';
 import { userRepository } from '@blue-pineapple/database';
 import { resolveDbUserForClerk } from '@/lib/auth/link-clerk-user';
@@ -10,10 +10,17 @@ export interface Session {
   expiresAt: number | null;
 }
 
-function flattenUser(dbUser: Awaited<ReturnType<typeof userRepository.findByClerkUserId>>): AuthUser | null {
-  if (!dbUser) return null;
-
-  const roles = dbUser.roles.map((ur) => ur.role.name);
+function flattenUser(
+  dbUser: NonNullable<Awaited<ReturnType<typeof userRepository.findByClerkUserId>>>,
+): AuthUser {
+  const roles = dbUser.roles.map((ur) => ur.role.name) as Role[];
+  const permissions = Array.from(
+    new Set(
+      dbUser.roles.flatMap((ur) =>
+        ur.role.permissions.map((rp) => rp.permission.key),
+      ),
+    ),
+  ) as Permission[];
 
   return {
     id: dbUser.id,
@@ -22,8 +29,8 @@ function flattenUser(dbUser: Awaited<ReturnType<typeof userRepository.findByCler
     firstName: dbUser.firstName ?? null,
     lastName: dbUser.lastName ?? null,
     status: dbUser.status,
-    roles: roles as Role[],
-    permissions: [],
+    roles,
+    permissions,
   };
 }
 
@@ -83,4 +90,3 @@ export async function requirePermission(permission: string): Promise<AuthUser> {
 
   return user;
 }
-

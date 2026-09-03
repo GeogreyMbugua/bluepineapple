@@ -1,41 +1,96 @@
 import { NextRequest } from 'next/server';
 import { requireAdminAuth } from '@/lib/api/admin-helpers';
-import { bookingService } from '@blue-pineapple/iam';
-import { BookingStatus } from '@blue-pineapple/database';
-import type { BookingRow } from '@/components/admin/types';
+import { getAdminBookings } from '@/lib/admin/bookings';
+import { bookingService, departureService } from '@blue-pineapple/iam';
 import { CreateBookingSchema } from '@blue-pineapple/iam';
 import { prisma } from '@blue-pineapple/database';
 import { calculatePricing, type Stop } from '@/lib/pricing/engine';
+import { z } from 'zod';
+
+const FortJesusBookingMetadataSchema = z.object({
+  experienceSlug: z.literal('fort-jesus'),
+  travelDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Valid travel date is required'),
+  originStopName: z.string().min(1, 'Pickup stop is required'),
+  destinationStopName: z.string().min(1, 'Destination stop is required'),
+});
 
 export async function POST(request: NextRequest) {
   const result = await requireAdminAuth(request);
   if (result instanceof Response) return result;
 
   try {
-    const body = CreateBookingSchema.parse(await request.json());
-    if (!body.partnerId) {
+    const body = (await request.json()) as Record<string, unknown>;
+    let bookingPayload = body;
+
+    if (!body.departureId && body.experienceSlug === 'fort-jesus') {
+      const metadata = FortJesusBookingMetadataSchema.safeParse(body);
+      if (!metadata.success) {
+        return Response.json(
+          {
+            error: {
+              code: 'VALIDATION_ERROR',
+              message: metadata.error.issues[0]?.message ?? 'Invalid Fort Jesus booking details',
+            },
+          },
+          { status: 400 },
+        );
+      }
+
+      const departure = await departureService.ensureFortJesusDeparture(metadata.data.travelDate);
+      const routeStops = await prisma.routeStop.findMany({
+        where: { routeId: departure.routeId },
+        select: { id: true, name: true },
+      });
+      const originStop = routeStops.find((stop) => stop.name === metadata.data.originStopName);
+      const destinationStop = routeStops.find(
+        (stop) => stop.name === metadata.data.destinationStopName,
+      );
+
+      if (!originStop || !destinationStop) {
+        return Response.json(
+          {
+            error: {
+              code: 'INVALID_ROUTE',
+              message: 'Origin and destination must belong to the Fort Jesus route',
+            },
+          },
+          { status: 400 },
+        );
+      }
+
+      bookingPayload = {
+        ...body,
+        departureId: departure.id,
+        pickupStopId: originStop.id,
+        originStopId: originStop.id,
+        destinationStopId: destinationStop.id,
+      };
+    }
+
+    const parsed = CreateBookingSchema.parse(bookingPayload);
+    if (!parsed.partnerId) {
       return Response.json(
         { error: { code: 'VALIDATION_ERROR', message: 'A partner is required for admin bookings' } },
         { status: 400 },
       );
     }
     const departure = await prisma.departure.findUnique({
-      where: { id: body.departureId },
+      where: { id: parsed.departureId },
       include: { route: { include: { stops: { orderBy: { sequence: 'asc' } } } } },
     });
-    const originId = body.originStopId ?? body.pickupStopId;
+    const originId = parsed.originStopId ?? parsed.pickupStopId;
     const origin = departure?.route.stops.find((stop) => stop.id === originId);
-    const destination = departure?.route.stops.find((stop) => stop.id === body.destinationStopId);
+    const destination = departure?.route.stops.find((stop) => stop.id === parsed.destinationStopId);
     if (!departure || !origin || !destination) {
       return Response.json(
         { error: { code: 'INVALID_ROUTE', message: 'Origin and destination must belong to the departure route' } },
         { status: 400 },
       );
     }
-    const adults = body.adults ?? body.totalGuests;
-    const children = body.children ?? 0;
-    const infants = body.infants ?? 0;
-    if (adults + children + infants !== body.totalGuests) {
+    const adults = parsed.adults ?? parsed.totalGuests;
+    const children = parsed.children ?? 0;
+    const infants = parsed.infants ?? 0;
+    if (adults + children + infants !== parsed.totalGuests) {
       return Response.json(
         { error: { code: 'VALIDATION_ERROR', message: 'Passenger composition must equal total guests' } },
         { status: 400 },
@@ -47,10 +102,10 @@ export async function POST(request: NextRequest) {
       adults,
       children,
       infants,
-      returnTicket: body.returnTicket ?? false,
+      returnTicket: parsed.returnTicket ?? false,
       applyDiscounts: false,
     });
-    if (Math.abs(body.totalAmount - pricing.total) > 0.01) {
+    if (Math.abs(parsed.totalAmount - pricing.total) > 0.01) {
       return Response.json(
         { error: { code: 'PRICE_MISMATCH', message: `Price mismatch. Expected KES ${pricing.total}` } },
         { status: 400 },
@@ -58,7 +113,7 @@ export async function POST(request: NextRequest) {
     }
     const booking = await bookingService.createBooking(
       {
-        ...body,
+        ...parsed,
         source: 'ADMIN',
         originStopId: origin.id,
         destinationStopId: destination.id,
@@ -66,12 +121,12 @@ export async function POST(request: NextRequest) {
         adults,
         children,
         infants,
-        totalGuests: body.totalGuests,
+        totalGuests: parsed.totalGuests,
         totalAmount: pricing.total,
         segments: pricing.stopCount,
         discountRate: pricing.discountRate,
         discountAmount: pricing.discountAmount,
-        partnerId: body.partnerId,
+        partnerId: parsed.partnerId,
       },
       result.id,
     );
@@ -98,33 +153,9 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const status = searchParams.get('status') || 'ALL';
     const limit = parseInt(searchParams.get('limit') || '20', 10);
+    const bookings = await getAdminBookings({ status, limit });
 
-    const bookings = await bookingService.searchBookings({ status: status as BookingStatus | string, limit });
-
-    const mapped: BookingRow[] = bookings.map((booking) => {
-      const departureDateTime =
-        booking.confirmedDepartureTime ?? booking.departure?.departureDateTime;
-
-      return {
-        id: booking.id,
-        bookingReference: booking.bookingReference,
-        experience: booking.departure?.experience?.name ?? 'Unknown',
-        partner: booking.partner?.companyName ?? 'Direct',
-        departureTime: departureDateTime
-          ? new Date(departureDateTime).toLocaleTimeString('en-KE', {
-              hour: '2-digit',
-              minute: '2-digit',
-              timeZone: 'Africa/Nairobi',
-            })
-          : '—',
-        status: booking.status,
-        paymentStatus: booking.paymentStatus,
-        amount: `KES ${Number(booking.totalAmount).toLocaleString()}`,
-        date: booking.createdAt.toISOString(),
-      };
-    });
-
-    return Response.json({ data: { bookings: mapped }, timestamp: new Date().toISOString() });
+    return Response.json({ data: { bookings }, timestamp: new Date().toISOString() });
   } catch {
     return Response.json(
       { error: { code: 'INTERNAL_ERROR', message: 'Failed to fetch bookings' } },

@@ -7,9 +7,10 @@ import type { PartnerRow } from '@/components/admin/types';
 
 interface PartnersTableContentProps {
   partners: PartnerRow[];
+  onBookPartner?: (partner: PartnerRow) => void;
 }
 
-export function PartnersTableContent({ partners }: PartnersTableContentProps) {
+export function PartnersTableContent({ partners, onBookPartner }: PartnersTableContentProps) {
   const columns: ColumnDef<PartnerRow>[] = [
     {
       key: 'partnerCode',
@@ -70,6 +71,22 @@ export function PartnersTableContent({ partners }: PartnersTableContentProps) {
       ),
     },
     { key: 'joinedAt', header: 'Joined', sortable: true, cell: (row) => new Date(row.joinedAt).toLocaleDateString() },
+    {
+      key: 'actions',
+      header: '',
+      cell: (row) =>
+        row.status === 'ACTIVE' ? (
+          <button
+            type="button"
+            onClick={() => onBookPartner?.(row)}
+            className="text-sm font-medium text-primary-deep hover:underline"
+          >
+            Book
+          </button>
+        ) : (
+          <span className="text-xs text-dark-5">—</span>
+        ),
+    },
   ];
 
   return <DataTable data={partners} columns={columns} pageSize={20} />;

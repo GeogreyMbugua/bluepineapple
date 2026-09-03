@@ -1,4 +1,4 @@
-import { prisma } from "@blue-pineapple/database";
+import { prisma, runInTransaction } from "@blue-pineapple/database";
 import {
   bookingRepository,
   departureRepository,
@@ -44,7 +44,14 @@ export class BookingService {
     return `BP-${timestamp}-${random}`;
   }
 
-  async createBooking(data: BookingCreationInput, actorId?: string): Promise<{ id: string; bookingReference: string }> {
+  async createBooking(data: BookingCreationInput, actorId?: string): Promise<{
+    id: string;
+    bookingReference: string;
+    reused: boolean;
+    totalAmount: number;
+    paymentStatus: string;
+    status: string;
+  }> {
     const departure = await departureRepository.findById(data.departureId);
     if (!departure) {
       throw new Error("Departure not found");
@@ -108,7 +115,27 @@ export class BookingService {
     if (guestId) {
       const conflict = await bookingRepository.findConflicting(data.departureId, guestId);
       if (conflict) {
-        throw new Error("Guest already has a booking for this departure");
+        const alreadySettled =
+          conflict.paymentStatus === "PAID" ||
+          conflict.status === "CONFIRMED" ||
+          conflict.status === "COMPLETED";
+
+        if (alreadySettled) {
+          throw new Error(
+            "You already have a confirmed booking for this departure. Check your email or booking reference.",
+          );
+        }
+
+        // Unpaid / incomplete booking for this departure — reuse it so Pay can
+        // send another STK instead of failing with a duplicate error.
+        return {
+          id: conflict.id,
+          bookingReference: conflict.bookingReference,
+          reused: true as const,
+          totalAmount: Number(conflict.totalAmount),
+          paymentStatus: conflict.paymentStatus,
+          status: conflict.status,
+        };
       }
     }
 
@@ -120,7 +147,7 @@ export class BookingService {
     // This requires a dedicated idempotencyKey column on the Booking model.
     // For now, the unique bookingReference serves as a basic duplicate guard.
 
-    const result = await prisma.$transaction(async (tx) => {
+    const result = await runInTransaction(async (tx) => {
       if (onlineSource) {
         await bookingCapacityService.atomicReserveOnline(tx, data.departureId, data.totalGuests);
       } else {
@@ -199,7 +226,14 @@ export class BookingService {
       status: result.status,
     } as BookingCreatedEvent);
 
-    return { id: result.id, bookingReference: result.bookingReference };
+    return {
+      id: result.id,
+      bookingReference: result.bookingReference,
+      reused: false as const,
+      totalAmount: Number(result.totalAmount),
+      paymentStatus: result.paymentStatus,
+      status: result.status,
+    };
   }
 
   async cancelBooking(id: string, data: CancelBookingInput, actorId?: string): Promise<void> {

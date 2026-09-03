@@ -171,6 +171,38 @@ export type {
   PartnerSummary,
 } from "./partners/partner.types";
 
+export {
+  analyzePartnerImportRecord,
+  cleanEmail,
+  cleanPhone,
+  detectPartnerImportHeaderRow,
+  parsePartnerImportRecord,
+  parsePartnerImportSheetRows,
+  previewPartnerImportSheetRows,
+  summarizePartnerImportPreview,
+  validatePartnerImportRow,
+} from "./partners/partner-import.parser";
+
+export {
+  importPartnersFromSheetRows,
+  importPartnersFromWorkbookSheets,
+  importParsedPartnerRows,
+  previewPartnersFromWorkbookSheets,
+} from "./partners/partner-import.service";
+
+export type {
+  PartnerImportBatchResult,
+  PartnerImportClerkAdapter,
+  PartnerImportFieldSources,
+  PartnerImportPreviewResult,
+  PartnerImportPreviewSummary,
+  PartnerImportResult,
+  PartnerImportReviewStatus,
+  PartnerImportRow,
+  PartnerImportSummary,
+  PartnerImportWarning,
+} from "./partners/partner-import.types";
+
 // ── Domain Events ────────────────────────────────────────────────────────
 
 export {

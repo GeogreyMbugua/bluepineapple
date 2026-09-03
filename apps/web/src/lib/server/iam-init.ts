@@ -1,4 +1,5 @@
 import { bookingNotificationEngine, rewardEngine, notificationService, ResendNotificationAdapter } from '@blue-pineapple/iam';
+import { paymentBookingBridge } from '@blue-pineapple/finance';
 
 let initialized = false;
 
@@ -17,4 +18,5 @@ export function initializeIam() {
 
   rewardEngine.start();
   bookingNotificationEngine.start();
+  paymentBookingBridge.start();
 }

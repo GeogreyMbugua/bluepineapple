@@ -1,5 +1,6 @@
 export { intentService } from './payment-intent.service';
 export { paymentService } from './payment.service';
+export { mpesaStkService } from './mpesa-stk.service';
 export { ledgerService } from './ledger.service';
 export { walletService } from './wallet.service';
 export { invoiceService } from './invoice.service';
@@ -14,3 +15,5 @@ export { fiscalPeriodService } from './fiscal-period.service';
 export { revenueRecognitionService } from './revenue-recognition.service';
 export { commissionService } from './commission.service';
 export { financeAuditService } from './audit.service';
+export { paymentBookingBridge } from './payment-booking-bridge';
+

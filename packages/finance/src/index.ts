@@ -40,6 +40,7 @@ export {
 export {
   intentService,
   paymentService,
+  mpesaStkService,
   ledgerService,
   walletService,
   invoiceService,
@@ -54,6 +55,7 @@ export {
   revenueRecognitionService,
   commissionService,
   financeAuditService,
+  paymentBookingBridge,
 } from "./services";
 
 export { financeController } from "./controllers/finance.controller";
@@ -106,3 +108,45 @@ export {
 export {
   CreatePayoutSchema,
 } from "./validators";
+
+export {
+  DarajaClient,
+  DarajaAuthClient,
+  DarajaError,
+  getDarajaClient,
+  resetDarajaClient,
+  parseStkCallback,
+  loadDarajaConfig,
+  buildStkPassword,
+  darajaTimestamp,
+  normalizeMsisdn,
+  truncateAccountReference,
+  truncateTransactionDesc,
+  DARAJA_CALLBACK_IPS,
+  getDarajaBaseUrl,
+} from "./daraja";
+
+export type {
+  DarajaConfig,
+  DarajaEnv,
+  DarajaTransactionType,
+  ParsedStkCallback,
+  StkCallbackBody,
+  StkPushInput,
+  StkPushAcknowledgement,
+  StkPushQueryInput,
+  StkPushQueryAcknowledgement,
+} from "./daraja";
+
+export {
+  stkCallbackPayloadSchema,
+  buildStkEventKey,
+  STK_CANCEL_RESULT_CODES,
+  MpesaCallbackApplicator,
+  createMpesaCallbackApplicator,
+  mpesaWebhookIngest,
+  mpesaWebhookProcessor,
+} from "./mpesa";
+
+export type { InitiateStkInput, InitiateStkResult } from "./mpesa";
+export type { ApplyCallbackResult, IngestResult } from "./mpesa";

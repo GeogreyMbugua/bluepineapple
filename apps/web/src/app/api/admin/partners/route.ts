@@ -1,5 +1,6 @@
 import { NextRequest } from 'next/server';
 import { requireAdminAuth } from '@/lib/api/admin-helpers';
+import { getAdminPartnersList } from '@/lib/admin/partners';
 import { CreatePartnerSchema, partnerService } from '@blue-pineapple/iam';
 import { z } from 'zod';
 
@@ -17,35 +18,10 @@ export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
     const query = PartnerListQuerySchema.parse(Object.fromEntries(searchParams));
-    const result = await partnerService.list(query);
-    const partners = result.partners.map((partner) => ({
-      id: partner.id,
-      partnerCode: partner.partnerCode,
-      companyName: partner.companyName,
-      status: partner.status,
-      commissionRate: Number(partner.commissionRate),
-      joinedAt: partner.joinedAt,
-      userId: partner.userId,
-      contactName: partner.user
-        ? `${partner.user.firstName} ${partner.user.lastName}`.trim()
-        : null,
-      email: partner.user?.email ?? null,
-      phone: partner.user?.phone ?? null,
-      userStatus: partner.user?.status ?? null,
-      clerkLinked: Boolean(partner.user?.clerkUserId),
-      bookingCount: partner._count.bookings,
-      rewardCount: partner._count.partnerRewards,
-    }));
+    const data = await getAdminPartnersList(query);
 
     return Response.json({
-      data: {
-        partners,
-        total: result.total,
-        page: result.page,
-        limit: result.limit,
-        totalPages: Math.ceil(result.total / result.limit),
-        statusCounts: result.statusCounts,
-      },
+      data,
       timestamp: new Date().toISOString(),
     });
   } catch (error) {

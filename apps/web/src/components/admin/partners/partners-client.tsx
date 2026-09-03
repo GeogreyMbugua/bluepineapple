@@ -5,9 +5,12 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { PartnersTableContent } from '@/components/admin/partners/partners-table-content';
 import { CreatePartnerModal } from '@/components/admin/partners/create-partner-modal';
 import { ImportPartnersModal } from '@/components/admin/partners/import-partners-modal';
+import { PartnerBookingDrawer } from '@/components/admin/partners/partner-booking-drawer';
 import { useToast } from '@/providers/toast-provider';
 import { adminPartnersOptions } from '@/lib/queries/admin/partners';
 import { Input } from '@/components/admin/ui/input';
+import { useDebounce } from '@/hooks/use-debounce';
+import type { PartnerRow } from '@/components/admin/types';
 
 const STATUS_FILTERS = ['ALL', 'ACTIVE', 'PENDING', 'SUSPENDED', 'TERMINATED'] as const;
 type StatusFilter = typeof STATUS_FILTERS[number];
@@ -26,7 +29,9 @@ export function PartnersClient() {
   const [isSyncing, setIsSyncing] = useState(false);
   const [syncResult, setSyncResult] = useState<SyncSummary | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
+  const debouncedSearch = useDebounce(searchQuery);
   const [page, setPage] = useState(1);
+  const [bookingPartner, setBookingPartner] = useState<PartnerRow | null>(null);
 
   const {
     data: partnerData = { partners: [], total: 0, page: 1, limit: 20, totalPages: 0, statusCounts: {} },
@@ -34,7 +39,7 @@ export function PartnersClient() {
     error,
   } = useQuery(adminPartnersOptions({
     status: activeFilter,
-    search: searchQuery,
+    search: debouncedSearch,
     page,
   }));
   const partners = partnerData.partners;
@@ -84,7 +89,7 @@ export function PartnersClient() {
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
           <h1 className="text-3xl font-bold text-dark">Partners</h1>
-          <p className="mt-1 text-dark-6">Manage partner accounts and profiles</p>
+          <p className="mt-1 text-dark-6">Manage partner accounts, profiles, and bookings</p>
         </div>
         <div className="flex flex-wrap gap-2">
           <ActionButton variant="secondary" onClick={() => setShowImportModal(true)}>
@@ -153,6 +158,9 @@ export function PartnersClient() {
           }}
           placeholder="Name, company, code, or email"
         />
+        {searchQuery !== debouncedSearch && (
+          <p className="mt-1 text-xs text-dark-5">Searching…</p>
+        )}
       </div>
 
       {/* Partners Table */}
@@ -162,7 +170,10 @@ export function PartnersClient() {
         </div>
       ) : (
         <>
-          <PartnersTableContent partners={partners} />
+          <PartnersTableContent
+            partners={partners}
+            onBookPartner={(partner) => setBookingPartner(partner)}
+          />
           {partnerData.totalPages > 1 && (
             <div className="flex items-center justify-between">
               <p className="text-sm text-dark-5">
@@ -199,6 +210,23 @@ export function PartnersClient() {
         open={showImportModal}
         onClose={() => setShowImportModal(false)}
         onSuccess={refreshPartners}
+      />
+      <PartnerBookingDrawer
+        open={bookingPartner !== null}
+        partner={
+          bookingPartner
+            ? {
+                id: bookingPartner.id,
+                partnerCode: bookingPartner.partnerCode,
+                companyName: bookingPartner.companyName,
+              }
+            : null
+        }
+        onClose={() => setBookingPartner(null)}
+        onSuccess={() => {
+          addToast('Partner booking created successfully', 'success');
+          queryClient.invalidateQueries({ queryKey: ['admin', 'bookings'] });
+        }}
       />
     </>
   );

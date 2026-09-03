@@ -1,20 +1,16 @@
-import { getServerSession } from '@/lib/auth';
 import { DashboardContent } from '@/components/admin/dashboard-content';
 import { HydrationBoundary, dehydrate } from '@tanstack/react-query';
 import { getQueryClient } from '@/lib/queries/get-query-client';
-import { adminDashboardOptions, adminPartnerStatsOptions, adminTripCalendarOptions } from '@/lib/queries/admin';
+import { adminDashboardServerOptions } from '@/lib/queries/admin/dashboard.server';
+import { adminPartnerStatsServerOptions } from '@/lib/queries/admin/partner-stats.server';
+import { adminTripCalendarServerOptions } from '@/lib/queries/admin/trip-calendar.server';
 
 export default async function AdminDashboardPage() {
-  const session = await getServerSession();
-  if (!session.user) {
-    return null;
-  }
-
   const queryClient = getQueryClient();
   await Promise.all([
-    queryClient.prefetchQuery(adminDashboardOptions()),
-    queryClient.prefetchQuery(adminPartnerStatsOptions()),
-    queryClient.prefetchQuery(adminTripCalendarOptions()),
+    queryClient.prefetchQuery(adminDashboardServerOptions()),
+    queryClient.prefetchQuery(adminPartnerStatsServerOptions()),
+    queryClient.prefetchQuery(adminTripCalendarServerOptions()),
   ]);
 
   return (

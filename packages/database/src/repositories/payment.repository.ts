@@ -32,6 +32,28 @@ export class PaymentRepository {
     });
   }
 
+  async findByProviderPaymentId(providerPaymentId: string) {
+    return prisma.payment.findUnique({
+      where: { providerPaymentId },
+      include: {
+        intent: true,
+        provider: true,
+        refunds: true,
+      },
+    });
+  }
+
+  async findByAuthorizationCode(authorizationCode: string) {
+    return prisma.payment.findFirst({
+      where: { authorizationCode },
+      include: {
+        intent: true,
+        provider: true,
+      },
+      orderBy: { createdAt: "desc" },
+    });
+  }
+
   async create(data: Prisma.PaymentCreateInput): Promise<Payment> {
     return prisma.payment.create({ data: data as any });
   }

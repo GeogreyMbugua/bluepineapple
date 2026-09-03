@@ -194,16 +194,69 @@ export async function POST(request: NextRequest) {
       bookingGuests: validated.bookingGuests ?? [],
     });
 
+    const chargeAmount = Math.round(
+      result.reused ? Number(result.totalAmount) : pricing.total,
+    );
+
+    let stk: {
+      intentId: string;
+      intentReference: string;
+      paymentId: string;
+      paymentReference: string;
+      checkoutRequestId: string;
+      merchantRequestId: string;
+      status: 'PENDING';
+      customerMessage?: string;
+    } | null = null;
+    let stkError: string | null = null;
+    const mpesaPhone =
+      typeof body.mpesaPhone === 'string'
+        ? body.mpesaPhone
+        : typeof validated.guest?.phone === 'string'
+          ? validated.guest.phone
+          : null;
+
+    const shouldInitiateStk =
+      Boolean(mpesaPhone) &&
+      body.initiateMpesaStk !== false &&
+      source === 'DIRECT';
+
+    if (shouldInitiateStk && mpesaPhone) {
+      try {
+        const { mpesaStkService } = await import('@blue-pineapple/finance');
+        // New idempotency key per attempt so a prior FAILED STK does not block retry.
+        const attemptKey = `stk:${result.id}:${chargeAmount}:${Date.now()}`;
+        stk = await mpesaStkService.initiate({
+          bookingId: result.id,
+          amount: chargeAmount,
+          currency: 'KES',
+          phone: mpesaPhone,
+          accountReference: result.bookingReference,
+          transactionDesc: 'Booking',
+          partnerId: partnerId ?? undefined,
+          idempotencyKey: result.reused
+            ? attemptKey
+            : `stk:${result.id}:${chargeAmount}`,
+        });
+      } catch (error) {
+        stkError = error instanceof Error ? error.message : 'STK Push failed';
+        console.error('[bookings] STK initiate failed', error);
+      }
+    }
+
     return Response.json(
       {
         data: {
           ...result,
-          totalAmount: pricing.total.toString(),
+          totalAmount: chargeAmount.toString(),
           pricing,
+          reused: result.reused,
+          ...(stk && { mpesaStk: stk }),
+          ...(stkError && { stkError }),
         },
         timestamp: new Date().toISOString(),
       },
-      { status: 201 }
+      { status: result.reused ? 200 : 201 },
     );
   } catch (error) {
     if (error instanceof z.ZodError) {

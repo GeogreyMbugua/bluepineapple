@@ -6,9 +6,13 @@ export interface BookingsOptionsParams {
   limit?: number;
 }
 
+export function adminBookingsQueryKey(params: BookingsOptionsParams = {}) {
+  return ['admin', 'bookings', params.status ?? 'ALL', params.limit ?? 50] as const;
+}
+
 export function adminBookingsOptions(params: BookingsOptionsParams = {}) {
   return queryOptions({
-    queryKey: ['admin', 'bookings', params.status ?? 'ALL', params.limit ?? 50] as const,
+    queryKey: adminBookingsQueryKey(params),
     queryFn: async () => {
       const url = new URL('/api/admin/bookings');
       if (params.status) url.searchParams.set('status', params.status);

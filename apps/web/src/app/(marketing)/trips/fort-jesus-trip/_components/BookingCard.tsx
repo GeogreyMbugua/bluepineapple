@@ -23,7 +23,26 @@ import {
   type Stop,
 } from '../_data/trip';
 
-type BookingStatus = 'idle' | 'loading' | 'success' | 'error';
+type BookingStatus =
+  | 'idle'
+  | 'loading'
+  | 'awaiting_payment'
+  | 'success'
+  | 'error';
+
+type MpesaStkResponse = {
+  intentId: string;
+  checkoutRequestId: string;
+  customerMessage?: string;
+};
+
+type BookingCardMode = 'public' | 'admin-partner';
+
+export type AdminPartnerOption = {
+  id: string;
+  partnerCode: string;
+  companyName: string | null;
+};
 
 type FormData = {
   fullName: string;
@@ -35,9 +54,17 @@ type PassengerCount = number | '';
 type MobileBookingStep = 1 | 2 | 3 | 4;
 
 interface BookingCardProps {
+  readonly mode?: BookingCardMode;
+  readonly partners?: AdminPartnerOption[];
+  readonly defaultPartnerId?: string;
+  readonly lockedPartner?: AdminPartnerOption;
+  readonly onBookingSuccess?: () => void;
   readonly mobileSheetOpen?: boolean;
   readonly onMobileSheetOpenChange?: (open: boolean) => void;
   readonly hideMobileTrigger?: boolean;
+  readonly forceDesktopLayout?: boolean;
+  readonly embedded?: boolean;
+  readonly showHeader?: boolean;
 }
 
 function clampPassengerCount(value: string, minimum: number): PassengerCount {
@@ -48,10 +75,23 @@ function clampPassengerCount(value: string, minimum: number): PassengerCount {
 }
 
 export function BookingCard({
+  mode = 'public',
+  partners = [],
+  defaultPartnerId = '',
+  lockedPartner,
+  onBookingSuccess,
   mobileSheetOpen: controlledMobileSheetOpen,
   onMobileSheetOpenChange,
   hideMobileTrigger = false,
+  forceDesktopLayout = false,
+  embedded = false,
+  showHeader = true,
 }: BookingCardProps = {}) {
+  const isAdminPartner = mode === 'admin-partner';
+  const applyPublicDiscounts = !isAdminPartner;
+  const [partnerId, setPartnerId] = useState(lockedPartner?.id ?? defaultPartnerId);
+  const resolvedPartnerId = lockedPartner?.id ?? partnerId;
+  const showPartnerSelect = isAdminPartner && !lockedPartner;
   const [origin, setOrigin] = useState<Stop | ''>('');
   const [destination, setDestination] = useState<Stop | ''>('');
   const [date, setDate] = useState('');
@@ -65,6 +105,10 @@ export function BookingCard({
   const [status, setStatus] = useState<BookingStatus>('idle');
   const [error, setError] = useState<string | null>(null);
   const [bookingReference, setBookingReference] = useState<string | null>(null);
+  const [bookingId, setBookingId] = useState<string | null>(null);
+  const [paymentIntentId, setPaymentIntentId] = useState<string | null>(null);
+  const [paymentHint, setPaymentHint] = useState<string | null>(null);
+  const [mpesaReceipt, setMpesaReceipt] = useState<string | null>(null);
   const [guest, setGuest] = useState<FormData>({
     fullName: '',
     phoneNumber: '',
@@ -84,6 +128,7 @@ export function BookingCard({
       childCount,
       infantCount,
       returnTicket,
+      { applyDiscounts: applyPublicDiscounts },
     );
   }, [
     origin,
@@ -93,6 +138,7 @@ export function BookingCard({
     infantCount,
     returnTicket,
     canCalculatePrice,
+    applyPublicDiscounts,
   ]);
 
   const mobileSheetOpen =
@@ -105,11 +151,16 @@ export function BookingCard({
     setChildren('');
     setInfants('');
     setReturnTicket(false);
+    setPartnerId(lockedPartner?.id ?? '');
     setMobileStep(1);
     setContactModalOpen(false);
     setStatus('idle');
     setError(null);
     setBookingReference(null);
+    setBookingId(null);
+    setPaymentIntentId(null);
+    setPaymentHint(null);
+    setMpesaReceipt(null);
     setGuest({
       fullName: '',
       phoneNumber: '',
@@ -117,7 +168,7 @@ export function BookingCard({
     });
   };
   const setMobileSheetOpen = (open: boolean) => {
-    if (!open && status === 'loading') return;
+    if (!open && (status === 'loading' || status === 'awaiting_payment')) return;
     if (!open) resetBookingState();
     if (controlledMobileSheetOpen === undefined) {
       setInternalMobileSheetOpen(open);
@@ -140,6 +191,80 @@ export function BookingCard({
     setMobileSheetOpen(true);
     setAdults((value) => (value === '' ? 1 : value));
   }, []);
+
+  useEffect(() => {
+    if (status !== 'awaiting_payment' || !paymentIntentId) return;
+
+    let cancelled = false;
+    const startedAt = Date.now();
+    const softReconcileAfterMs = 15_000;
+    const hardTimeoutMs = 90_000;
+
+    const poll = async () => {
+      try {
+        const elapsed = Date.now() - startedAt;
+        const shouldReconcile = elapsed >= softReconcileAfterMs;
+        const res = await fetch(
+          `/api/payments/intents/${paymentIntentId}${shouldReconcile ? '?reconcile=1' : ''}`,
+          { cache: 'no-store' },
+        );
+        if (!res.ok || cancelled) return;
+        const json = (await res.json()) as {
+          data?: {
+            status?: string;
+            mpesaReceiptNumber?: string | null;
+            failureReason?: string | null;
+          };
+        };
+        const paymentStatus = json.data?.status;
+        if (!paymentStatus) return;
+
+        if (paymentStatus === 'CAPTURED') {
+          setMpesaReceipt(json.data?.mpesaReceiptNumber ?? null);
+          setStatus('success');
+          onBookingSuccess?.();
+          return;
+        }
+
+        if (paymentStatus === 'FAILED' || paymentStatus === 'CANCELLED') {
+          setError(
+            json.data?.failureReason ||
+              (paymentStatus === 'CANCELLED'
+                ? 'M-Pesa prompt was cancelled. You can try again.'
+                : 'M-Pesa payment failed. You can try again.'),
+          );
+          setStatus('error');
+          return;
+        }
+
+        if (elapsed >= hardTimeoutMs) {
+          setError(
+            'No confirmation received from M-Pesa yet. Your booking is saved — you can retry payment.',
+          );
+          setStatus('error');
+          return;
+        }
+
+        if (elapsed >= softReconcileAfterMs) {
+          setPaymentHint(
+            'Still waiting for M-Pesa… checking Safaricom status now.',
+          );
+        }
+      } catch {
+        // Transient network blip — keep polling.
+      }
+    };
+
+    void poll();
+    const timer = window.setInterval(() => {
+      void poll();
+    }, 3000);
+
+    return () => {
+      cancelled = true;
+      window.clearInterval(timer);
+    };
+  }, [status, paymentIntentId, onBookingSuccess]);
 
   const routeStops: Stop[] = [...stops];
 
@@ -185,7 +310,96 @@ export function BookingCard({
     journeyIsValid &&
     guest.fullName.trim().length > 0 &&
     guest.phoneNumber.trim().length > 0 &&
-    guest.email.trim().length > 0;
+    guest.email.trim().length > 0 &&
+    (!isAdminPartner || resolvedPartnerId.length > 0);
+
+  const hasUnpaidBooking =
+    !isAdminPartner &&
+    Boolean(bookingId && bookingReference) &&
+    status !== 'success' &&
+    status !== 'awaiting_payment';
+
+  const dismissPaymentError = () => {
+    setStatus('idle');
+    setError(null);
+    setContactModalOpen(false);
+    setPaymentIntentId(null);
+    setPaymentHint(null);
+    // Keep the trip planner open on the fare step so the unpaid banner is visible.
+    if (mobileSheetOpen) setMobileStep(4);
+  };
+
+  const unpaidBookingBanner =
+    hasUnpaidBooking && bookingReference ? (
+      <div
+        className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-left"
+        role="status"
+        aria-live="polite"
+      >
+        <p className="text-sm font-semibold text-slate-950">
+          Booking {bookingReference} is unpaid
+        </p>
+        <p className="mt-1 text-xs leading-relaxed text-slate-600">
+          {error
+            ? error
+            : 'Your trip details are saved. Pay with M-Pesa to finish, or start over.'}
+        </p>
+        <div className="mt-3 flex flex-col gap-2 sm:flex-row">
+          <button
+            type="button"
+            disabled={status === 'loading'}
+            onClick={() => {
+              void retryMpesaPayment();
+            }}
+            className="inline-flex min-h-10 flex-1 items-center justify-center gap-1.5 rounded-lg bg-[#0d3b66] px-3.5 py-2 text-xs font-semibold text-white transition hover:bg-[#0b335a] disabled:opacity-50"
+          >
+            {status === 'loading' ? (
+              <>
+                <Loader2 size={14} className="animate-spin" />
+                Sending prompt...
+              </>
+            ) : (
+              'Pay with M-Pesa'
+            )}
+          </button>
+          <button
+            type="button"
+            disabled={status === 'loading'}
+            onClick={() => {
+              resetBookingState();
+            }}
+            className="inline-flex min-h-10 flex-1 items-center justify-center rounded-lg border border-slate-300 bg-white px-3.5 py-2 text-xs font-semibold text-slate-700 transition hover:border-slate-400 disabled:opacity-50"
+          >
+            Start over
+          </button>
+        </div>
+      </div>
+    ) : null;
+
+  const partnerField = showPartnerSelect ? (
+    <label className="block text-sm font-medium text-slate-900">
+      Partner
+      <select
+        value={partnerId}
+        onChange={(event) => setPartnerId(event.target.value)}
+        required
+        className="mt-2 min-h-11 w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2.5 text-base text-slate-900 outline-none transition focus:border-[#0d3b66] focus:bg-white sm:text-sm"
+      >
+        <option value="" disabled>
+          Select partner
+        </option>
+        {partners.map((partner) => (
+          <option key={partner.id} value={partner.id}>
+            {partner.partnerCode}
+            {partner.companyName ? ` — ${partner.companyName}` : ''}
+          </option>
+        ))}
+      </select>
+      <p className="mt-1 text-[11px] text-slate-500">
+        Partner reward pricing applies. Public couple/group discounts are not used.
+      </p>
+    </label>
+  ) : null;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -200,42 +414,58 @@ export function BookingCard({
 
     setStatus('loading');
     setError(null);
+    setPaymentHint(null);
+    setMpesaReceipt(null);
 
     try {
       const nameParts = guest.fullName.trim().split(' ');
       const firstName = nameParts[0] || '';
       const lastName = nameParts.slice(1).join(' ') || firstName;
+      const phone = guest.phoneNumber.trim();
 
-      const res = await fetch('/api/bookings', {
+      const payload = {
+        experienceSlug: 'fort-jesus' as const,
+        travelDate: date,
+        originStopName: origin,
+        destinationStopName: destination,
+        guest: {
+          firstName,
+          lastName,
+          email: guest.email || null,
+          phone: phone || null,
+        },
+        totalGuests: passengerCount,
+        totalAmount: summary?.total ?? 0,
+        adults: adultCount,
+        children: childCount,
+        infants: infantCount,
+        returnTicket,
+        specialRequests: '',
+        bookingGuests: [
+          {
+            fullName: guest.fullName,
+            phoneNumber: phone || null,
+            isPrimary: true,
+          },
+        ],
+        ...(isAdminPartner
+          ? {
+              partnerId: resolvedPartnerId,
+              source: 'ADMIN' as const,
+              initiateMpesaStk: false,
+            }
+          : {
+              source: 'DIRECT' as const,
+              mpesaPhone: phone,
+              initiateMpesaStk: true,
+            }),
+      };
+
+      const res = await fetch(isAdminPartner ? '/api/admin/bookings' : '/api/bookings', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          experienceSlug: 'fort-jesus',
-          travelDate: date,
-          originStopName: origin,
-          destinationStopName: destination,
-          guest: {
-            firstName,
-            lastName,
-            email: guest.email || null,
-            phone: guest.phoneNumber || null,
-          },
-          totalGuests: passengerCount,
-          totalAmount: summary?.total ?? 0,
-          adults: adultCount,
-          children: childCount,
-          infants: infantCount,
-          returnTicket,
-          specialRequests: '',
-          bookingGuests: [
-            {
-              fullName: guest.fullName,
-              phoneNumber: guest.phoneNumber || null,
-              isPrimary: true,
-            },
-          ],
-          source: 'DIRECT',
-        }),
+        body: JSON.stringify(payload),
+        ...(isAdminPartner ? { credentials: 'include' as const } : {}),
       });
 
       if (!res.ok) {
@@ -243,36 +473,110 @@ export function BookingCard({
         throw new Error(json.error?.message || 'Booking failed');
       }
 
-      const json = await res.json();
+      const json = (await res.json()) as {
+        data: {
+          id: string;
+          bookingReference: string;
+          reused?: boolean;
+          mpesaStk?: MpesaStkResponse;
+          stkError?: string;
+        };
+      };
+
+      setBookingId(json.data.id);
       setBookingReference(json.data.bookingReference);
-      setStatus('success');
+
+      if (isAdminPartner) {
+        setStatus('success');
+        onBookingSuccess?.();
+        return;
+      }
+
+      const stk = json.data.mpesaStk;
+      if (stk?.intentId) {
+        setPaymentIntentId(stk.intentId);
+        setPaymentHint(
+          json.data.reused
+            ? 'We found your existing unpaid booking. Check your phone and enter your M-Pesa PIN.'
+            : stk.customerMessage ||
+                'Check your phone and enter your M-Pesa PIN to complete payment.',
+        );
+        setStatus('awaiting_payment');
+        return;
+      }
+
+      setError(
+        json.data.stkError ||
+          'Booking was created, but the M-Pesa prompt could not be started. You can retry payment.',
+      );
+      setStatus('error');
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Booking failed');
       setStatus('error');
     }
   };
 
-  if (status === 'success') {
+  const retryMpesaPayment = async () => {
+    if (!bookingId || !guest.phoneNumber.trim()) {
+      setError('Missing booking or phone number for payment retry.');
+      return;
+    }
+
+    setStatus('loading');
+    setError(null);
+    try {
+      const res = await fetch('/api/payments/mpesa/stk', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          bookingId,
+          phone: guest.phoneNumber.trim(),
+          amount: summary?.total,
+          transactionDesc: 'Booking',
+        }),
+      });
+      const json = await res.json();
+      if (!res.ok) {
+        throw new Error(json.error?.message || 'Failed to start M-Pesa payment');
+      }
+      const stk = json.data as MpesaStkResponse;
+      setPaymentIntentId(stk.intentId);
+      setPaymentHint(
+        stk.customerMessage ||
+          'Check your phone and enter your M-Pesa PIN to complete payment.',
+      );
+      setStatus('awaiting_payment');
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to start M-Pesa payment');
+      setStatus('error');
+    }
+  };
+
+  if (status === 'awaiting_payment') {
     return (
       <div
-        className="fixed inset-0 z-[80] flex items-center justify-center bg-slate-950/55 p-4 md:static md:z-auto md:block md:bg-transparent md:p-0"
+        className={
+          embedded
+            ? 'rounded-xl border border-slate-200 bg-slate-50 p-6 text-center'
+            : 'fixed inset-0 z-[80] flex items-center justify-center bg-slate-950/55 p-4 md:static md:z-auto md:block md:bg-transparent md:p-0'
+        }
         role="dialog"
         aria-modal="true"
-        aria-labelledby="booking-success-title"
+        aria-labelledby="booking-payment-title"
       >
-        <div className="w-full max-w-md rounded-2xl bg-white p-6 text-center shadow-2xl sm:p-8">
-          <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-green-100">
-            <Check className="h-6 w-6 text-green-600" />
+        <div className={embedded ? 'w-full' : 'w-full max-w-md rounded-2xl bg-white p-6 text-center shadow-2xl sm:p-8'}>
+          <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-[#0d3b66]/10">
+            <Loader2 className="h-6 w-6 animate-spin text-[#0d3b66]" aria-hidden="true" />
           </div>
           <p
-            id="booking-success-title"
+            id="booking-payment-title"
             className="text-lg font-semibold text-slate-950"
           >
-            Booking request received
+            Confirm payment on your phone
           </p>
           <p className="mt-2 text-sm leading-relaxed text-slate-600">
-            Your request has been sent to our team. We’ll be in touch shortly
-            to confirm your trip.
+            {paymentHint ||
+              'An M-Pesa PIN prompt has been sent. Enter your PIN to complete the booking.'}
           </p>
           {bookingReference && (
             <p className="mt-4 text-sm text-slate-600">
@@ -280,6 +584,58 @@ export function BookingCard({
               <span className="font-semibold text-slate-950">
                 {bookingReference}
               </span>
+            </p>
+          )}
+          <p className="mt-1 text-sm text-slate-600">
+            Amount: <span className="font-semibold">{summary?.totalLabel}</span>
+          </p>
+          <p className="mt-4 text-xs text-slate-500" role="status" aria-live="polite">
+            Waiting for M-Pesa confirmation…
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  if (status === 'success') {
+    return (
+      <div
+        className={
+          embedded
+            ? 'rounded-xl border border-slate-200 bg-slate-50 p-6 text-center'
+            : 'fixed inset-0 z-[80] flex items-center justify-center bg-slate-950/55 p-4 md:static md:z-auto md:block md:bg-transparent md:p-0'
+        }
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="booking-success-title"
+      >
+        <div className={embedded ? 'w-full' : 'w-full max-w-md rounded-2xl bg-white p-6 text-center shadow-2xl sm:p-8'}>
+          <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-green-100">
+            <Check className="h-6 w-6 text-green-600" />
+          </div>
+          <p
+            id="booking-success-title"
+            className="text-lg font-semibold text-slate-950"
+          >
+            {isAdminPartner ? 'Booking request received' : 'Payment received'}
+          </p>
+          <p className="mt-2 text-sm leading-relaxed text-slate-600">
+            {isAdminPartner
+              ? 'The partner booking has been created and is pending confirmation.'
+              : 'Your M-Pesa payment went through. You’re booked — we’ll follow up with trip details.'}
+          </p>
+          {bookingReference && (
+            <p className="mt-4 text-sm text-slate-600">
+              Reference:{' '}
+              <span className="font-semibold text-slate-950">
+                {bookingReference}
+              </span>
+            </p>
+          )}
+          {mpesaReceipt && (
+            <p className="mt-1 text-sm text-slate-600">
+              M-Pesa receipt:{' '}
+              <span className="font-semibold text-slate-950">{mpesaReceipt}</span>
             </p>
           )}
           <p className="mt-1 text-sm text-slate-600">
@@ -299,9 +655,14 @@ export function BookingCard({
             onClick={() => {
               setStatus('idle');
               setBookingReference(null);
+              setBookingId(null);
+              setPaymentIntentId(null);
+              setPaymentHint(null);
+              setMpesaReceipt(null);
               setError(null);
               setContactModalOpen(false);
-              setMobileSheetOpen(false);
+              if (!embedded) setMobileSheetOpen(false);
+              else onBookingSuccess?.();
             }}
             className="mt-6 inline-flex min-h-11 w-full items-center justify-center rounded-xl bg-[#0d3b66] px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-[#0b335a] focus:outline-none focus:ring-2 focus:ring-[#0d3b66] focus:ring-offset-2"
           >
@@ -312,8 +673,58 @@ export function BookingCard({
     );
   }
 
+  if (status === 'error' && bookingReference && !isAdminPartner) {
+    return (
+      <div
+        className={
+          embedded
+            ? 'rounded-xl border border-slate-200 bg-slate-50 p-6 text-center'
+            : 'fixed inset-0 z-[80] flex items-center justify-center bg-slate-950/55 p-4 md:static md:z-auto md:block md:bg-transparent md:p-0'
+        }
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="booking-payment-error-title"
+      >
+        <div className={embedded ? 'w-full' : 'w-full max-w-md rounded-2xl bg-white p-6 text-center shadow-2xl sm:p-8'}>
+          <p
+            id="booking-payment-error-title"
+            className="text-lg font-semibold text-slate-950"
+          >
+            Payment not completed
+          </p>
+          <p className="mt-2 text-sm leading-relaxed text-slate-600">
+            {error || 'Your booking was saved, but M-Pesa payment did not complete.'}
+          </p>
+          <p className="mt-4 text-sm text-slate-600">
+            Reference:{' '}
+            <span className="font-semibold text-slate-950">{bookingReference}</span>
+          </p>
+          <div className="mt-6 flex flex-col gap-2 sm:flex-row">
+            <button
+              type="button"
+              onClick={() => {
+                void retryMpesaPayment();
+              }}
+              className="inline-flex min-h-11 flex-1 items-center justify-center rounded-xl bg-[#0d3b66] px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-[#0b335a]"
+            >
+              Retry M-Pesa payment
+            </button>
+            <button
+              type="button"
+              onClick={dismissPaymentError}
+              className="inline-flex min-h-11 flex-1 items-center justify-center rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 transition hover:border-slate-400"
+            >
+              Close
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <>
+      {!forceDesktopLayout && (
       <div className="md:hidden">
         {!hideMobileTrigger && (
           <button
@@ -562,6 +973,9 @@ export function BookingCard({
 
               {mobileStep === 4 && (
                 <div className="mt-7">
+                  {unpaidBookingBanner && (
+                    <div className="mb-4">{unpaidBookingBanner}</div>
+                  )}
                   <div className="divide-y divide-slate-200 rounded-xl bg-white px-4">
                     <div className="flex items-start justify-between gap-4 py-4">
                       <div>
@@ -599,11 +1013,18 @@ export function BookingCard({
                     </button>
                     <button
                       type="button"
-                      disabled={!journeyIsValid}
-                      onClick={() => setContactModalOpen(true)}
+                      disabled={!journeyIsValid || status === 'loading'}
+                      onClick={() => {
+                        if (hasUnpaidBooking) {
+                          void retryMpesaPayment();
+                          return;
+                        }
+                        setContactModalOpen(true);
+                      }}
                       className="inline-flex min-h-12 flex-[1.5] items-center justify-center gap-2 rounded-xl bg-[#0d3b66] px-4 text-sm font-semibold text-white transition hover:bg-[#0b335a] disabled:cursor-not-allowed disabled:opacity-45"
                     >
-                      CHECK FARE <ArrowRight size={17} />
+                      {hasUnpaidBooking ? 'Pay with M-Pesa' : 'CHECK FARE'}{' '}
+                      <ArrowRight size={17} />
                     </button>
                   </div>
                 </div>
@@ -613,21 +1034,39 @@ export function BookingCard({
           )}
         </AnimatePresence>
       </div>
+      )}
 
       <form
       onSubmit={handleSubmit}
-      className="hidden rounded-none border-y border-white/20 bg-white/95 p-4 shadow-2xl backdrop-blur-sm sm:p-6 md:block md:w-full md:max-w-sm md:rounded-2xl md:border md:border-slate-200 md:bg-white"
+      className={[
+        forceDesktopLayout ? 'block' : 'hidden md:block',
+        embedded
+          ? 'w-full'
+          : forceDesktopLayout
+            ? 'w-full rounded-2xl border border-slate-200 bg-white p-4 shadow-2xl sm:p-5'
+            : 'rounded-none border-y border-white/20 bg-white/95 p-4 shadow-2xl backdrop-blur-sm sm:p-6 md:w-full md:max-w-sm md:rounded-2xl md:border md:border-slate-200 md:bg-white',
+      ].join(' ')}
       >
+      {showHeader && (
       <div>
         <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-[#b58845]">
           Fort Jesus Water Taxi
         </p>
         <h3 className="mt-1 text-xl font-semibold tracking-tight text-slate-950">
-          Hop On Hop Off
+          {isAdminPartner ? 'Book for Partner' : 'Book your ride'}
         </h3>
       </div>
+      )}
 
-      <div className="mt-5 space-y-3">
+      {partnerField && <div className={showHeader ? 'mt-5' : ''}>{partnerField}</div>}
+
+      {unpaidBookingBanner && (
+        <div className={showHeader || partnerField ? 'mt-5' : ''}>
+          {unpaidBookingBanner}
+        </div>
+      )}
+
+      <div className={showHeader || partnerField || unpaidBookingBanner ? 'mt-5 space-y-3' : 'space-y-3'}>
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
           <div>
             <label className="mb-1 block text-[10px] font-medium uppercase tracking-wider text-slate-400">
@@ -762,36 +1201,53 @@ export function BookingCard({
       </div>
 
       {summary && (
-        <div className="mt-5 rounded-xl border border-slate-200 bg-slate-50/70 p-4">
+        <div className="mt-4 rounded-xl border border-slate-200 bg-slate-50/70 p-3.5">
           <div className="flex items-end justify-between gap-4">
             <div>
               <p className="text-[10px] font-medium uppercase tracking-wider text-slate-400">
                 Your fare
               </p>
-              <p className="mt-1 text-xs text-slate-500">{summary.fareType}</p>
+              <p className="mt-0.5 text-xs text-slate-500">{summary.fareType}</p>
             </div>
-            <p className="text-2xl font-semibold tracking-tight text-slate-950">
+            <p className="text-xl font-semibold tracking-tight text-slate-950 sm:text-2xl">
               {summary.totalLabel}
             </p>
           </div>
-          <div className="mt-4 flex justify-end">
-            <button
-              type="submit"
-              disabled={!journeyIsValid || status === 'loading'}
-              className="inline-flex min-h-10 items-center justify-center gap-1.5 rounded-lg bg-[#0d3b66] px-3.5 py-2 text-xs font-semibold text-white transition hover:bg-[#0b335a] disabled:opacity-50"
-            >
-              {status === 'loading' ? (
-                <>
-                  <Loader2 size={14} className="animate-spin" />
-                  Processing...
-                </>
-              ) : (
-                'Submit request'
-              )}
-            </button>
-          </div>
         </div>
       )}
+
+      <button
+        type="submit"
+        disabled={!journeyIsValid || status === 'loading'}
+        className="mt-4 inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-xl bg-[#0d3b66] px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-[#0b335a] focus:outline-none focus:ring-2 focus:ring-[#0d3b66] focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-45"
+      >
+        {status === 'loading' ? (
+          <>
+            <Loader2 size={16} className="animate-spin" />
+            Processing...
+          </>
+        ) : isAdminPartner ? (
+          <>
+            Submit request
+            <ArrowRight size={16} aria-hidden="true" />
+          </>
+        ) : hasUnpaidBooking ? (
+          <>
+            Review &amp; pay again
+            <ArrowRight size={16} aria-hidden="true" />
+          </>
+        ) : summary ? (
+          <>
+            Continue
+            <ArrowRight size={16} aria-hidden="true" />
+          </>
+        ) : (
+          <>
+            Check availability
+            <ArrowRight size={16} aria-hidden="true" />
+          </>
+        )}
+      </button>
       </form>
       {contactModalOpen && (
         <div
@@ -814,10 +1270,14 @@ export function BookingCard({
                   id="booking-contact-title"
                   className="text-lg font-semibold text-slate-950"
                 >
-                  Where should we send your booking details?
+                  {isAdminPartner
+                    ? 'Where should we send your booking details?'
+                    : 'Pay with M-Pesa'}
                 </h4>
                 <p className="mt-1 text-sm leading-relaxed text-slate-600">
-                  Just a few details and we’ll send your request to the team.
+                  {isAdminPartner
+                    ? 'Just a few details and we’ll send your request to the team.'
+                    : 'Enter your details. We’ll send an M-Pesa PIN prompt to your phone to confirm payment.'}
                 </p>
               </div>
               <button
@@ -852,19 +1312,25 @@ export function BookingCard({
               </label>
               <label className="block">
                 <span className="mb-1 block text-xs font-medium text-slate-700">
-                  Phone number
+                  {isAdminPartner ? 'Phone number' : 'M-Pesa phone number'}
                 </span>
                 <input
                   type="tel"
                   required
                   autoComplete="tel"
-                  placeholder="Your phone number"
+                  inputMode="tel"
+                  placeholder="07XXXXXXXX or 2547XXXXXXXX"
                   value={guest.phoneNumber}
                   onChange={(e) =>
                     setGuest({ ...guest, phoneNumber: e.target.value })
                   }
                   className="min-h-11 w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2.5 text-base text-slate-900 outline-none transition focus:border-[#0d3b66] focus:bg-white sm:text-sm"
                 />
+                {!isAdminPartner && (
+                  <p className="mt-1 text-[11px] text-slate-500">
+                    Use the Safaricom number that will receive the PIN prompt.
+                  </p>
+                )}
               </label>
               <label className="block">
                 <span className="mb-1 block text-xs font-medium text-slate-700">
@@ -896,7 +1362,9 @@ export function BookingCard({
                   className="shrink-0 animate-spin text-[#0d3b66]"
                   aria-hidden="true"
                 />
-                Sending your booking request…
+                {isAdminPartner
+                  ? 'Sending your booking request…'
+                  : 'Creating booking and sending M-Pesa prompt…'}
               </div>
             )}
 
@@ -919,10 +1387,12 @@ export function BookingCard({
                 {status === 'loading' ? (
                   <>
                     <Loader2 size={14} className="animate-spin" />
-                    Sending...
+                    {isAdminPartner ? 'Sending...' : 'Sending prompt...'}
                   </>
-                ) : (
+                ) : isAdminPartner ? (
                   'Send request'
+                ) : (
+                  'Pay with M-Pesa'
                 )}
               </button>
             </div>

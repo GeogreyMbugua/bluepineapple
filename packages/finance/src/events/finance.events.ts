@@ -26,6 +26,12 @@ export interface PaymentCapturedEvent {
   amount: number;
   currency: string;
   capturedAt: string;
+  bookingId?: string;
+  mpesaReceiptNumber?: string;
+  /** When false, booking must not be auto-marked PAID (e.g. underpayment). */
+  confirmBooking?: boolean;
+  expectedAmount?: number;
+  underpaid?: boolean;
 }
 
 export interface PaymentFailedEvent {

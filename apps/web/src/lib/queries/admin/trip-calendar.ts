@@ -6,9 +6,19 @@ export interface TripCalendarOptions {
   endStr?: string;
 }
 
+export function adminTripCalendarQueryKey(params: TripCalendarOptions = {}) {
+  return [
+    'admin',
+    'trip-calendar',
+    params.experienceSlug ?? 'fort-jesus',
+    params.startStr ?? 'default',
+    params.endStr ?? 'default',
+  ] as const;
+}
+
 export function adminTripCalendarOptions(params: TripCalendarOptions = {}) {
   return queryOptions({
-    queryKey: ['admin', 'trip-calendar', params.experienceSlug ?? 'fort-jesus', params.startStr ?? 'default', params.endStr ?? 'default'] as const,
+    queryKey: adminTripCalendarQueryKey(params),
     queryFn: async () => {
       const url = new URL('/api/admin/trips/calendar');
       if (params.experienceSlug) url.searchParams.set('experienceSlug', params.experienceSlug);

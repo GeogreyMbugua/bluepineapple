@@ -1,10 +1,22 @@
+export type {
+  AuthorizationResult,
+  CaptureResult,
+  PaymentProviderContext,
+  RefundResult,
+  WebhookResult,
+} from './types';
+
+export { BasePaymentProvider } from './base.provider';
+export { MpesaPaymentProvider } from './mpesa.provider';
 export {
-  PaymentProviderFactory,
-  BasePaymentProvider,
   CashPaymentProvider,
   BankTransferPaymentProvider,
-  MpesaPaymentProvider,
   StripePaymentProvider,
   FlutterwavePaymentProvider,
   PesapalPaymentProvider,
-} from "./payment.providers";
+} from './stub.providers';
+export { PaymentProviderFactory } from './factory';
+export type { ProviderFactoryDeps } from './factory';
+
+/** @deprecated Prefer importing from modular files; kept for compatibility. */
+export { PaymentProviderFactory as default } from './factory';

@@ -7,10 +7,10 @@ export default async function AdminLayout({
 }: {
   children: React.ReactNode;
 }) {
-  await requirePortalSession('admin');
+  const user = await requirePortalSession('admin');
 
   return (
-    <AdminShell>
+    <AdminShell user={user}>
       {children}
       <AdminBookingNotifications />
     </AdminShell>

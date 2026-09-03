@@ -29,7 +29,7 @@ export async function logout(): Promise<void> {
   await authApi.logout();
 }
 
-export async function getCurrentUser(): Promise<AuthUser> {
+export async function getCurrentUser(): Promise<AuthUser | null> {
   const response = await authApi.getCurrentUser();
-  return response.data;
+  return response.data ?? null;
 }

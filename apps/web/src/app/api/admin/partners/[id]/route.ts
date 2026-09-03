@@ -1,5 +1,6 @@
 import { NextRequest } from 'next/server';
 import { requireAdminAuth } from '@/lib/api/admin-helpers';
+import { getAdminPartnerDetail } from '@/lib/admin/partners';
 import {
   partnerService,
   partnerLifecycleService,
@@ -11,11 +12,6 @@ const PartnerActionSchema = z.object({
   action: z.enum(['activate', 'suspend', 'terminate']),
   reason: z.string().trim().max(500).optional(),
 });
-
-function maskSensitiveValue(value: string | null): string | null {
-  if (!value) return null;
-  return `••••${value.slice(-4)}`;
-}
 
 export async function GET(
   request: NextRequest,
@@ -33,39 +29,18 @@ export async function GET(
   }
 
   try {
-    const partner = await partnerService.findById(id);
-    if (!partner) {
+    const data = await getAdminPartnerDetail(id);
+    return Response.json({
+      data,
+      timestamp: new Date().toISOString(),
+    });
+  } catch (error) {
+    if (error instanceof Error && error.message === 'Partner not found') {
       return Response.json(
         { error: { code: 'NOT_FOUND', message: 'Partner not found' } },
         { status: 404 },
       );
     }
-
-    return Response.json({
-      data: {
-        id: partner.id,
-        userId: partner.userId,
-        partnerCode: partner.partnerCode,
-        companyName: partner.companyName,
-        commissionRate: Number(partner.commissionRate),
-        status: partner.status,
-        joinedAt: partner.joinedAt,
-        createdAt: partner.createdAt,
-        updatedAt: partner.updatedAt,
-        user: partner.user,
-        clerkLinked: Boolean(partner.user?.clerkUserId),
-        bookingCount: partner._count.bookings,
-        rewardCount: partner._count.partnerRewards,
-        payoutAccounts: partner.payoutAccounts.map((account) => ({
-          ...account,
-          accountNumber: maskSensitiveValue(account.accountNumber),
-          mpesaNumber: maskSensitiveValue(account.mpesaNumber),
-        })),
-        statusHistory: partner.statusHistory,
-      },
-      timestamp: new Date().toISOString(),
-    });
-  } catch {
     return Response.json(
       { error: { code: 'INTERNAL_ERROR', message: 'Failed to fetch partner' } },
       { status: 500 },

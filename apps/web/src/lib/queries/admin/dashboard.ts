@@ -1,9 +1,13 @@
 import { queryOptions } from '@tanstack/react-query';
 import type { DashboardData } from '@/components/admin/types';
 
+export function adminDashboardQueryKey() {
+  return ['admin', 'dashboard'] as const;
+}
+
 export function adminDashboardOptions() {
   return queryOptions({
-    queryKey: ['admin', 'dashboard'] as const,
+    queryKey: adminDashboardQueryKey(),
     queryFn: async () => {
       const res = await fetch('/api/admin/dashboard', { cache: 'no-store' });
       if (!res.ok) {

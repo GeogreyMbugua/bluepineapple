@@ -4,6 +4,19 @@ export const stops = ["Mtwapa Beach", "Serena", "Bamburi", "Whitesands", "Pirate
 
 export type Stop = (typeof stops)[number];
 
+/** Full marketing labels for UI (pricing keys stay short). */
+export const stopDisplayNames: Record<Stop, string> = {
+  "Mtwapa Beach": "Mtwapa Beach",
+  Serena: "Serena Hotel",
+  Bamburi: "Bamburi Beach Hotel",
+  Whitesands: "Whitesands Hotel",
+  Pirates: "Pirates Beach",
+  "Mombasa Beach": "Mombasa Beach",
+  Nyali: "Nyali Beach",
+  "English Point": "English Point",
+  "Fort Jesus": "Fort Jesus",
+};
+
 export const fortJesusPickupTimes: Record<Stop, string> = {
   "Mtwapa Beach": "9:30 AM",
   Serena: "9:38 AM",
@@ -18,23 +31,51 @@ export const fortJesusPickupTimes: Record<Stop, string> = {
 
 export const trip = {
   name: "Fort Jesus Water Taxi",
-  tagline: "Hop on along the coast. Arrive at Fort Jesus.",
+  tagline: "Hop On. Hop Off. Your Coast. Your Way.",
+  description:
+    "Explore Mombasa's coastline with flexible stops along the way — board where you are, ride as far as you like.",
   location: "Mombasa, Kenya",
   duration: "~2 hours",
   vessel: {
     name: "Setting Sons",
-    href: "https://bprepo.vercel.app/boats/setting-sons"
+    href: "https://bprepo.vercel.app/boats/setting-sons",
   },
-  departureTime: "9:30 AM daily",
+  departureTime: "9:30 AM",
+  lastReturn: "5:30 PM",
+  coastalStops: 8,
   priceFrom: 500,
   priceUnit: "Per stop, per guest",
+  flyerPath: "/assets/experiences/fortjesus/water-taxi.png",
   inclusions: ["Return Transport", "Professional Guide", "Fort Entry Tickets", "Bottled Water"],
   whatsapp: {
     reserve: "https://wa.me/254708485978?text=Hi%20Blue%20Pineapple%2C%20I%27d%20like%20to%20book%20the%20Fort%20Jesus",
     question: "https://wa.me/254708485978?text=Hi%20Blue%20Pineapple%2C%20I%20have%20a%20question%20about%20Fort%20Jesus",
-    returnTrip: "https://wa.me/254708485978?text=Hi%20Blue%20Pineapple%2C%20I%27d%20like%20to%20book%20the%20Fort%20Jesus%20%E2%80%94%20Return%20Trip"
-  }
+    returnTrip: "https://wa.me/254708485978?text=Hi%20Blue%20Pineapple%2C%20I%27d%20like%20to%20book%20the%20Fort%20Jesus%20%E2%80%94%20Return%20Trip",
+  },
 } as const;
+
+export const quickFacts = [
+  {
+    value: trip.departureTime,
+    label: "Daily departure",
+    detail: "Mtwapa Beach",
+  },
+  {
+    value: String(trip.coastalStops),
+    label: "Coastal stops",
+    detail: "Mtwapa → Fort Jesus",
+  },
+  {
+    value: trip.lastReturn,
+    label: "Last return",
+    detail: "Fort Jesus",
+  },
+  {
+    value: `From ${trip.priceFrom.toLocaleString()} KES`,
+    label: "Starting fare",
+    detail: "1 stop · per adult",
+  },
+] as const;
 
 export const quickFares = [
   { label: "1 segment", price: 500 },
@@ -141,22 +182,32 @@ export const safety = [
 export const offers = ["10% OFF couple bookings", "20% OFF group/family bookings (4+ adults)", "5% OFF children 5-15", "FREE under 5 years"];
 
 export const tripDetails = [
-  { label: "Departure Point", value: "Mtwapa Beach — 9:30 AM daily" },
+  { label: "Departure Point", value: `Mtwapa Beach — ${trip.departureTime} daily` },
   { label: "Arrival", value: "Fort Jesus — 11:30 AM (advertised)" },
-  { label: "Journey", value: "Mtwapa Beach → Fort Jesus (8 travel segments)" },
-  { label: "Vessel", value: "Setting Sons (35 seats; 20 online)" }
+  { label: "Journey", value: `Mtwapa Beach → Fort Jesus (${trip.coastalStops} travel segments)` },
+  { label: "Vessel", value: "Setting Sons (35 seats; 20 online)" },
 ];
 
 export { formatKsh } from "../../../../../lib/pricing/engine";
 
-export function calculateBooking(origin: Stop, destination: Stop, adults: number, children: number, infants: number = 0, returnTicket: boolean) {
+export function calculateBooking(
+  origin: Stop,
+  destination: Stop,
+  adults: number,
+  children: number,
+  infants: number = 0,
+  returnTicket: boolean,
+  options: { applyDiscounts?: boolean } = {},
+) {
+  const applyDiscounts = options.applyDiscounts ?? true;
   const result = calculatePricing({
     origin,
     destination,
     adults,
     children,
     infants,
-    returnTicket
+    returnTicket,
+    applyDiscounts,
   });
 
   return {
@@ -178,7 +229,11 @@ export function calculateBooking(origin: Stop, destination: Stop, adults: number
     baseLabel: formatKsh(result.baseFare),
     adultLabel: formatKsh(returnTicket ? result.returnAdultFare : result.oneWayAdultFare),
     childLabel: formatKsh(returnTicket ? result.returnChildFare : result.oneWayChildFare),
-    discountLabel: result.appliedDiscounts.length > 0 ? result.appliedDiscounts.join(" • ") : "Standard fare applies"
+    discountLabel: applyDiscounts
+      ? result.appliedDiscounts.length > 0
+        ? result.appliedDiscounts.join(" • ")
+        : "Standard fare applies"
+      : "Partner reward pricing — public discounts not applied",
   };
 }
 

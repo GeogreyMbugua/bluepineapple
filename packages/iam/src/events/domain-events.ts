@@ -804,6 +804,8 @@ export interface PaymentCapturedEvent {
   amount: number;
   currency: string;
   capturedAt: string;
+  bookingId?: string;
+  mpesaReceiptNumber?: string;
 }
 
 export interface PaymentFailedEvent {

@@ -6,9 +6,18 @@ export interface UsersOptionsParams {
   includePendingVerification?: boolean;
 }
 
+export function adminUsersQueryKey(params: UsersOptionsParams = {}) {
+  return [
+    'admin',
+    'users',
+    params.includePartners ?? false,
+    params.includePendingVerification ?? false,
+  ] as const;
+}
+
 export function adminUsersOptions(params: UsersOptionsParams = {}) {
   return queryOptions({
-    queryKey: ['admin', 'users', params.includePartners ?? false, params.includePendingVerification ?? false] as const,
+    queryKey: adminUsersQueryKey(params),
     queryFn: async () => {
       const searchParams = new URLSearchParams();
       if (params.includePartners) searchParams.set('includePartners', 'true');

@@ -1,8 +1,8 @@
-import Link from 'next/link';
-import { getSignInPath } from '@/lib/auth/portals';
+import { AccountPendingActions } from '@/components/auth/account-pending-actions';
+import type { Portal } from '@/lib/auth/portals';
 
 type AccountPendingProps = {
-  portal?: 'admin' | 'partner';
+  portal?: Portal;
 };
 
 export function AccountPending({ portal }: AccountPendingProps) {
@@ -20,17 +20,7 @@ export function AccountPending({ portal }: AccountPendingProps) {
           Ask an administrator to provision your account first, then sign in again with the same
           email address.
         </p>
-        <div className="flex flex-col gap-2 pt-2">
-          <Link
-            href={getSignInPath(portal)}
-            className="inline-flex items-center justify-center rounded-lg bg-cyan-950 px-4 py-2 text-sm font-medium text-white hover:bg-cyan-900"
-          >
-            Back to sign in
-          </Link>
-          <Link href="/" className="text-center text-sm text-dark-6 hover:text-dark">
-            Return to homepage
-          </Link>
-        </div>
+        <AccountPendingActions portal={portal} />
       </div>
     </div>
   );

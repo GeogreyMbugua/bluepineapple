@@ -39,6 +39,20 @@ export class PaymentIntentRepository {
     return prisma.paymentIntent.findMany({
       where: { bookingId },
       orderBy: { createdAt: "desc" },
+      include: { payments: true },
+    });
+  }
+
+  async findPendingMpesaOlderThan(cutoff: Date, limit = 50) {
+    return prisma.paymentIntent.findMany({
+      where: {
+        providerType: "MPESA",
+        status: "PENDING",
+        createdAt: { lte: cutoff },
+      },
+      orderBy: { createdAt: "asc" },
+      take: limit,
+      include: { payments: true },
     });
   }
 

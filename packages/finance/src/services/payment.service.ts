@@ -5,7 +5,7 @@ import {
   paymentProviderResponseRepository,
   financeAuditLogRepository,
 } from "@blue-pineapple/database";
-import { PaymentProviderFactory } from "../payment-providers/payment.providers";
+import { PaymentProviderFactory } from "../payment-providers";
 import { eventBus } from "@blue-pineapple/iam";
 import { PaymentPolicy } from "../policies";
 import type { PaymentCapturedEvent } from "../events";

@@ -1,5 +1,6 @@
 import { NextRequest } from 'next/server';
 import { requireAdminAuth } from '@/lib/api/admin-helpers';
+import { getAdminUsers } from '@/lib/admin/users';
 import { userService } from '@blue-pineapple/iam';
 import { roleManagementService } from '@blue-pineapple/iam';
 import { CreateUserSchema } from '@blue-pineapple/iam';
@@ -15,51 +16,13 @@ export async function GET(request: NextRequest) {
     const includePendingVerification = searchParams.get('includePendingVerification') === 'true';
     const search = searchParams.get('search')?.toLowerCase() || '';
 
-    let users = await userService.list();
-
-    if (!includePartners) {
-      users = users.filter((u) => !(u as unknown as { partnerProfile?: unknown }).partnerProfile);
-    }
-
-    let formatted = users.map((u) => {
-      const roles: string[] = [];
-      const userWithRoles = u as unknown as { roles?: { role?: { name?: string } }[] };
-      if (userWithRoles.roles) {
-        for (const r of userWithRoles.roles) {
-          if (r.role?.name) {
-            roles.push(r.role.name);
-          }
-        }
-      }
-      const fullName = `${u.firstName ?? ''} ${u.lastName ?? ''}`.toLowerCase();
-      const email = (u.email ?? '').toLowerCase();
-      const phone = (u.phone ?? '').toLowerCase();
-
-      return {
-        id: u.id,
-        firstName: u.firstName,
-        lastName: u.lastName,
-        email: u.email,
-        phone: u.phone,
-        status: u.status,
-        roles,
-        lastLoginAt: u.lastLoginAt,
-        createdAt: u.createdAt,
-        _search: `${fullName} ${email} ${phone}`,
-      };
+    const users = await getAdminUsers({
+      includePartners,
+      includePendingVerification,
+      search,
     });
 
-    if (!includePendingVerification) {
-      formatted = formatted.filter((u) => u.status !== 'PENDING_VERIFICATION');
-    }
-
-    if (search) {
-      formatted = formatted.filter((u) => u._search.includes(search));
-    }
-
-    const result = formatted.map(({ _search, ...rest }) => rest);
-
-    return Response.json({ data: { users: result, total: result.length }, timestamp: new Date().toISOString() });
+    return Response.json({ data: { users, total: users.length }, timestamp: new Date().toISOString() });
   } catch {
     return Response.json(
       { error: { code: 'INTERNAL_ERROR', message: 'Failed to fetch users' } },

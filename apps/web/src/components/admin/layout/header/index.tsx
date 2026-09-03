@@ -4,9 +4,10 @@ import { usePathname } from 'next/navigation';
 import { useSidebarContext } from '@/components/admin/layout/sidebar/sidebar-context';
 import { MenuIcon } from '@/components/admin/layout/header/icons';
 import { UserInfo } from '@/components/admin/layout/header/user-info';
+import type { AuthUser } from '@/features/auth/types';
 import Image from 'next/image';
 
-export function Header() {
+export function Header({ user }: { readonly user: AuthUser }) {
   const { toggleSidebar, isMobile } = useSidebarContext();
   const pathname = usePathname();
 
@@ -49,7 +50,7 @@ export function Header() {
 
       <div className="2xsm:gap-4 flex flex-1 items-center justify-end gap-2">
         <div className="shrink-0">
-          <UserInfo />
+          <UserInfo user={user} />
         </div>
       </div>
     </header>

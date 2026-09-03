@@ -9,14 +9,16 @@ import { ArrowLeftIcon } from './icons';
 import { MenuItem } from './menu-item';
 import { useSidebarContext } from './sidebar-context';
 import { useSession } from '@/providers/session-provider';
+import type { AuthUser } from '@/features/auth/types';
 import { cn } from '@/lib/utils';
 
-export function Sidebar() {
+export function Sidebar({ user: serverUser }: { readonly user: AuthUser }) {
   const pathname = usePathname();
   const { setIsOpen, isOpen, isMobile, toggleSidebar } = useSidebarContext();
   const open = isMobile ? isOpen : true;
   const [manuallyExpanded, setManuallyExpanded] = useState<string[]>([]);
-  const { user } = useSession();
+  const { user: sessionUser } = useSession();
+  const user = sessionUser ?? serverUser;
 
   const navData = useMemo(() => buildNavData(user), [user]);
 

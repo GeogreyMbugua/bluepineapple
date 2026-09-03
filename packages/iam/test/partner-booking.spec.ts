@@ -16,10 +16,19 @@ function setupMocks() {
       bookingGuest: { createMany: vi.fn() },
       notificationOutbox: { create: vi.fn() },
       $transaction: vi.fn(async (fn: any) => fn({
-        booking: { create: vi.fn().mockResolvedValue({ id: "b1", bookingReference: "BP-TEST", status: "PENDING" }) },
+        booking: {
+          create: vi.fn().mockResolvedValue({
+            id: "b1",
+            bookingReference: "BP-TEST",
+            status: "PENDING",
+            paymentStatus: "PENDING",
+            totalAmount: 3000,
+          }),
+        },
         bookingStatusHistory: { create: vi.fn() },
         bookingGuest: { createMany: vi.fn() },
         notificationOutbox: { create: vi.fn() },
+        departure: { updateMany: vi.fn().mockResolvedValue({ count: 1 }), findUnique: vi.fn() },
       })),
     },
     bookingRepository: {
@@ -31,6 +40,24 @@ function setupMocks() {
       findByIdWithCapacity: vi.fn(), decrementAvailableCapacity: vi.fn(), incrementAvailableCapacity: vi.fn(),
     },
     partnerRepository: { findById: vi.fn().mockResolvedValue({ id: "partner-1", status: "ACTIVE" }) },
+    runInTransaction: vi.fn(async (fn: any) => fn({
+      booking: {
+        create: vi.fn().mockResolvedValue({
+          id: "b1",
+          bookingReference: "BP-TEST",
+          status: "PENDING",
+          paymentStatus: "PENDING",
+          totalAmount: 3000,
+        }),
+      },
+      bookingStatusHistory: { create: vi.fn() },
+      bookingGuest: { createMany: vi.fn() },
+      notificationOutbox: { create: vi.fn() },
+      departure: {
+        updateMany: vi.fn().mockResolvedValue({ count: 1 }),
+        findUnique: vi.fn().mockResolvedValue({ id: "dep-1", onlineCapacity: 20 }),
+      },
+    })),
   }));
 
   vi.doMock("../src/audit/audit.service", () => ({ auditService: { logRoleAssigned: vi.fn() } }));
@@ -59,13 +86,52 @@ describe("partner booking workflow", () => {
     expect(result.bookingReference).toMatch(/^BP-/);
   });
 
-  it("prevents duplicate bookings for same guest on same departure", async () => {
+  it("reuses an unpaid booking for the same guest and departure", async () => {
     const { bookingService } = await import("../src/bookings/booking.service");
     const db = await import("@blue-pineapple/database") as any;
-    db.bookingRepository.findConflicting.mockResolvedValue({ id: "existing" });
+    db.bookingRepository.findConflicting.mockResolvedValue({
+      id: "existing",
+      bookingReference: "BP-EXISTING",
+      paymentStatus: "PENDING",
+      status: "PENDING",
+      totalAmount: 2000,
+    });
+    const result = await bookingService.createBooking({
+      departureId: "dep-1",
+      partnerId: "partner-1",
+      totalGuests: 2,
+      totalAmount: 2000,
+      guestId: "g1",
+      source: "PARTNER",
+    });
+    expect(result).toMatchObject({
+      id: "existing",
+      bookingReference: "BP-EXISTING",
+      reused: true,
+      totalAmount: 2000,
+    });
+  });
+
+  it("blocks a second booking when the guest already paid for the departure", async () => {
+    const { bookingService } = await import("../src/bookings/booking.service");
+    const db = await import("@blue-pineapple/database") as any;
+    db.bookingRepository.findConflicting.mockResolvedValue({
+      id: "existing",
+      bookingReference: "BP-PAID",
+      paymentStatus: "PAID",
+      status: "CONFIRMED",
+      totalAmount: 2000,
+    });
     await expect(
-      bookingService.createBooking({ departureId: "dep-1", partnerId: "partner-1", totalGuests: 2, totalAmount: 2000, guestId: "g1", source: "PARTNER" })
-    ).rejects.toThrow("Guest already has a booking for this departure");
+      bookingService.createBooking({
+        departureId: "dep-1",
+        partnerId: "partner-1",
+        totalGuests: 2,
+        totalAmount: 2000,
+        guestId: "g1",
+        source: "PARTNER",
+      }),
+    ).rejects.toThrow(/already have a confirmed booking/i);
   });
 
   it("prevents booking on non-SCHEDULED departure", async () => {

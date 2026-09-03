@@ -1,19 +1,15 @@
-import { getServerSession } from '@/lib/auth';
 import { UsersTableContent } from '@/components/admin/users/users-table-content';
 import { HydrationBoundary, dehydrate } from '@tanstack/react-query';
 import { getQueryClient } from '@/lib/queries/get-query-client';
-import { adminUsersOptions } from '@/lib/queries/admin/users';
+import { adminUsersServerOptions } from '@/lib/queries/admin/users.server';
 
 export const dynamic = 'force-dynamic';
 
 export default async function AdminUsersPage() {
-  const session = await getServerSession();
-  if (!session.user) {
-    return null;
-  }
-
   const queryClient = getQueryClient();
-  await queryClient.prefetchQuery(adminUsersOptions({ includePartners: false, includePendingVerification: false }));
+  await queryClient.prefetchQuery(
+    adminUsersServerOptions({ includePartners: false, includePendingVerification: false }),
+  );
 
   return (
     <div className="space-y-4 sm:space-y-6">

@@ -58,6 +58,7 @@ export * from "./repositories/payment-intent.repository.ts";
 export * from "./repositories/payment.repository.ts";
 export * from "./repositories/payment-provider.repository.ts";
 export * from "./repositories/payment-provider-response.repository.ts";
+export * from "./repositories/payment-webhook-event.repository.ts";
 export * from "./repositories/ledger-entry.repository.ts";
 export * from "./repositories/wallet.repository.ts";
 export * from "./repositories/wallet-transaction.repository.ts";

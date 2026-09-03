@@ -9,19 +9,25 @@ import {
 import { cn } from '@/lib/utils';
 import { useState } from 'react';
 import { useSession } from '@/providers/session-provider';
+import type { AuthUser } from '@/features/auth/types';
 import { LogOutIcon, UserIcon } from './icons';
 
-export function UserInfo() {
+function displayName(user: AuthUser): string {
+  return `${user.firstName ?? ''} ${user.lastName ?? ''}`.trim() || user.email || 'Admin';
+}
+
+export function UserInfo({ user: serverUser }: { readonly user: AuthUser }) {
   const [isOpen, setIsOpen] = useState(false);
-  const { user, logout } = useSession();
+  const { user: sessionUser, logout } = useSession();
+  const user = sessionUser ?? serverUser;
 
   async function handleLogout() {
     setIsOpen(false);
     await logout();
   }
 
-  const userName = user ? `${user.firstName ?? ''} ${user.lastName ?? ''}`.trim() || user.email || 'Admin' : 'Admin';
-  const userEmail = user?.email || '';
+  const userName = displayName(user);
+  const userEmail = user.email || '';
 
   return (
     <Dropdown isOpen={isOpen} setIsOpen={setIsOpen}>

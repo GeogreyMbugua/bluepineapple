@@ -76,7 +76,7 @@ export class UserRepository {
   }
 
   /**
-   * Find a user by their Clerk user ID.
+   * Find a user by their Clerk user ID, including role names and permission keys.
    */
   async findByClerkUserId(clerkUserId: string) {
     return prisma.user.findUnique({
@@ -98,6 +98,15 @@ export class UserRepository {
             role: {
               select: {
                 name: true,
+                permissions: {
+                  select: {
+                    permission: {
+                      select: {
+                        key: true,
+                      },
+                    },
+                  },
+                },
               },
             },
           },
