@@ -20,8 +20,10 @@ import {
   calculateBooking,
   fortJesusPickupTimes,
   getTodayDate,
+  trip,
   type Stop,
 } from '../_data/trip';
+import { isMpesaStkEnabledPublic } from '@/lib/payments/mpesa-flags';
 
 type BookingStatus =
   | 'idle'
@@ -29,6 +31,8 @@ type BookingStatus =
   | 'awaiting_payment'
   | 'success'
   | 'error';
+
+type ConfirmationMode = 'paid' | 'request' | 'admin';
 
 type MpesaStkResponse = {
   intentId: string;
@@ -88,6 +92,7 @@ export function BookingCard({
   showHeader = true,
 }: BookingCardProps = {}) {
   const isAdminPartner = mode === 'admin-partner';
+  const mpesaStkEnabled = isMpesaStkEnabledPublic();
   const applyPublicDiscounts = !isAdminPartner;
   const [partnerId, setPartnerId] = useState(lockedPartner?.id ?? defaultPartnerId);
   const resolvedPartnerId = lockedPartner?.id ?? partnerId;
@@ -103,6 +108,8 @@ export function BookingCard({
   const [mobileStep, setMobileStep] = useState<MobileBookingStep>(1);
   const [contactModalOpen, setContactModalOpen] = useState(false);
   const [status, setStatus] = useState<BookingStatus>('idle');
+  const [confirmationMode, setConfirmationMode] =
+    useState<ConfirmationMode>('request');
   const [error, setError] = useState<string | null>(null);
   const [bookingReference, setBookingReference] = useState<string | null>(null);
   const [bookingId, setBookingId] = useState<string | null>(null);
@@ -155,6 +162,7 @@ export function BookingCard({
     setMobileStep(1);
     setContactModalOpen(false);
     setStatus('idle');
+    setConfirmationMode('request');
     setError(null);
     setBookingReference(null);
     setBookingId(null);
@@ -221,6 +229,7 @@ export function BookingCard({
 
         if (paymentStatus === 'CAPTURED') {
           setMpesaReceipt(json.data?.mpesaReceiptNumber ?? null);
+          setConfirmationMode('paid');
           setStatus('success');
           onBookingSuccess?.();
           return;
@@ -330,7 +339,7 @@ export function BookingCard({
   };
 
   const unpaidBookingBanner =
-    hasUnpaidBooking && bookingReference ? (
+    hasUnpaidBooking && bookingReference && mpesaStkEnabled ? (
       <div
         className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-left"
         role="status"
@@ -457,7 +466,7 @@ export function BookingCard({
           : {
               source: 'DIRECT' as const,
               mpesaPhone: phone,
-              initiateMpesaStk: true,
+              initiateMpesaStk: mpesaStkEnabled,
             }),
       };
 
@@ -478,6 +487,7 @@ export function BookingCard({
           id: string;
           bookingReference: string;
           reused?: boolean;
+          mpesaStkEnabled?: boolean;
           mpesaStk?: MpesaStkResponse;
           stkError?: string;
         };
@@ -487,13 +497,16 @@ export function BookingCard({
       setBookingReference(json.data.bookingReference);
 
       if (isAdminPartner) {
+        setConfirmationMode('admin');
         setStatus('success');
         onBookingSuccess?.();
         return;
       }
 
+      const stkLive = json.data.mpesaStkEnabled ?? mpesaStkEnabled;
       const stk = json.data.mpesaStk;
-      if (stk?.intentId) {
+      if (stkLive && stk?.intentId) {
+        setConfirmationMode('paid');
         setPaymentIntentId(stk.intentId);
         setPaymentHint(
           json.data.reused
@@ -505,11 +518,19 @@ export function BookingCard({
         return;
       }
 
-      setError(
-        json.data.stkError ||
-          'Booking was created, but the M-Pesa prompt could not be started. You can retry payment.',
-      );
-      setStatus('error');
+      if (stkLive) {
+        setError(
+          json.data.stkError ||
+            'Booking was created, but the M-Pesa prompt could not be started. You can retry payment.',
+        );
+        setStatus('error');
+        return;
+      }
+
+      // STK parked — save the booking request without implying money was taken.
+      setConfirmationMode('request');
+      setStatus('success');
+      setContactModalOpen(false);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Booking failed');
       setStatus('error');
@@ -517,6 +538,10 @@ export function BookingCard({
   };
 
   const retryMpesaPayment = async () => {
+    if (!mpesaStkEnabled) {
+      setError('Online M-Pesa payment is temporarily unavailable.');
+      return;
+    }
     if (!bookingId || !guest.phoneNumber.trim()) {
       setError('Missing booking or phone number for payment retry.');
       return;
@@ -617,12 +642,18 @@ export function BookingCard({
             id="booking-success-title"
             className="text-lg font-semibold text-slate-950"
           >
-            {isAdminPartner ? 'Booking request received' : 'Payment received'}
+            {confirmationMode === 'admin'
+              ? 'Booking request received'
+              : confirmationMode === 'paid'
+                ? 'Payment received'
+                : 'Booking request received'}
           </p>
           <p className="mt-2 text-sm leading-relaxed text-slate-600">
-            {isAdminPartner
+            {confirmationMode === 'admin'
               ? 'The partner booking has been created and is pending confirmation.'
-              : 'Your M-Pesa payment went through. You’re booked — we’ll follow up with trip details.'}
+              : confirmationMode === 'paid'
+                ? 'Your M-Pesa payment went through. You’re booked — we’ll follow up with trip details.'
+                : 'Thanks — your trip request is saved. Our team will confirm availability and payment with you shortly.'}
           </p>
           {bookingReference && (
             <p className="mt-4 text-sm text-slate-600">
@@ -646,6 +677,16 @@ export function BookingCard({
           <p className="mt-1 text-sm text-slate-600">
             Total: <span className="font-semibold">{summary?.totalLabel}</span>
           </p>
+          {confirmationMode === 'request' && (
+            <a
+              href={trip.whatsapp.reserve}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="mt-5 inline-flex min-h-11 w-full items-center justify-center rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-sm font-semibold text-slate-800 transition hover:border-slate-400"
+            >
+              Continue on WhatsApp
+            </a>
+          )}
           <p className="mt-4 text-xs text-slate-500">
             Please arrive 15 minutes before departure. Life jackets will be
             provided.
@@ -654,6 +695,7 @@ export function BookingCard({
             type="button"
             onClick={() => {
               setStatus('idle');
+              setConfirmationMode('request');
               setBookingReference(null);
               setBookingId(null);
               setPaymentIntentId(null);
@@ -1023,7 +1065,9 @@ export function BookingCard({
                       }}
                       className="inline-flex min-h-12 flex-[1.5] items-center justify-center gap-2 rounded-xl bg-[#0d3b66] px-4 text-sm font-semibold text-white transition hover:bg-[#0b335a] disabled:cursor-not-allowed disabled:opacity-45"
                     >
-                      {hasUnpaidBooking ? 'Pay with M-Pesa' : 'CHECK FARE'}{' '}
+                      {hasUnpaidBooking && mpesaStkEnabled
+                        ? 'Pay with M-Pesa'
+                        : 'CHECK FARE'}{' '}
                       <ArrowRight size={17} />
                     </button>
                   </div>
@@ -1231,7 +1275,7 @@ export function BookingCard({
             Submit request
             <ArrowRight size={16} aria-hidden="true" />
           </>
-        ) : hasUnpaidBooking ? (
+        ) : hasUnpaidBooking && mpesaStkEnabled ? (
           <>
             Review &amp; pay again
             <ArrowRight size={16} aria-hidden="true" />
@@ -1272,12 +1316,16 @@ export function BookingCard({
                 >
                   {isAdminPartner
                     ? 'Where should we send your booking details?'
-                    : 'Pay with M-Pesa'}
+                    : mpesaStkEnabled
+                      ? 'Pay with M-Pesa'
+                      : 'Confirm your details'}
                 </h4>
                 <p className="mt-1 text-sm leading-relaxed text-slate-600">
                   {isAdminPartner
                     ? 'Just a few details and we’ll send your request to the team.'
-                    : 'Enter your details. We’ll send an M-Pesa PIN prompt to your phone to confirm payment.'}
+                    : mpesaStkEnabled
+                      ? 'Enter your details. We’ll send an M-Pesa PIN prompt to your phone to confirm payment.'
+                      : 'Enter your details to save the booking request. We’ll follow up to confirm payment.'}
                 </p>
               </div>
               <button
@@ -1364,7 +1412,9 @@ export function BookingCard({
                 />
                 {isAdminPartner
                   ? 'Sending your booking request…'
-                  : 'Creating booking and sending M-Pesa prompt…'}
+                  : mpesaStkEnabled
+                    ? 'Creating booking and sending M-Pesa prompt…'
+                    : 'Saving your booking request…'}
               </div>
             )}
 
@@ -1387,12 +1437,18 @@ export function BookingCard({
                 {status === 'loading' ? (
                   <>
                     <Loader2 size={14} className="animate-spin" />
-                    {isAdminPartner ? 'Sending...' : 'Sending prompt...'}
+                    {isAdminPartner
+                      ? 'Sending...'
+                      : mpesaStkEnabled
+                        ? 'Sending prompt...'
+                        : 'Submitting...'}
                   </>
                 ) : isAdminPartner ? (
                   'Send request'
-                ) : (
+                ) : mpesaStkEnabled ? (
                   'Pay with M-Pesa'
+                ) : (
+                  'Submit booking'
                 )}
               </button>
             </div>

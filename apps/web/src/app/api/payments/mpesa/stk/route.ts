@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { bookingRepository } from '@blue-pineapple/database';
 import { mpesaStkService } from '@blue-pineapple/finance';
+import { isMpesaStkEnabled } from '@/lib/payments/mpesa-flags';
 
 const bodySchema = z.object({
   bookingId: z.string().uuid(),
@@ -15,6 +16,19 @@ const bodySchema = z.object({
  * Body: { bookingId, phone, amount?, transactionDesc? }
  */
 export async function POST(req: NextRequest) {
+  if (!isMpesaStkEnabled()) {
+    return NextResponse.json(
+      {
+        error: {
+          code: 'MPESA_STK_DISABLED',
+          message:
+            'Online M-Pesa payment is temporarily unavailable. Your booking can still be confirmed by our team.',
+        },
+      },
+      { status: 503 },
+    );
+  }
+
   try {
     const json = await req.json();
     const body = bodySchema.parse(json);

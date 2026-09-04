@@ -6,6 +6,7 @@ import { CreateBookingSchema } from '@blue-pineapple/iam';
 import { initializeIam } from '@/lib/server/iam-init';
 import { z } from 'zod';
 import { calculatePricing, type Stop } from '@/lib/pricing/engine';
+import { isMpesaStkEnabled } from '@/lib/payments/mpesa-flags';
 
 const FortJesusBookingMetadataSchema = z.object({
   experienceSlug: z.literal('fort-jesus'),
@@ -217,6 +218,7 @@ export async function POST(request: NextRequest) {
           : null;
 
     const shouldInitiateStk =
+      isMpesaStkEnabled() &&
       Boolean(mpesaPhone) &&
       body.initiateMpesaStk !== false &&
       source === 'DIRECT';
@@ -251,6 +253,7 @@ export async function POST(request: NextRequest) {
           totalAmount: chargeAmount.toString(),
           pricing,
           reused: result.reused,
+          mpesaStkEnabled: isMpesaStkEnabled(),
           ...(stk && { mpesaStk: stk }),
           ...(stkError && { stkError }),
         },
